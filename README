@@ -1,0 +1,9 @@
+
+The Android port of the Frozen Bubble game.  Developed with SDK v. 1.1_r1.
+The code is based on the Java version of Frozen Bubble created by Glenn
+Sanson.  The original Frozen Bubble was created by Guillaume Cottenceau
+(programming), Alexis Younes and Amaury Amblard-Ladurantie (artwork) and
+Matthias Le Bidan (soundtrack).
+
+The Android port, just like the original Frozen Bubble, is covered by
+GNU GPL v2.

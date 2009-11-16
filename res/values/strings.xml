@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FrozenBubble</string>
+    <string name="menu_new_game">New Game</string>
+    <string name="menu_colorblind_mode_on">Colorblind Mode On</string>
+    <string name="menu_colorblind_mode_off">Colorblind Mode Off</string>
+    <string name="menu_fullscreen_on">Fullscreen On</string>
+    <string name="menu_fullscreen_off">Fullscreen Off</string>
+    <string name="menu_sound_on">Sound On</string>
+    <string name="menu_sound_off">Sound Off</string>
+    <string name="menu_about">About Frozen Bubble</string>
+    <string name="menu_dont_rush_me">Don't Rush Me</string>
+    <string name="menu_rush_me">Rush Me</string>
+</resources>
