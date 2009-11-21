@@ -81,7 +81,7 @@ public class PenguinSprite extends Sprite
 
   public PenguinSprite(BmpWrap sprites, Random rand)
   {
-    super(new Rect(360, 436, 360 + 57, 435 + 45));
+    super(new Rect(361, 436, 361 + 55, 436 + 43));
 
     this.spritesImage = sprites;
     this.rand = rand;
@@ -96,7 +96,7 @@ public class PenguinSprite extends Sprite
                        int currentPenguin, int count,
                        int finalState, int nextPosition)
   {
-    super(new Rect(360, 436, 360 + 57, 435 + 45));
+    super(new Rect(361, 436, 361 + 55, 436 + 43));
 
     this.spritesImage = sprites;
     this.rand = rand;

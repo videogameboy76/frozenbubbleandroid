@@ -3,7 +3,9 @@
       package="org.jfedor.frozenbubble"
       android:versionCode="1"
       android:versionName="1.0">
-    <application android:label="@string/app_name">
+    <uses-sdk android:minSdkVersion="2" />
+    <application android:label="@string/app_name"
+                 android:icon="@drawable/app_frozen_bubble">
         <activity android:name=".FrozenBubble"
                   android:configChanges="orientation|keyboardHidden"
                   android:label="@string/app_name">
