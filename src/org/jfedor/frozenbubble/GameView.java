@@ -182,7 +182,7 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     public GameThread(SurfaceHolder surfaceHolder) {
-      Log.i("frozen-bubble", "GameThread()");
+      //Log.i("frozen-bubble", "GameThread()");
       mSurfaceHolder = surfaceHolder;
       Resources res = mContext.getResources();
       setState(STATE_PAUSE);
@@ -330,7 +330,7 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
     private void resizeBitmaps()
     {
-      Log.i("frozen-bubble", "resizeBitmaps()");
+      //Log.i("frozen-bubble", "resizeBitmaps()");
       scaleFrom(mBackground, mBackgroundOrig);
       for (int i = 0; i < mBubblesOrig.length; i++) {
         scaleFrom(mBubbles[i], mBubblesOrig[i]);
@@ -353,7 +353,7 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
       scaleFrom(mCompressor, mCompressorOrig);
       scaleFrom(mLife, mLifeOrig);
       scaleFrom(mFontImage, mFontImageOrig);
-      Log.i("frozen-bubble", "resizeBitmaps done.");
+      //Log.i("frozen-bubble", "resizeBitmaps done.");
       mImagesReady = true;
     }
 
@@ -504,7 +504,7 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
         }
 
         if (mMode == STATE_RUNNING) {
-          Log.i("frozen-bubble", "STATE RUNNING");
+          //Log.i("frozen-bubble", "STATE RUNNING");
           if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
             mLeft = true;
             mWasLeft = true;
@@ -687,11 +687,11 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
     {
       //Log.i("frozen-bubble", "doDraw()");
       if (!mImagesReady) {
-        Log.i("frozen-bubble", "!mImagesReady, returning");
+        //Log.i("frozen-bubble", "!mImagesReady, returning");
         return;
       }
       if (mDisplayDX > 0 || mDisplayDY > 0) {
-        Log.i("frozen-bubble", "Drawing black background.");
+        //Log.i("frozen-bubble", "Drawing black background.");
         canvas.drawRGB(0, 0, 0);
       }
       drawBackground(canvas);
@@ -846,7 +846,7 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
   public GameView(Context context, AttributeSet attrs) {
     super(context, attrs);
-    Log.i("frozen-bubble", "GameView constructor");
+    //Log.i("frozen-bubble", "GameView constructor");
 
     mContext = context;
     SurfaceHolder holder = getHolder();
@@ -890,7 +890,7 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
   @Override
   public void onWindowFocusChanged(boolean hasWindowFocus) {
-    Log.i("frozen-bubble", "GameView.onWindowFocusChanged()");
+    //Log.i("frozen-bubble", "GameView.onWindowFocusChanged()");
     if (!hasWindowFocus) {
       thread.pause();
     }
@@ -898,22 +898,22 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
   public void surfaceChanged(SurfaceHolder holder, int format, int width,
                              int height) {
-    Log.i("frozen-bubble", "GameView.surfaceChanged");
+    //Log.i("frozen-bubble", "GameView.surfaceChanged");
     thread.setSurfaceSize(width, height);
   }
 
   public void surfaceCreated(SurfaceHolder holder) {
-    Log.i("frozen-bubble", "GameView.surfaceCreated()");
+    //Log.i("frozen-bubble", "GameView.surfaceCreated()");
     thread.setSurfaceOK(true);
   }
 
   public void surfaceDestroyed(SurfaceHolder holder) {
-    Log.i("frozen-bubble", "GameView.surfaceDestroyed()");
+    //Log.i("frozen-bubble", "GameView.surfaceDestroyed()");
     thread.setSurfaceOK(false);
   }
 
   public void cleanUp() {
-    Log.i("frozen-bubble", "GameView.cleanUp()");
+    //Log.i("frozen-bubble", "GameView.cleanUp()");
     thread.cleanUp();
     mContext = null;
   }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">FrozenBubble</string>
+    <string name="app_name">Frozen Bubble</string>
     <string name="menu_new_game">New Game</string>
     <string name="menu_colorblind_mode_on">Colorblind Mode On</string>
     <string name="menu_colorblind_mode_off">Colorblind Mode Off</string>

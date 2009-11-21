@@ -175,7 +175,7 @@ public class FrozenGame extends GameScreen {
     byte[][] currentLevel = levelManager.getCurrentLevel();
 
     if (currentLevel == null) {
-      Log.i("frozen-bubble", "Level not available.");
+      //Log.i("frozen-bubble", "Level not available.");
       return;
     }
 
@@ -704,7 +704,13 @@ public class FrozenGame extends GameScreen {
 
     if (movingBubble == null && !endOfGame) {
       hurryTime++;
-
+      // If hurryTime == 2 (1 + 1) we could be in the "Don't rush me"
+      // mode.  Remove the sprite just in case the user switched
+      // to this mode when the "Hurry" sprite was shown, to make it
+      // disappear.
+      if (hurryTime == 2) {
+        removeSprite(hurrySprite);
+      }
       if (hurryTime>=240) {
         if (hurryTime % 40 == 10) {
           addSprite(hurrySprite);

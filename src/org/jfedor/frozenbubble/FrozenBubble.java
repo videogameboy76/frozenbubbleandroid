@@ -239,9 +239,9 @@ public class FrozenBubble extends Activity
   public void onCreate(Bundle savedInstanceState)
   {
     if (savedInstanceState != null) {
-      Log.i("frozen-bubble", "FrozenBubble.onCreate(...)");
+      //Log.i("frozen-bubble", "FrozenBubble.onCreate(...)");
     } else {
-      Log.i("frozen-bubble", "FrozenBubble.onCreate(null)");
+      //Log.i("frozen-bubble", "FrozenBubble.onCreate(null)");
     }
     super.onCreate(savedInstanceState);
     requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -261,20 +261,20 @@ public class FrozenBubble extends Activity
    */
   @Override
   protected void onPause() {
-    Log.i("frozen-bubble", "FrozenBubble.onPause()");
+    //Log.i("frozen-bubble", "FrozenBubble.onPause()");
     super.onPause();
     mGameView.getThread().pause();
   }
 
   @Override
   protected void onStop() {
-    Log.i("frozen-bubble", "FrozenBubble.onStop()");
+    //Log.i("frozen-bubble", "FrozenBubble.onStop()");
     super.onStop();
   }
 
   @Override
   protected void onDestroy() {
-    Log.i("frozen-bubble", "FrozenBubble.onDestroy()");
+    //Log.i("frozen-bubble", "FrozenBubble.onDestroy()");
     super.onDestroy();
     if (mGameView != null) {
       mGameView.cleanUp();
@@ -291,7 +291,7 @@ public class FrozenBubble extends Activity
    */
   @Override
   protected void onSaveInstanceState(Bundle outState) {
-    Log.i("frozen-bubble", "FrozenBubble.onSaveInstanceState()");
+    //Log.i("frozen-bubble", "FrozenBubble.onSaveInstanceState()");
     // Just have the View's thread save its state into our Bundle.
     super.onSaveInstanceState(outState);
     mGameThread.saveState(outState);
