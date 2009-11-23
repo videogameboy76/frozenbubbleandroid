@@ -67,6 +67,8 @@
 package org.jfedor.frozenbubble;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -104,6 +106,8 @@ public class FrozenBubble extends Activity
   public final static int MENU_DONT_RUSH_ME = 8;
   public final static int MENU_RUSH_ME = 9;
   public final static int MENU_ABOUT = 10;
+
+  public final static String PREFS_NAME = "frozenbubble";
 
   private static int gameMode = GAME_NORMAL;
   private static boolean soundOn = true;
@@ -270,6 +274,11 @@ public class FrozenBubble extends Activity
   protected void onStop() {
     //Log.i("frozen-bubble", "FrozenBubble.onStop()");
     super.onStop();
+    SharedPreferences sp = getSharedPreferences(PREFS_NAME,
+                                                Context.MODE_PRIVATE);
+    SharedPreferences.Editor editor = sp.edit();
+    editor.putInt("level", mGameThread.getCurrentLevelIndex());
+    editor.commit();
   }
 
   @Override

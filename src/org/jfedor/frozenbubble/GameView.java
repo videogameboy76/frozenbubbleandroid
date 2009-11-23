@@ -71,6 +71,7 @@ import java.io.InputStream;
 import java.io.IOException;
 import android.content.Context;
 import android.content.res.Resources;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -172,6 +173,13 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
     private BubbleFont mFont;
 
     Vector mImageList;
+
+    public int getCurrentLevelIndex()
+    {
+      synchronized (mSurfaceHolder) {
+        return mLevelManager.getLevelIndex();
+      }
+    }
 
     private BmpWrap NewBmpWrap()
     {
@@ -299,7 +307,10 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
         byte[] levels = new byte[size];
         is.read(levels);
         is.close();
-        mLevelManager = new LevelManager(levels);
+        SharedPreferences sp = mContext.getSharedPreferences(
+            FrozenBubble.PREFS_NAME, Context.MODE_PRIVATE);
+        int startingLevel = sp.getInt("level", 0);
+        mLevelManager = new LevelManager(levels, startingLevel);
       } catch (IOException e) {
         // Should never happen.
         throw new RuntimeException(e);
@@ -611,7 +622,7 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
     {
       int y = 433;
       int x;
-      int level = mLevelManager.getLevelIndex();
+      int level = mLevelManager.getLevelIndex() + 1;
       if (level < 10) {
         x = 185;
         mFont.paintChar(Character.forDigit(level, 10), x, y, canvas,
