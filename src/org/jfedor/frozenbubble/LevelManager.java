@@ -66,11 +66,11 @@ public class LevelManager
                 currentLevel = map.getInt("LevelManager-currentLevel");
         }
 
-        public LevelManager(byte[] levels)
+        public LevelManager(byte[] levels, int startingLevel)
         {
                 String allLevels = new String(levels);
 
-                currentLevel = 0;
+                currentLevel = startingLevel;
                 levelList = new Vector();
 
                 int nextLevel = allLevels.indexOf("\n\n");
@@ -172,6 +172,6 @@ public class LevelManager
 
         public int getLevelIndex()
         {
-                return currentLevel+1;
+                return currentLevel;
         }
 }
