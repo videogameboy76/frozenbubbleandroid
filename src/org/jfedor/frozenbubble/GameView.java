@@ -106,7 +106,7 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
     private static final double TRACKBALL_COEFFICIENT = 5;
     private static final double TOUCH_COEFFICIENT = 0.2;
-    private static final double TOUCH_FIRE_Y_THRESHOLD = 240;
+    private static final double TOUCH_FIRE_Y_THRESHOLD = 350;
 
     private int mCanvasHeight = 1;
     private int mCanvasWidth = 1;
