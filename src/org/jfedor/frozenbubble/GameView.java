@@ -189,7 +189,9 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
       return new_img;
     }
 
-    public GameThread(SurfaceHolder surfaceHolder) {
+    public GameThread(SurfaceHolder surfaceHolder, byte[] customLevels,
+                      int startingLevel)
+    {
       //Log.i("frozen-bubble", "GameThread()");
       mSurfaceHolder = surfaceHolder;
       Resources res = mContext.getResources();
@@ -301,19 +303,24 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
       mSoundManager = new SoundManager(mContext);
 
-      try {
-        InputStream is = mContext.getAssets().open("levels.txt");
-        int size = is.available();
-        byte[] levels = new byte[size];
-        is.read(levels);
-        is.close();
-        SharedPreferences sp = mContext.getSharedPreferences(
-            FrozenBubble.PREFS_NAME, Context.MODE_PRIVATE);
-        int startingLevel = sp.getInt("level", 0);
-        mLevelManager = new LevelManager(levels, startingLevel);
-      } catch (IOException e) {
-        // Should never happen.
-        throw new RuntimeException(e);
+      if (null == customLevels) {
+        try {
+          InputStream is = mContext.getAssets().open("levels.txt");
+          int size = is.available();
+          byte[] levels = new byte[size];
+          is.read(levels);
+          is.close();
+          SharedPreferences sp = mContext.getSharedPreferences(
+               FrozenBubble.PREFS_NAME, Context.MODE_PRIVATE);
+          startingLevel = sp.getInt("level", 0);
+          mLevelManager = new LevelManager(levels, startingLevel);
+        } catch (IOException e) {
+          // Should never happen.
+          throw new RuntimeException(e);
+        }
+      } else {
+        // We were launched by the level editor.
+        mLevelManager = new LevelManager(customLevels, startingLevel);
       }
 
       mFrozenGame = new FrozenGame(mBackground, mBubbles, mBubblesBlind,
@@ -863,7 +870,7 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
     SurfaceHolder holder = getHolder();
     holder.addCallback(this);
     
-    thread = new GameThread(holder);
+    thread = new GameThread(holder, null, 0);
     setFocusable(true);
     setFocusableInTouchMode(true);
 
@@ -871,6 +878,23 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
     thread.start();
   }
 
+  public GameView(Context context, byte[] levels, int startingLevel)
+  {
+    super(context);
+    //Log.i("frozen-bubble", "GameView constructor");
+
+    mContext = context;
+    SurfaceHolder holder = getHolder();
+    holder.addCallback(this);
+    
+    thread = new GameThread(holder, levels, startingLevel);
+    setFocusable(true);
+    setFocusableInTouchMode(true);
+
+    thread.setRunning(true);
+    thread.start();
+  }
+  
   public GameThread getThread() {
     return thread;
   }

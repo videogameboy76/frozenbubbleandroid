@@ -101,6 +101,11 @@ public class LevelManager
                                 }
                         }
                 }
+
+                if (currentLevel >= levelList.size())
+                {
+                        currentLevel = 0;
+                }
         }
 
         private byte[][] getLevel(String data)
