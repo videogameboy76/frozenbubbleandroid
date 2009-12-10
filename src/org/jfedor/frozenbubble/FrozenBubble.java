@@ -68,6 +68,7 @@ package org.jfedor.frozenbubble;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
@@ -117,6 +118,9 @@ public class FrozenBubble extends Activity
 
   private GameThread mGameThread;
   private GameView mGameView;
+  
+  private static final String EDITORACTION = "org.jfedor.frozenbubble.GAME";
+  private boolean activityCustomStarted = false;
 
   @Override
   public boolean onCreateOptionsMenu(Menu menu)
@@ -249,8 +253,29 @@ public class FrozenBubble extends Activity
     }
     super.onCreate(savedInstanceState);
     requestWindowFeature(Window.FEATURE_NO_TITLE);
-    setContentView(R.layout.main);
-    mGameView = (GameView)findViewById(R.id.game);
+
+    // Allow editor functionalities.
+    Intent i = getIntent();
+    if (null == i || null == i.getExtras() ||
+        !i.getExtras().containsKey("levels")) {
+      // Default intent.
+      activityCustomStarted = false;
+      setContentView(R.layout.main);
+      mGameView = (GameView)findViewById(R.id.game);
+    } else {
+      // Get custom level last played.
+      SharedPreferences sp = getSharedPreferences(
+          FrozenBubble.PREFS_NAME, Context.MODE_PRIVATE);
+      int startingLevel = sp.getInt("levelCustom", 0);
+      int startingLevelIntent = i.getIntExtra("startingLevel", -2);
+      startingLevel = (startingLevelIntent == -2) ?
+                      startingLevel : startingLevelIntent;
+      activityCustomStarted = true;
+      mGameView = new GameView(this, i.getExtras().getByteArray("levels"),
+                               startingLevel);
+      setContentView(mGameView);
+    }
+
     mGameThread = mGameView.getThread();
 
     if (savedInstanceState != null) {
@@ -268,17 +293,29 @@ public class FrozenBubble extends Activity
     //Log.i("frozen-bubble", "FrozenBubble.onPause()");
     super.onPause();
     mGameView.getThread().pause();
+    // Allow editor functionalities.
+    Intent i = getIntent();
+    // If I didn't run game from editor, save last played level.
+    if (null == i || !activityCustomStarted) {
+      SharedPreferences sp = getSharedPreferences(PREFS_NAME,
+                                                  Context.MODE_PRIVATE);
+      SharedPreferences.Editor editor = sp.edit();
+      editor.putInt("level", mGameThread.getCurrentLevelIndex());
+      editor.commit();
+    } else {
+      // Editor's intent is running.
+      SharedPreferences sp = getSharedPreferences(PREFS_NAME,
+                                                  Context.MODE_PRIVATE);
+      SharedPreferences.Editor editor = sp.edit();
+      editor.putInt("levelCustom", mGameThread.getCurrentLevelIndex());
+      editor.commit();
+    }
   }
 
   @Override
   protected void onStop() {
     //Log.i("frozen-bubble", "FrozenBubble.onStop()");
     super.onStop();
-    SharedPreferences sp = getSharedPreferences(PREFS_NAME,
-                                                Context.MODE_PRIVATE);
-    SharedPreferences.Editor editor = sp.edit();
-    editor.putInt("level", mGameThread.getCurrentLevelIndex());
-    editor.commit();
   }
 
   @Override
@@ -304,5 +341,35 @@ public class FrozenBubble extends Activity
     // Just have the View's thread save its state into our Bundle.
     super.onSaveInstanceState(outState);
     mGameThread.saveState(outState);
+  }
+
+  /* (non-Javadoc)
+   * @see android.app.Activity#onNewIntent(android.content.Intent)
+   */
+  @Override
+  protected void onNewIntent(Intent intent) {
+    if (null != intent && EDITORACTION.equals(intent.getAction())) {
+      if (!activityCustomStarted) {
+        activityCustomStarted = true;
+
+        // Get custom level last played.
+        SharedPreferences sp = getSharedPreferences(
+            FrozenBubble.PREFS_NAME, Context.MODE_PRIVATE);
+        int startingLevel = sp.getInt("levelCustom", 0);
+        int startingLevelIntent = intent.getIntExtra("startingLevel", -2);
+        startingLevel = (startingLevelIntent == -2) ?
+                        startingLevel : startingLevelIntent;
+
+        mGameView = null;
+        mGameView = new GameView(
+            this, intent.getExtras().getByteArray("levels"),
+            startingLevel);
+        setContentView(mGameView);
+        mGameThread = mGameView.getThread();
+        mGameThread.newGame();
+        mGameView.requestFocus();
+        setFullscreen();
+      }
+    }
   }
 }

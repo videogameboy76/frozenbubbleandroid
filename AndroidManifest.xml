@@ -6,7 +6,7 @@
     <uses-sdk android:minSdkVersion="2" />
     <application android:label="@string/app_name"
                  android:icon="@drawable/app_frozen_bubble">
-        <activity android:name=".FrozenBubble"
+      <activity android:name=".FrozenBubble"
                   android:configChanges="orientation|keyboardHidden"
                   android:label="@string/app_name"
                   android:alwaysRetainTaskState="true"
@@ -15,6 +15,10 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-    </application>
+        <intent-filter>
+            <action android:name="org.jfedor.frozenbubble.GAME" />
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+     </activity>
+   </application>
 </manifest> 
