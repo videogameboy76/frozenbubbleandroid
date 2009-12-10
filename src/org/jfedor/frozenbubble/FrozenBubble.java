@@ -97,15 +97,15 @@ public class FrozenBubble extends Activity
   public final static int GAME_NORMAL = 0;
   public final static int GAME_COLORBLIND = 1;
 
-  public final static int MENU_NEW_GAME = 1;
-  public final static int MENU_COLORBLIND_MODE_ON = 2;
-  public final static int MENU_COLORBLIND_MODE_OFF = 3;
-  public final static int MENU_FULLSCREEN_ON = 4;
-  public final static int MENU_FULLSCREEN_OFF = 5;
-  public final static int MENU_SOUND_ON = 6;
-  public final static int MENU_SOUND_OFF = 7;
-  public final static int MENU_DONT_RUSH_ME = 8;
-  public final static int MENU_RUSH_ME = 9;
+  public final static int MENU_COLORBLIND_MODE_ON = 1;
+  public final static int MENU_COLORBLIND_MODE_OFF = 2;
+  public final static int MENU_FULLSCREEN_ON = 3;
+  public final static int MENU_FULLSCREEN_OFF = 4;
+  public final static int MENU_SOUND_ON = 5;
+  public final static int MENU_SOUND_OFF = 6;
+  public final static int MENU_DONT_RUSH_ME = 7;
+  public final static int MENU_RUSH_ME = 8;
+  public final static int MENU_NEW_GAME = 9;
   public final static int MENU_ABOUT = 10;
 
   public final static String PREFS_NAME = "frozenbubble";
@@ -126,7 +126,6 @@ public class FrozenBubble extends Activity
   public boolean onCreateOptionsMenu(Menu menu)
   {
     super.onCreateOptionsMenu(menu);
-    menu.add(0, MENU_NEW_GAME, 0, R.string.menu_new_game);
     menu.add(0, MENU_COLORBLIND_MODE_ON, 0,
              R.string.menu_colorblind_mode_on);
     menu.add(0, MENU_COLORBLIND_MODE_OFF, 0,
@@ -137,6 +136,7 @@ public class FrozenBubble extends Activity
     menu.add(0, MENU_SOUND_OFF, 0, R.string.menu_sound_off);
     menu.add(0, MENU_DONT_RUSH_ME, 0, R.string.menu_dont_rush_me);
     menu.add(0, MENU_RUSH_ME, 0, R.string.menu_rush_me);
+    menu.add(0, MENU_NEW_GAME, 0, R.string.menu_new_game);
     menu.add(0, MENU_ABOUT, 0, R.string.menu_about);
     return true;
   }
