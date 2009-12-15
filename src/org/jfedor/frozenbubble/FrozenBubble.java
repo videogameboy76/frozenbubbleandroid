@@ -67,14 +67,17 @@
 package org.jfedor.frozenbubble;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import android.util.Log;
 
@@ -107,6 +110,7 @@ public class FrozenBubble extends Activity
   public final static int MENU_RUSH_ME = 8;
   public final static int MENU_NEW_GAME = 9;
   public final static int MENU_ABOUT = 10;
+  public final static int MENU_EDITOR = 11;
 
   public final static String PREFS_NAME = "frozenbubble";
 
@@ -136,8 +140,9 @@ public class FrozenBubble extends Activity
     menu.add(0, MENU_SOUND_OFF, 0, R.string.menu_sound_off);
     menu.add(0, MENU_DONT_RUSH_ME, 0, R.string.menu_dont_rush_me);
     menu.add(0, MENU_RUSH_ME, 0, R.string.menu_rush_me);
-    menu.add(0, MENU_NEW_GAME, 0, R.string.menu_new_game);
     menu.add(0, MENU_ABOUT, 0, R.string.menu_about);
+    menu.add(0, MENU_NEW_GAME, 0, R.string.menu_new_game);
+    menu.add(0, MENU_EDITOR, 0, R.string.menu_editor);
     return true;
   }
 
@@ -193,6 +198,9 @@ public class FrozenBubble extends Activity
       return true;
     case MENU_RUSH_ME:
       setDontRushMe(false);
+      return true;
+    case MENU_EDITOR:
+      startEditor();
       return true;
     }
     return false;
@@ -369,6 +377,30 @@ public class FrozenBubble extends Activity
         mGameThread.newGame();
         mGameView.requestFocus();
         setFullscreen();
+      }
+    }
+  }
+  
+  // Starts editor / market with editor's download.
+  private void startEditor()
+  {
+    Intent i = new Intent();
+    i.setClassName("sk.halmi.fbedit", "sk.halmi.fbedit.EditorActivity");
+    try {
+      startActivity(i);
+      finish();
+    } catch (ActivityNotFoundException e) {
+      // But if user doesn't have Frozen Bubble Editor take him to market.
+      try {
+        Toast.makeText(getApplicationContext(), R.string.install_editor, 1000).
+            show();
+        i = new Intent(Intent.ACTION_VIEW,
+                       Uri.parse("market://search?q=pname:sk.halmi.fbedit"));
+        startActivity(i);
+      } catch (Exception ex) {
+        // Damn you don't have market?
+        Toast.makeText(getApplicationContext(), R.string.market_missing, 1000).
+            show();
       }
     }
   }
