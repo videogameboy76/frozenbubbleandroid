@@ -9,7 +9,7 @@
     <string name="menu_sound_on">Sound On</string>
     <string name="menu_sound_off">Sound Off</string>
     <string name="menu_about">About Frozen Bubble</string>
-    <string name="menu_dont_rush_me">Don't Rush Me</string>
+    <string name="menu_dont_rush_me">Don\'t Rush Me</string>
     <string name="menu_rush_me">Rush Me</string>
     <string name="menu_editor">Level Editor</string>
     <string name="install_editor">Redirecting you to the Market to download the Frozen Bubble Level Editor...</string>
