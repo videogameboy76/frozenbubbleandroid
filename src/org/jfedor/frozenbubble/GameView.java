@@ -41,6 +41,7 @@
  *
  * Android port:
  *    Pawel Aleksander Fedorynski <pfedor@fuw.edu.pl>
+ *    Copyright (c) Google Inc.
  *
  *          [[ http://glenn.sanson.free.fr/fb/ ]]
  *          [[ http://www.frozen-bubble.org/   ]]
