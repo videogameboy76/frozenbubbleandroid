@@ -386,22 +386,33 @@ public class FrozenBubble extends Activity
   private void startEditor()
   {
     Intent i = new Intent();
-    i.setClassName("sk.halmi.fbedit", "sk.halmi.fbedit.EditorActivity");
+    // First try to run the plus version of Editor.
+    i.setClassName("sk.halmi.fbeditplus", 
+                   "sk.halmi.fbeditplus.EditorActivity");
     try {
       startActivity(i);
       finish();
     } catch (ActivityNotFoundException e) {
-      // But if user doesn't have Frozen Bubble Editor take him to market.
+      // If not found, try to run the normal version.
+      i.setClassName("sk.halmi.fbedit", 
+                     "sk.halmi.fbedit.EditorActivity");
       try {
-        Toast.makeText(getApplicationContext(), R.string.install_editor, 1000).
-            show();
-        i = new Intent(Intent.ACTION_VIEW,
-                       Uri.parse("market://search?q=pname:sk.halmi.fbedit"));
         startActivity(i);
-      } catch (Exception ex) {
-        // Damn you don't have market?
-        Toast.makeText(getApplicationContext(), R.string.market_missing, 1000).
-            show();
+        finish();
+      } catch (ActivityNotFoundException ex) {
+        // If user doesnt have Frozen Bubble Editor take him to market.
+        try {
+          Toast.makeText(getApplicationContext(), 
+                         R.string.install_editor, 1000).show();
+          i = new Intent(Intent.ACTION_VIEW,
+                         Uri.parse(
+                             "market://search?q=frozen bubble level editor"));
+          startActivity(i);
+        } catch (Exception exc) {
+          // Damn you don't have market?
+          Toast.makeText(getApplicationContext(), 
+                         R.string.market_missing, 1000).show();
+        }
       }
     }
   }
