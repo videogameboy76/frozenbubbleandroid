@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.jfedor.frozenbubble"
       android:installLocation="preferExternal"
-      android:versionCode="10"
-      android:versionName="1.9">
+      android:versionCode="11"
+      android:versionName="1.10">
     <supports-screens
         android:smallScreens="true" 
         android:normalScreens="true" 

@@ -112,12 +112,15 @@ public class FrozenBubble extends Activity
   public final static int MENU_NEW_GAME = 9;
   public final static int MENU_ABOUT = 10;
   public final static int MENU_EDITOR = 11;
+  public final static int MENU_TOUCHSCREEN_AIM_THEN_SHOOT = 12;
+  public final static int MENU_TOUCHSCREEN_POINT_TO_SHOOT = 13;
 
   public final static String PREFS_NAME = "frozenbubble";
 
   private static int gameMode = GAME_NORMAL;
   private static boolean soundOn = true;
   private static boolean dontRushMe = false;
+  private static boolean aimThenShoot = false;
 
   private boolean fullscreen = true;
 
@@ -139,6 +142,10 @@ public class FrozenBubble extends Activity
     menu.add(0, MENU_FULLSCREEN_OFF, 0, R.string.menu_fullscreen_off);
     menu.add(0, MENU_SOUND_ON, 0, R.string.menu_sound_on);
     menu.add(0, MENU_SOUND_OFF, 0, R.string.menu_sound_off);
+    menu.add(0, MENU_TOUCHSCREEN_AIM_THEN_SHOOT, 0,
+             R.string.menu_touchscreen_aim_then_shoot);
+    menu.add(0, MENU_TOUCHSCREEN_POINT_TO_SHOOT, 0,
+             R.string.menu_touchscreen_point_to_shoot);
     menu.add(0, MENU_DONT_RUSH_ME, 0, R.string.menu_dont_rush_me);
     menu.add(0, MENU_RUSH_ME, 0, R.string.menu_rush_me);
     menu.add(0, MENU_ABOUT, 0, R.string.menu_about);
@@ -159,6 +166,10 @@ public class FrozenBubble extends Activity
         getMode() != GAME_NORMAL);
     menu.findItem(MENU_FULLSCREEN_ON).setVisible(!fullscreen);
     menu.findItem(MENU_FULLSCREEN_OFF).setVisible(fullscreen);
+    menu.findItem(MENU_TOUCHSCREEN_AIM_THEN_SHOOT).setVisible(
+        !getAimThenShoot());
+    menu.findItem(MENU_TOUCHSCREEN_POINT_TO_SHOOT).setVisible(
+        getAimThenShoot());
     menu.findItem(MENU_DONT_RUSH_ME).setVisible(!getDontRushMe());
     menu.findItem(MENU_RUSH_ME).setVisible(getDontRushMe());
     return true;
@@ -193,6 +204,12 @@ public class FrozenBubble extends Activity
       return true;
     case MENU_ABOUT:
       mGameView.getThread().setState(GameView.GameThread.STATE_ABOUT);
+      return true;
+    case MENU_TOUCHSCREEN_AIM_THEN_SHOOT:
+      setAimThenShoot(true);
+      return true;
+    case MENU_TOUCHSCREEN_POINT_TO_SHOOT:
+      setAimThenShoot(false);
       return true;
     case MENU_DONT_RUSH_ME:
       setDontRushMe(true);
@@ -239,6 +256,16 @@ public class FrozenBubble extends Activity
   public synchronized static void setSoundOn(boolean so)
   {
     soundOn = so;
+  }
+
+  public synchronized static boolean getAimThenShoot()
+  {
+    return aimThenShoot;
+  }
+
+  public synchronized static void setAimThenShoot(boolean ats)
+  {
+    aimThenShoot = ats;
   }
 
   public synchronized static boolean getDontRushMe()
