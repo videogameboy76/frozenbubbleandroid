@@ -114,5 +114,6 @@ public abstract class GameScreen
   public abstract boolean play(boolean key_left, boolean key_right,
                                boolean key_fire, double trackball_dx,
                                boolean touch_fire,
-                               double touch_x, double touch_y);
+                               double touch_x, double touch_y,
+                               boolean ats_touch_fire, double ats_touch_dx);
 }

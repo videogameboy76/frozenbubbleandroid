@@ -108,6 +108,8 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
     private static final double TRACKBALL_COEFFICIENT = 5;
     private static final double TOUCH_FIRE_Y_THRESHOLD = 380;
+    private static final double ATS_TOUCH_COEFFICIENT = 0.2;
+    private static final double ATS_TOUCH_FIRE_Y_THRESHOLD = 350;
 
     private int mCanvasHeight = 1;
     private int mCanvasWidth = 1;
@@ -127,6 +129,9 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
     private boolean mTouchFire = false;
     private double mTouchX;
     private double mTouchY;
+    private boolean mATSTouchFire = false;
+    private double mATSTouchDX = 0;
+    private double mATSTouchLastX;
 
     private SurfaceHolder mSurfaceHolder;
     private boolean mSurfaceOK = false;
@@ -624,6 +629,8 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
         double x = xFromScr(event.getX());
         double y = yFromScr(event.getY());
+
+        // Set the values used when Point To Shoot is on.
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
           if (y < TOUCH_FIRE_Y_THRESHOLD) {
             mTouchFire = true;
@@ -631,6 +638,20 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
             mTouchY = y;
           }
         }
+
+        // Set the values used when Aim Then Shoot is on.
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+          if (y < ATS_TOUCH_FIRE_Y_THRESHOLD) {
+            mATSTouchFire = true;
+          }
+          mATSTouchLastX = x;
+        } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+          if (y >= ATS_TOUCH_FIRE_Y_THRESHOLD) {
+            mATSTouchDX = (x - mATSTouchLastX) * ATS_TOUCH_COEFFICIENT;
+          }
+          mATSTouchLastX = x;
+        }
+
         return true;
       }
     }
@@ -735,8 +756,10 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
     private void updateGameState() {
       if (mFrozenGame.play(mLeft || mWasLeft, mRight || mWasRight,
-                           mFire || mUp || mWasFire || mWasUp || mTouchFire,
-                           mTrackballDX, mTouchFire, mTouchX, mTouchY)) {
+                           mFire || mUp || mWasFire || mWasUp,
+                           mTrackballDX,
+                           mTouchFire, mTouchX, mTouchY,
+                           mATSTouchFire, mATSTouchDX)) {
         // Lost or won.  Need to start over.  The level is already
         // incremented if this was a win.
         mFrozenGame = new FrozenGame(mBackground, mBubbles, mBubblesBlind,
@@ -752,6 +775,8 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
       mWasUp = false;
       mTrackballDX = 0;
       mTouchFire = false;
+      mATSTouchFire = false;
+      mATSTouchDX = 0;
     }
 
     public void cleanUp() {

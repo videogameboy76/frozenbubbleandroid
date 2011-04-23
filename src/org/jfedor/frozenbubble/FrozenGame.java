@@ -537,9 +537,15 @@ public class FrozenGame extends GameScreen {
   }
 
   public boolean play(boolean key_left, boolean key_right, boolean key_fire,
-                      double trackball_dx, boolean touch_fire,
-                      double touch_x, double touch_y)
+                      double trackball_dx,
+                      boolean touch_fire, double touch_x, double touch_y,
+                      boolean ats_touch_fire, double ats_touch_dx)
   {
+    boolean ats = FrozenBubble.getAimThenShoot();
+    if ((ats && ats_touch_fire) || (!ats && touch_fire)) {
+      key_fire = true;
+    }
+
     int[] move = new int[2];
 
     if (key_left && !key_right) {
@@ -554,7 +560,7 @@ public class FrozenGame extends GameScreen {
     } else {
       move[FIRE] = 0;
     }
-    if (touch_fire && movingBubble == null) {
+    if (!ats && touch_fire && movingBubble == null) {
       double xx = touch_x - 318;
       double yy = 406 - touch_y;
       launchBubblePosition = (Math.PI - Math.atan2(yy, xx)) * 40.0 / Math.PI;
@@ -566,7 +572,7 @@ public class FrozenGame extends GameScreen {
       }
     }
 
-    if (move[FIRE] == 0 || touch_fire) {
+    if (move[FIRE] == 0 || (!ats && touch_fire)) {
       readyToFire = true;
     }
 
@@ -630,6 +636,9 @@ public class FrozenGame extends GameScreen {
           dx += 1;
         }
         dx += trackball_dx;
+        if (ats) {
+          dx += ats_touch_dx;
+        }
         launchBubblePosition += dx;
         if (launchBubblePosition < 1) {
           launchBubblePosition = 1;
