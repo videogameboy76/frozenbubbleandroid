@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>  
+<resources>      
+<string name="app_name">冰冻泡泡</string>      
+<string name="menu_new_game">新游戏</string>      
+<string name="menu_colorblind_mode_on">色盲模式开启</string>      
+<string name="menu_colorblind_mode_off">色盲模式关闭</string>      
+<string name="menu_fullscreen_on">全屏模式开启</string>      
+<string name="menu_fullscreen_off">全屏模式关闭</string>      
+<string name="menu_sound_on">声音开</string>      
+<string name="menu_sound_off">声音关</string>      
+<string name="menu_about">关于冰冻泡泡</string>      
+<string name="menu_touchscreen_aim_then_shoot">瞄准后射击</string>      
+<string name="menu_touchscreen_point_to_shoot">点击射击</string>      
+<string name="menu_dont_rush_me">不要催我</string>      
+<string name="menu_rush_me">敦促我</string>      
+<string name="menu_editor">关卡编辑器</string>      
+<string name="install_editor">推荐您直接到市场上下载关卡编辑器...</string>      
+<string name="market_missing">找不到Android市场! 请手动安装冰冻泡泡编辑器.</string>  
+</resources>  
