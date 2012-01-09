@@ -72,6 +72,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
@@ -288,6 +289,7 @@ public class FrozenBubble extends Activity
       //Log.i("frozen-bubble", "FrozenBubble.onCreate(null)");
     }
     super.onCreate(savedInstanceState);
+    setVolumeControlStream(AudioManager.STREAM_MUSIC);
     requestWindowFeature(Window.FEATURE_NO_TITLE);
 
     // Allow editor functionalities.
