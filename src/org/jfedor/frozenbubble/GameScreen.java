@@ -1,8 +1,9 @@
 /*
  *                 [[ Frozen-Bubble ]]
  *
- * Copyright (c) 2000-2003 Guillaume Cottenceau.
- * Java sourcecode - Copyright (c) 2003 Glenn Sanson.
+ * Copyright © 2000-2003 Guillaume Cottenceau.
+ * Java sourcecode - Copyright © 2003 Glenn Sanson.
+ * Additional source - Copyright © 2013 Eric Fortin.
  *
  * This code is distributed under the GNU General Public License
  *
@@ -15,9 +16,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 675 Mass Ave, Cambridge, MA 02139, USA.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to:
+ * Free Software Foundation, Inc.
+ * 675 Mass Ave
+ * Cambridge, MA 02139, USA
  *
  *
  * Artwork:
@@ -41,7 +44,8 @@
  *
  * Android port:
  *    Pawel Aleksander Fedorynski <pfedor@fuw.edu.pl>
- *    Copyright (c) Google Inc.
+ *    Eric Fortin <videogameboy76 at yahoo.com>
+ *    Copyright © Google Inc.
  *
  *          [[ http://glenn.sanson.free.fr/fb/ ]]
  *          [[ http://www.frozen-bubble.org/   ]]
@@ -50,14 +54,15 @@
 package org.jfedor.frozenbubble;
 
 import java.util.Vector;
+
 import android.graphics.Canvas;
 import android.os.Bundle;
 
 public abstract class GameScreen
 {
-  private Vector sprites;
+  private Vector<Sprite> sprites;
 
-  public final void saveSprites(Bundle map, Vector savedSprites)
+  public final void saveSprites(Bundle map, Vector<Sprite> savedSprites)
   {
     for (int i = 0; i < sprites.size(); i++) {
       ((Sprite)sprites.elementAt(i)).saveState(map, savedSprites);
@@ -67,9 +72,9 @@ public abstract class GameScreen
     map.putInt("numGameSprites", sprites.size());
   }
 
-  public final void restoreSprites(Bundle map, Vector savedSprites)
+  public final void restoreSprites(Bundle map, Vector<Sprite> savedSprites)
   {
-    sprites = new Vector();
+    sprites = new Vector<Sprite>();
     int numSprites = map.getInt("numGameSprites");
     for (int i = 0; i < numSprites; i++) {
       int spriteIdx = map.getInt(String.format("game-%d", i));
@@ -79,7 +84,7 @@ public abstract class GameScreen
 
   public GameScreen()
   {
-    sprites = new Vector();
+    sprites = new Vector<Sprite>();
   }
 
   public final void addSprite(Sprite sprite)
@@ -111,9 +116,9 @@ public abstract class GameScreen
     }
   }
 
-  public abstract boolean play(boolean key_left, boolean key_right,
-                               boolean key_fire, double trackball_dx,
-                               boolean touch_fire,
-                               double touch_x, double touch_y,
-                               boolean ats_touch_fire, double ats_touch_dx);
+  public abstract int play(boolean key_left, boolean key_right,
+                           boolean key_fire, double trackball_dx,
+                           boolean touch_fire,
+                           double touch_x, double touch_y,
+                           boolean ats_touch_fire, double ats_touch_dx);
 }

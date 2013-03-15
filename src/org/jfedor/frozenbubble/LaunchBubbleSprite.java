@@ -1,8 +1,9 @@
 /*
  *                 [[ Frozen-Bubble ]]
  *
- * Copyright (c) 2000-2003 Guillaume Cottenceau.
- * Java sourcecode - Copyright (c) 2003 Glenn Sanson.
+ * Copyright © 2000-2003 Guillaume Cottenceau.
+ * Java sourcecode - Copyright © 2003 Glenn Sanson.
+ * Additional source - Copyright © 2013 Eric Fortin.
  *
  * This code is distributed under the GNU General Public License
  *
@@ -15,9 +16,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 675 Mass Ave, Cambridge, MA 02139, USA.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to:
+ * Free Software Foundation, Inc.
+ * 675 Mass Ave
+ * Cambridge, MA 02139, USA
  *
  *
  * Artwork:
@@ -41,7 +44,8 @@
  *
  * Android port:
  *    Pawel Aleksander Fedorynski <pfedor@fuw.edu.pl>
- *    Copyright (c) Google Inc.
+ *    Eric Fortin <videogameboy76 at yahoo.com>
+ *    Copyright © Google Inc.
  *
  *          [[ http://glenn.sanson.free.fr/fb/ ]]
  *          [[ http://www.frozen-bubble.org/   ]]
@@ -49,11 +53,12 @@
 
 package org.jfedor.frozenbubble;
 
+import java.util.Vector;
+
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import java.util.Vector;
 
 public class LaunchBubbleSprite extends Sprite
 {
@@ -76,7 +81,7 @@ public class LaunchBubbleSprite extends Sprite
     this.colorblindBubbles = colorblindBubbles;
   }
 
-  public void saveState(Bundle map, Vector saved_sprites) {
+  public void saveState(Bundle map, Vector<Sprite> saved_sprites) {
     if (getSavedId() != -1) {
       return;
     }

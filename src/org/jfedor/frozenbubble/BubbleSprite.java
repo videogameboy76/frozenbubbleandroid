@@ -1,8 +1,9 @@
 /*
  *                 [[ Frozen-Bubble ]]
  *
- * Copyright (c) 2000-2003 Guillaume Cottenceau.
- * Java sourcecode - Copyright (c) 2003 Glenn Sanson.
+ * Copyright © 2000-2003 Guillaume Cottenceau.
+ * Java sourcecode - Copyright © 2003 Glenn Sanson.
+ * Additional source - Copyright © 2013 Eric Fortin.
  *
  * This code is distributed under the GNU General Public License
  *
@@ -15,9 +16,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 675 Mass Ave, Cambridge, MA 02139, USA.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to:
+ * Free Software Foundation, Inc.
+ * 675 Mass Ave
+ * Cambridge, MA 02139, USA
  *
  *
  * Artwork:
@@ -41,7 +44,8 @@
  *
  * Android port:
  *    Pawel Aleksander Fedorynski <pfedor@fuw.edu.pl>
- *    Copyright (c) Google Inc.
+ *    Eric Fortin <videogameboy76 at yahoo.com>
+ *    Copyright © Google Inc.
  *
  *          [[ http://glenn.sanson.free.fr/fb/ ]]
  *          [[ http://www.frozen-bubble.org/   ]]
@@ -50,7 +54,7 @@
 package org.jfedor.frozenbubble;
 
 import java.util.Vector;
-import java.util.Random;
+
 import android.graphics.Canvas;
 import android.graphics.Point;
 import android.graphics.Rect;
@@ -58,20 +62,22 @@ import android.os.Bundle;
 
 public class BubbleSprite extends Sprite
 {
-  private static double FALL_SPEED = 1.;
-  private static double MAX_BUBBLE_SPEED = 8.;
-  private static double MINIMUM_DISTANCE = 841.;
+  private static final double FALL_SPEED       = 1.;
+  private static final double MAX_BUBBLE_SPEED = 8.;   
+  private static final double MINIMUM_DISTANCE = 400.;
 
-  private int color;
-  private BmpWrap bubbleFace;
-  private BmpWrap bubbleBlindFace;
-  private BmpWrap frozenFace;
-  private BmpWrap bubbleBlink;
-  private BmpWrap[] bubbleFixed;
-  private FrozenGame frozen;
+  private int           color;
+  private BmpWrap       bubbleFace;
+  private BmpWrap       bubbleBlindFace;
+  private BmpWrap       frozenFace;
+  private BmpWrap       bubbleBlink;
+  private BmpWrap[]     bubbleFixed;
+  private FrozenGame    frozen;
   private BubbleManager bubbleManager;
-  private double moveX, moveY;
-  private double realX, realY;
+  private SoundManager  soundManager;
+  private double        moveX, moveY;
+  private double        realX, realY;
+  private Point         lastOpenPosition;
 
   private boolean fixed;
   private boolean blink;
@@ -82,9 +88,7 @@ public class BubbleSprite extends Sprite
 
   private int fixedAnim;
 
-  private SoundManager soundManager;
-
-  public void saveState(Bundle map, Vector savedSprites) {
+  public void saveState(Bundle map, Vector<Sprite> savedSprites) {
     if (getSavedId() != -1) {
       return;
     }
@@ -119,11 +123,13 @@ public class BubbleSprite extends Sprite
                       FrozenGame frozen)
   {
     super(area);
+
     this.color = color;
     this.moveX = moveX;
     this.moveY = moveY;
     this.realX = realX;
     this.realY = realY;
+    this.lastOpenPosition = currentPosition();
     this.fixed = fixed;
     this.blink = blink;
     this.released = released;
@@ -162,6 +168,7 @@ public class BubbleSprite extends Sprite
     this.moveY = MAX_BUBBLE_SPEED * -Math.sin(direction * Math.PI / 40.);
     this.realX = area.left;
     this.realY = area.top;
+    this.lastOpenPosition = currentPosition();
 
     fixed = false;
     fixedAnim = -1;
@@ -185,6 +192,7 @@ public class BubbleSprite extends Sprite
 
     this.realX = area.left;
     this.realY = area.top;
+    this.lastOpenPosition = currentPosition();
 
     fixed = true;
     fixedAnim = -1;
@@ -257,18 +265,21 @@ public class BubbleSprite extends Sprite
     realY += moveY;
 
     Point currentPosition = currentPosition();
-    Vector neighbors = getNeighbors(currentPosition);
+    BubbleSprite[][] grid = frozen.getGrid();
+
+    if ( grid[currentPosition.x][currentPosition.y] == null )
+      lastOpenPosition = currentPosition;
+
+    Vector<BubbleSprite> neighbors = getNeighbors(lastOpenPosition);
 
     if (checkCollision(neighbors) || realY < 44.+frozen.getMoveDown()) {
-      realX = 190.+currentPosition.x*32-(currentPosition.y%2)*16;
-      realY = 44.+currentPosition.y*28+frozen.getMoveDown();
+      realX = 190.+lastOpenPosition.x*32-(lastOpenPosition.y%2)*16;
+      realY = 44.+lastOpenPosition.y*28+frozen.getMoveDown();
 
       fixed = true;
 
-      Vector checkJump = new Vector();
+      Vector<Sprite> checkJump = new Vector<Sprite>();
       this.checkJump(checkJump, neighbors);
-
-      BubbleSprite[][] grid = frozen.getGrid();
 
       if (checkJump.size() >= 3) {
         released = true;
@@ -305,7 +316,7 @@ public class BubbleSprite extends Sprite
         soundManager.playSound(FrozenBubble.SOUND_DESTROY);
       } else {
         bubbleManager.addBubble(bubbleFace);
-        grid[currentPosition.x][currentPosition.y] = this;
+        grid[lastOpenPosition.x][lastOpenPosition.y] = this;
         moveX = 0.;
         moveY = 0.;
         fixedAnim = 0;
@@ -316,11 +327,11 @@ public class BubbleSprite extends Sprite
     super.absoluteMove(new Point((int)realX, (int)realY));
   }
 
-  Vector getNeighbors(Point p)
+  Vector<BubbleSprite> getNeighbors(Point p)
   {
     BubbleSprite[][] grid = frozen.getGrid();
 
-    Vector list = new Vector();
+    Vector<BubbleSprite> list = new Vector<BubbleSprite>();
 
     if ((p.y % 2) == 0) {
       if (p.x > 0) {
@@ -379,7 +390,7 @@ public class BubbleSprite extends Sprite
     return list;
   }
 
-  void checkJump(Vector jump, BmpWrap compare)
+  void checkJump(Vector<Sprite> jump, BmpWrap compare)
   {
     if (checkJump) {
       return;
@@ -387,11 +398,11 @@ public class BubbleSprite extends Sprite
     checkJump = true;
 
     if (this.bubbleFace == compare) {
-      checkJump(jump, this.getNeighbors(this.currentPosition()));
+      checkJump(jump, this.getNeighbors(this.lastOpenPosition));
     }
   }
 
-  void checkJump(Vector jump, Vector neighbors)
+  void checkJump(Vector<Sprite> jump, Vector<BubbleSprite> neighbors)
   {
     jump.addElement(this);
 
@@ -411,7 +422,7 @@ public class BubbleSprite extends Sprite
     }
     checkFall = true;
 
-    Vector v = this.getNeighbors(this.currentPosition());
+    Vector<BubbleSprite> v = this.getNeighbors(this.lastOpenPosition);
 
     for (int i=0 ; i<v.size() ; i++) {
       BubbleSprite current = (BubbleSprite)v.elementAt(i);
@@ -422,7 +433,7 @@ public class BubbleSprite extends Sprite
     }
   }
 
-  boolean checkCollision(Vector neighbors)
+  boolean checkCollision(Vector<BubbleSprite> neighbors)
   {
     for (int i=0 ; i<neighbors.size() ; i++) {
       BubbleSprite current = (BubbleSprite)neighbors.elementAt(i);
@@ -440,10 +451,10 @@ public class BubbleSprite extends Sprite
   boolean checkCollision(BubbleSprite sprite)
   {
     double value =
-        (sprite.getSpriteArea().left - this.realX) *
-        (sprite.getSpriteArea().left - this.realX) +
-        (sprite.getSpriteArea().top - this.realY) *
-        (sprite.getSpriteArea().top - this.realY);
+      (sprite.getSpriteArea().left - this.realX) *
+      (sprite.getSpriteArea().left - this.realX) +
+      (sprite.getSpriteArea().top - this.realY) *
+      (sprite.getSpriteArea().top - this.realY);
 
     return (value < MINIMUM_DISTANCE);
   }
