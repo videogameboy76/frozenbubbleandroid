@@ -1,8 +1,9 @@
 /*
  *                 [[ Frozen-Bubble ]]
  *
- * Copyright (c) 2000-2003 Guillaume Cottenceau.
- * Java sourcecode - Copyright (c) 2003 Glenn Sanson.
+ * Copyright © 2000-2003 Guillaume Cottenceau.
+ * Java sourcecode - Copyright © 2003 Glenn Sanson.
+ * Additional source - Copyright © 2013 Eric Fortin.
  *
  * This code is distributed under the GNU General Public License
  *
@@ -15,9 +16,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 675 Mass Ave, Cambridge, MA 02139, USA.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to:
+ * Free Software Foundation, Inc.
+ * 675 Mass Ave
+ * Cambridge, MA 02139, USA
  *
  *
  * Artwork:
@@ -41,7 +44,8 @@
  *
  * Android port:
  *    Pawel Aleksander Fedorynski <pfedor@fuw.edu.pl>
- *    Copyright (c) Google Inc.
+ *    Eric Fortin <videogameboy76 at yahoo.com>
+ *    Copyright © Google Inc.
  *
  *          [[ http://glenn.sanson.free.fr/fb/ ]]
  *          [[ http://www.frozen-bubble.org/   ]]
@@ -59,39 +63,49 @@ public class SoundManager
   private int[] sm;
   Context context;
 
-  public SoundManager(Context context) {
+  public SoundManager( Context context )
+  {
     this.context = context;
-    soundPool = new SoundPool(4, AudioManager.STREAM_MUSIC, 0);
-    sm = new int[FrozenBubble.NUM_SOUNDS];
-    sm[FrozenBubble.SOUND_WON] = soundPool.load(context, R.raw.applause, 1);
-    sm[FrozenBubble.SOUND_LOST] = soundPool.load(context, R.raw.lose, 1);
-    sm[FrozenBubble.SOUND_LAUNCH] = soundPool.load(context, R.raw.launch, 1);
-    sm[FrozenBubble.SOUND_DESTROY] =
-        soundPool.load(context, R.raw.destroy_group, 1);
-    sm[FrozenBubble.SOUND_REBOUND] =
-        soundPool.load(context, R.raw.rebound, 1);
-    sm[FrozenBubble.SOUND_STICK] = soundPool.load(context, R.raw.stick, 1);
-    sm[FrozenBubble.SOUND_HURRY] = soundPool.load(context, R.raw.hurry, 1);
-    sm[FrozenBubble.SOUND_NEWROOT] =
-        soundPool.load(context, R.raw.newroot_solo, 1);
-    sm[FrozenBubble.SOUND_NOH] = soundPool.load(context, R.raw.noh, 1);
+    soundPool    = new SoundPool( 4, AudioManager.STREAM_MUSIC, 0 );
+    sm           = new int[ FrozenBubble.NUM_SOUNDS ];
+
+    sm[ FrozenBubble.SOUND_WON     ] =
+      soundPool.load( context, R.raw.applause,      1 );
+    sm[ FrozenBubble.SOUND_LOST    ] =
+      soundPool.load( context, R.raw.lose,          1 );
+    sm[ FrozenBubble.SOUND_LAUNCH  ] =
+      soundPool.load( context, R.raw.launch,        1 );
+    sm[ FrozenBubble.SOUND_DESTROY ] =
+      soundPool.load( context, R.raw.destroy_group, 1 );
+    sm[ FrozenBubble.SOUND_REBOUND ] =
+      soundPool.load( context, R.raw.rebound,       1 );
+    sm[ FrozenBubble.SOUND_STICK   ] =
+      soundPool.load( context, R.raw.stick,         1 );
+    sm[ FrozenBubble.SOUND_HURRY   ] =
+      soundPool.load( context, R.raw.hurry,         1 );
+    sm[ FrozenBubble.SOUND_NEWROOT ] =
+      soundPool.load( context, R.raw.newroot_solo,  1 );
+    sm[ FrozenBubble.SOUND_NOH     ] =
+      soundPool.load( context, R.raw.noh,           1 );
   }
 
-  public final void playSound(int sound) {
-    if (FrozenBubble.getSoundOn()) {
-      AudioManager mgr = (AudioManager)context.getSystemService(
-          Context.AUDIO_SERVICE);  
-      float streamVolumeCurrent =
-          mgr.getStreamVolume(AudioManager.STREAM_MUSIC);
-      float streamVolumeMax = mgr.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-      float volume = streamVolumeCurrent / streamVolumeMax;
-      soundPool.play(sm[sound], volume, volume, 1, 0, 1f);
+  public final void playSound( int sound )
+  {
+    if ( FrozenBubble.getSoundOn() )
+    {
+      AudioManager mgr =
+        (AudioManager)context.getSystemService( Context.AUDIO_SERVICE );
+      float volume     = mgr.getStreamVolume   ( AudioManager.STREAM_MUSIC );
+      float volumeMax  = mgr.getStreamMaxVolume( AudioManager.STREAM_MUSIC );
+      volume           = volume / volumeMax;
+      soundPool.play( sm[ sound ], volume, volume, 1, 0, 1f );
     }
   }
 
-  public final void cleanUp() {
-    sm = null;
-    context = null;
+  public final void cleanUp()
+  {
+    sm        = null;
+    context   = null;
     soundPool.release();
     soundPool = null;
   }
