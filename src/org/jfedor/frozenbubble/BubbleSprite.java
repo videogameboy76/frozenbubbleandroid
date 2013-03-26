@@ -129,7 +129,6 @@ public class BubbleSprite extends Sprite
     this.moveY = moveY;
     this.realX = realX;
     this.realY = realY;
-    this.lastOpenPosition = currentPosition();
     this.fixed = fixed;
     this.blink = blink;
     this.released = released;
@@ -144,6 +143,7 @@ public class BubbleSprite extends Sprite
     this.bubbleManager = bubbleManager;
     this.soundManager = soundManager;
     this.frozen = frozen;
+    this.lastOpenPosition = currentPosition();
   }
 
   public BubbleSprite(Rect area, int direction, int color, BmpWrap bubbleFace,
