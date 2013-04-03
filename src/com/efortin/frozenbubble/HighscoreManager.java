@@ -67,7 +67,6 @@ import android.os.Bundle;
 public class HighscoreManager {
 
   private int currentLevel = 0;
-  private int lastLevel    = 0;
   private long startTime   = 0;
   private long pausedTime  = 0;
   private long lastScoreId = -1;
@@ -122,7 +121,6 @@ public class HighscoreManager {
 
   public void startLevel(int level) {
     startTime    = System.currentTimeMillis();
-    lastLevel    = currentLevel;
     currentLevel = level;
     pausedTime   = 0;
     // Log.i("FrozenBubble-highscore", "startLevel(" + level + ")");
@@ -160,8 +158,8 @@ public class HighscoreManager {
     return db.selectByLevel(level, limit);
   }
 
-  public int getLastLevel() {
-    return lastLevel;
+  public int getLevel() {
+    return currentLevel;
   }
 
   public long getLastScoreId() {

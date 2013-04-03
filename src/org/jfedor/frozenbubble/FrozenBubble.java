@@ -106,7 +106,8 @@ public class FrozenBubble extends Activity
   public final static int SOUND_HURRY              = 6;
   public final static int SOUND_NEWROOT            = 7;
   public final static int SOUND_NOH                = 8;
-  public final static int NUM_SOUNDS               = 9;
+  public final static int SOUND_WHIP               = 9;
+  public final static int NUM_SOUNDS               = 10;
 
   public final static int GAME_NORMAL              = 0;
   public final static int GAME_COLORBLIND          = 1;

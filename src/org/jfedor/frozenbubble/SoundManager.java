@@ -87,6 +87,8 @@ public class SoundManager
       soundPool.load( context, R.raw.newroot_solo,  1 );
     sm[ FrozenBubble.SOUND_NOH     ] =
       soundPool.load( context, R.raw.noh,           1 );
+    sm[ FrozenBubble.SOUND_WHIP    ] =
+      soundPool.load( context, R.raw.whip,          1 );
   }
 
   public final void playSound( int sound )
