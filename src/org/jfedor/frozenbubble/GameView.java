@@ -100,6 +100,8 @@ import com.efortin.frozenbubble.HighscoreManager;
 
 class GameView extends SurfaceView implements SurfaceHolder.Callback
 {
+  private Context    mContext;
+  private GameThread thread;
   //**********************************************************
   // Listener interface for various events
   //**********************************************************
@@ -129,8 +131,6 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback
     public static final int STATE_RUNNING    = 1;
     public static final int STATE_PAUSE      = 2;
     public static final int STATE_ABOUT      = 4;
-    public static final int STATE_HIGHSCORE  = 8;
-    public static final int STATE_LEVELENDED = 16;
 
     public static final int GAMEFIELD_WIDTH          = 320;
     public static final int GAMEFIELD_HEIGHT         = 480;
@@ -138,24 +138,30 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback
 
     private static final double TRACKBALL_COEFFICIENT      = 5;
     private static final double TOUCH_FIRE_Y_THRESHOLD     = 380;
+    private static final double TOUCH_SWAP_X_THRESHOLD     = 10;
     private static final double ATS_TOUCH_COEFFICIENT      = 0.2;
     private static final double ATS_TOUCH_FIRE_Y_THRESHOLD = 350;
 
     private long    mLastTime;
     private int     mMode;
     private int     mModeWas;
-    private boolean mRun = false;
+    
+    private boolean mRun          = false;
+    private boolean mShowScores   = false;
 
     private boolean mLeft         = false;
     private boolean mRight        = false;
     private boolean mUp           = false;
+    private boolean mDown         = false;
     private boolean mFire         = false;
     private boolean mWasLeft      = false;
     private boolean mWasRight     = false;
     private boolean mWasFire      = false;
     private boolean mWasUp        = false;
+    private boolean mWasDown      = false;
     private double  mTrackballDX  = 0;
     private boolean mTouchFire    = false;
+    private boolean mTouchSwap    = false;
     private double  mTouchX;
     private double  mTouchY;
     private boolean mATSTouchFire = false;
@@ -450,13 +456,16 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback
     {
       synchronized ( mSurfaceHolder )
       {
-        setState(STATE_PAUSE);
-        if ( mGameListener != null )
+        if (mMode == STATE_RUNNING)
         {
-          mGameListener.onGameEvent( EVENT_GAME_PAUSED );
+          setState(STATE_PAUSE);
+
+          if ( mGameListener != null )
+            mGameListener.onGameEvent( EVENT_GAME_PAUSED );
+
+          mFrozenGame      .pause( );
+          mHighscoreManager.pauseLevel( );
         }
-        mFrozenGame      .pause( );
-        mHighscoreManager.pauseLevel( );
       }
     }
 
@@ -464,8 +473,11 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback
     {
       synchronized ( mSurfaceHolder )
       {
-        mFrozenGame.resume( );
-        mHighscoreManager.resumeLevel( );
+        if (mMode == STATE_RUNNING)
+        {
+          mFrozenGame      .resume( );
+          mHighscoreManager.resumeLevel( );
+        }
       }
     }
 
@@ -510,23 +522,22 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback
                   {
                     drawAboutScreen(c);
                   }
-                  else if ( mMode == STATE_HIGHSCORE )
+                  else if (mMode == STATE_PAUSE)
                   {
-                    drawHighscoreScreen(c, mHighscoreManager.getLastLevel( ));
+                    if (mShowScores)
+                      drawHighscoreScreen(c, mHighscoreManager.getLevel( ));
+                    else
+                      doDraw(c);
                   }
                   else
                   {
-                    if ( mMode == STATE_RUNNING )
+                    if (mMode == STATE_RUNNING)
                     {
-                      if ( mModeWas != STATE_RUNNING )
+                      if (mModeWas != STATE_RUNNING) 
                       {
-                        if ( ( mModeWas == STATE_PAUSE ) ||
-                             ( mModeWas == STATE_ABOUT ) )
+                        if (mGameListener != null)
                         {
-                          if ( mGameListener != null )
-                          {
-                            mGameListener.onGameEvent( EVENT_GAME_RESUME );
-                          }
+                          mGameListener.onGameEvent(EVENT_GAME_RESUME);
                         }
                         mModeWas = STATE_RUNNING;
                         resumeGame( );
@@ -669,26 +680,32 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback
           //Log.i("frozen-bubble", "STATE RUNNING");
           if ( keyCode == KeyEvent.KEYCODE_DPAD_LEFT )
           {
-            mLeft = true;
+            mLeft    = true;
             mWasLeft = true;
             return true;
           }
           else if ( keyCode == KeyEvent.KEYCODE_DPAD_RIGHT )
           {
-            mRight = true;
+            mRight    = true;
             mWasRight = true;
             return true;
           }
           else if ( keyCode == KeyEvent.KEYCODE_DPAD_CENTER )
           {
-            mFire = true;
+            mFire    = true;
             mWasFire = true;
             return true;
           }
           else if ( keyCode == KeyEvent.KEYCODE_DPAD_UP )
           {
-            mUp = true;
+            mUp    = true;
             mWasUp = true;
+            return true;
+          }
+          else if ( keyCode == KeyEvent.KEYCODE_DPAD_DOWN )
+          {
+            mDown    = true;
+            mWasDown = true;
             return true;
           }
         }
@@ -721,6 +738,11 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback
           else if ( keyCode == KeyEvent.KEYCODE_DPAD_UP )
           {
             mUp = false;
+            return true;
+          }
+          else if ( keyCode == KeyEvent.KEYCODE_DPAD_DOWN )
+          {
+            mDown = false;
             return true;
           }
         }
@@ -792,6 +814,8 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback
               mTouchX = x;
               mTouchY = y;
             }
+            else if ( Math.abs( x - 318 ) <= TOUCH_SWAP_X_THRESHOLD )
+              mTouchSwap = true;
           }
 
           // Set the values used when Aim Then Shoot is on.
@@ -848,20 +872,21 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback
       {
         switch ( mMode )
         {
-          case STATE_HIGHSCORE:
-            setState( STATE_RUNNING );
-            if ( mGameListener != null )
-            {
-              mGameListener.onGameEvent( EVENT_LEVEL_START );
-            }
-            return true;
-
           case STATE_ABOUT:
             setState( STATE_RUNNING );
             return true;
 
-          case STATE_LEVELENDED:
           case STATE_PAUSE:
+            if ( mShowScores )
+            {
+              mShowScores = false;
+              nextLevel( );
+              if ( mGameListener != null )
+              {
+                mGameListener.onGameEvent( EVENT_LEVEL_START );
+              }
+              return true;
+            }
             setState( STATE_RUNNING );
             break;
 
@@ -871,11 +896,6 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback
         }
       }
       return false;
-    }
-
-    public void setPosition( double value )
-    {
-      mFrozenGame.setPosition( value );
     }
 
     private void drawBackground( Canvas c )
@@ -1032,18 +1052,20 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback
       int game_state = mFrozenGame.play( mLeft || mWasLeft,
                                          mRight || mWasRight,
                                          mFire || mUp || mWasFire || mWasUp,
+                                         mDown || mWasDown || mTouchSwap,
                                          mTrackballDX,
                                          mTouchFire, mTouchX, mTouchY,
                                          mATSTouchFire, mATSTouchDX );
       if ( ( game_state == FrozenGame.GAME_NEXT_LOST ) ||
            ( game_state == FrozenGame.GAME_NEXT_WON  ) )
       {
-        nextLevel( );
-
         if ( game_state == FrozenGame.GAME_NEXT_WON )
-          setState( STATE_HIGHSCORE );
+        {
+          mShowScores = true;
+          pause( );
+        }
         else
-          setState( STATE_LEVELENDED );
+          nextLevel( );
 
         if ( mGameListener != null )
         {
@@ -1057,8 +1079,10 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback
       mWasRight     = false;
       mWasFire      = false;
       mWasUp        = false;
+      mWasDown      = false;
       mTrackballDX  = 0;
       mTouchFire    = false;
+      mTouchSwap    = false;
       mATSTouchFire = false;
       mATSTouchDX   = 0;
     }
@@ -1229,10 +1253,12 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback
         mLevelManager = null;
       }
     }
-  }
 
-  private Context mContext;
-  private GameThread thread;
+    public void setPosition( double value )
+    {
+      mFrozenGame.setPosition( value );
+    }
+  }
 
   public GameView( Context context, AttributeSet attrs )
   {
