@@ -120,7 +120,7 @@ public class AccelerometerManager
         (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
       List<Sensor> sensors =
         sensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER);
-      supported = new Boolean(sensors.size() > 0);
+      supported = Boolean.valueOf(sensors.size() > 0);
     }
 
     return supported;
@@ -154,7 +154,7 @@ public class AccelerometerManager
   private static SensorEventListener sensorEventListener = 
     new SensorEventListener()
   {
-    private float filter = 0.05f;
+    private float filter = 0.1f;
     private float avgX   = 0.0f;
     private float avgY   = 0.0f;
     private float avgZ   = 0.0f;
