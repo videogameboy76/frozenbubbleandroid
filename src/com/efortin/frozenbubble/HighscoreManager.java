@@ -10,7 +10,7 @@
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * version 2, as published by the Free Software Foundation.
+ * version 2 or 3, as published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,7 +22,6 @@
  * Free Software Foundation, Inc.
  * 675 Mass Ave
  * Cambridge, MA 02139, USA
- *
  *
  * Artwork:
  *    Alexis Younes <73lab at free.fr>
@@ -61,8 +60,8 @@ import android.content.Context;
 import android.os.Bundle;
 
 /**
- * @author Michel Racic (http://www.2030.tk) A class to manage the highscore
- *         table for each level
+ * @author Michel Racic (http://www.2030.tk)
+ * <br>  A class to manage the highscore table for each level.
  */
 public class HighscoreManager {
 
@@ -80,39 +79,49 @@ public class HighscoreManager {
   }
 
   /**
-   * @param nbBubbles
+   * @param  nbBubbles
+   *         - The number of bubbles launched by the player.
    */
   public void endLevel(int nbBubbles) {
     long endTime  = System.currentTimeMillis();
     long duration = (endTime - startTime) + pausedTime;
 
     if ( duration < 0 )
-    duration = 0;
-    /**
-    * if (name == null) { SharedPreferences sp = ctx.getSharedPreferences(
-    * FrozenBubble.PREFS_NAME, Context.MODE_PRIVATE); name =
-    * sp.getString("highscorename", "anon"); } // ask for actual name
-    * (predefined text is last entered and save it in // preferences {
-    * AlertDialog.Builder alert = new AlertDialog.Builder(ctx);
-    * alert.setTitle("Highscore name"); alert.setMessage("Set your name:");
-    * final EditText input = new EditText(ctx); input.setText(name);
-    * alert.setView(input); alert.setPositiveButton("Ok", new
-    * DialogInterface.OnClickListener() { public void
-    * onClick(DialogInterface dialog, int whichButton) { SharedPreferences
-    * sp = ctx.getSharedPreferences( FrozenBubble.PREFS_NAME,
-    * Context.MODE_PRIVATE); SharedPreferences.Editor editor = sp.edit();
-    * editor.putString("highscorename", input.getText() .toString());
-    * editor.commit(); } }); alert.show();
-    * 
-    * } SharedPreferences sp = ctx.getSharedPreferences(
-    * FrozenBubble.PREFS_NAME, Context.MODE_PRIVATE); name =
-    * sp.getString("highscorename", "anon");
-    **/
+      duration = 0;
+    /*
+    if (name == null) {
+      SharedPreferences sp = ctx.getSharedPreferences(FrozenBubble.PREFS_NAME,
+                                                      Context.MODE_PRIVATE);
+      name = sp.getString("highscorename", "anon");
+    }
+    //
+    // Prompt the player to enter their name to enter into the high
+    // scores table.
+    //
+    //
+    AlertDialog.Builder alert = new AlertDialog.Builder(ctx);
+    alert.setTitle("Highscore name"); alert.setMessage("Set your name:");
+    final EditText input = new EditText(ctx); input.setText(name);
+    alert.setView(input);
+    alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+      public void onClick(DialogInterface dialog, int whichButton) {
+        SharedPreferences sp =
+          ctx.getSharedPreferences(FrozenBubble.PREFS_NAME,
+                                   Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putString("highscorename", input.getText() .toString());
+        editor.commit();
+      }
+    });
+    alert.show();
+    SharedPreferences sp = ctx.getSharedPreferences(FrozenBubble.PREFS_NAME,
+                                                    Context.MODE_PRIVATE);
+    name = sp.getString("highscorename", "anon");
+    */
     lastScoreId = db.insert(new HighscoreDO(currentLevel, "anon",
                             nbBubbles, duration));
-    // Log.i("FrozenBubble-highscore", "endLevel() " + (duration / 1000F)
-    // + " seconds and "
-    // + nbBubbles + " shots used for level " + currentLevel);
+    //Log.i("FrozenBubble-highscore", "endLevel() " + (duration / 1000F) +
+    //  " seconds and " + nbBubbles + " shots used for level " + currentLevel);
   }
 
   public void lostLevel() {
@@ -123,35 +132,35 @@ public class HighscoreManager {
     startTime    = System.currentTimeMillis();
     currentLevel = level;
     pausedTime   = 0;
-    // Log.i("FrozenBubble-highscore", "startLevel(" + level + ")");
+    //Log.i("FrozenBubble-highscore", "startLevel(" + level + ")");
   }
 
   public void pauseLevel() {
     pausedTime += System.currentTimeMillis() - startTime;
-    // Log.i("FrozenBubble-highscore", "pauseLevel() " + (pausedTime / 1000F)
-    // + " seconds used");
+    //Log.i("FrozenBubble-highscore", "pauseLevel() " + (pausedTime / 1000F) +
+    //  " seconds used");
   }
 
   public void resumeLevel() {
     startTime = System.currentTimeMillis();
-    // Log.i("FrozenBubble-highscore", "resumeLevel() " + (pausedTime / 1000F)
-    // + " seconds used");
+    //Log.i("FrozenBubble-highscore", "resumeLevel() " + (pausedTime / 1000F) +
+    //  " seconds used");
   }
 
   public void saveState(Bundle map) {
     pauseLevel();
     map.putInt("HighscoreManager-currentLevel", currentLevel);
     map.putLong("HighscoreManager-pausedTime", pausedTime);
-    // Log.i("FrozenBubble-highscore", "saveState() " + (pausedTime / 1000F)
-    // + " seconds used in level " + currentLevel);
+    //Log.i("FrozenBubble-highscore", "saveState() " + (pausedTime / 1000F) +
+    //  " seconds used in level " + currentLevel);
   }
 
   public void restoreState(Bundle map) {
     currentLevel = map.getInt("LevelManager-currentLevel");
     pausedTime = map.getLong("HighscoreManager-pausedTime");
     resumeLevel();
-    // Log.i("FrozenBubble-highscore", "restoreState() " + (pausedTime / 1000F)
-    // + " seconds used in level " + currentLevel);
+    //Log.i("FrozenBubble-highscore", "restoreState() " + (pausedTime / 1000F) +
+    //  " seconds used in level " + currentLevel);
   }
 
   public List<HighscoreDO> getHighscore(int level, int limit) {

@@ -10,7 +10,7 @@
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * version 2, as published by the Free Software Foundation.
+ * version 2 or 3, as published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,7 +22,6 @@
  * Free Software Foundation, Inc.
  * 675 Mass Ave
  * Cambridge, MA 02139, USA
- *
  *
  * Artwork:
  *    Alexis Younes <73lab at free.fr>
@@ -56,7 +55,6 @@ package com.efortin.frozenbubble;
 
 /**
  * @author Michel Racic (http://www.2030.tk)
- * 
  */
 public class HighscoreDO {
   private int id;
@@ -66,13 +64,13 @@ public class HighscoreDO {
   private long time;
 
   /**
-   * @param id
-   * @param level
-   * @param name
-   * @param shots
-   * @param time
-   * 
-   *            Used when reading DO from DB
+   * Used when reading entries from the database.
+   *
+   * @param  id
+   * @param  level
+   * @param  name
+   * @param  shots
+   * @param  time
    */
   public HighscoreDO(int id, int level, String name, int shots, long time) {
     super();
@@ -84,12 +82,12 @@ public class HighscoreDO {
   }
 
   /**
-   * @param level
-   * @param name
-   * @param shots
-   * @param time
-   * 
-   *            Used when DO not yet in DB (no ID)
+   * Used when an entry is not yet in the database (no ID).
+   *
+   * @param  level
+   * @param  name
+   * @param  shots
+   * @param  time
    */
   public HighscoreDO(int level, String name, int shots, long time) {
     super();

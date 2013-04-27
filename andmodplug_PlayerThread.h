@@ -70,10 +70,10 @@ JNIEXPORT jint JNICALL Java_com_peculiargames_andmodplug_PlayerThread_ModPlug_1J
 /*
  * Class:     com_peculiargames_andmodplug_PlayerThread
  * Method:    ModPlug_JUnload
- * Signature: ([BI)Z
+ * Signature: ()Z
  */
 JNIEXPORT jboolean JNICALL Java_com_peculiargames_andmodplug_PlayerThread_ModPlug_1JUnload
-  (JNIEnv *, jclass, jbyteArray, jint);
+  (JNIEnv *, jclass);
 
 /*
  * Class:     com_peculiargames_andmodplug_PlayerThread

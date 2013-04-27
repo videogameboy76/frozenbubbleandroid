@@ -9,7 +9,7 @@
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * version 2, as published by the Free Software Foundation.
+ * version 2 or 3, as published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,7 +21,6 @@
  * Free Software Foundation, Inc.
  * 675 Mass Ave
  * Cambridge, MA 02139, USA
- *
  *
  * Artwork:
  *    Alexis Younes <73lab at free.fr>
@@ -60,24 +59,23 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 
-public class LaunchBubbleSprite extends Sprite
-{
+public class LaunchBubbleSprite extends Sprite {
   private int currentColor;
   private int currentDirection;
-  private Drawable launcher;
+
+  private Drawable  launcher;
   private BmpWrap[] bubbles;
   private BmpWrap[] colorblindBubbles;
 
   public LaunchBubbleSprite(int initialColor, int initialDirection,
                             Drawable launcher,
-                            BmpWrap[] bubbles, BmpWrap[] colorblindBubbles)
-  {
+                            BmpWrap[] bubbles, BmpWrap[] colorblindBubbles) {
     super(new Rect(276, 362, 276 + 86, 362 + 76));
 
-    currentColor = initialColor;
-    currentDirection = initialDirection;
-    this.launcher = launcher;
-    this.bubbles = bubbles;
+    currentColor           = initialColor;
+    currentDirection       = initialDirection;
+    this.launcher          = launcher;
+    this.bubbles           = bubbles;
     this.colorblindBubbles = colorblindBubbles;
   }
 
@@ -91,26 +89,23 @@ public class LaunchBubbleSprite extends Sprite
                currentDirection);
   }
 
-  public int getTypeId()
-  {
+  public int getTypeId() {
     return Sprite.TYPE_LAUNCH_BUBBLE;
   }
 
-  public void changeColor(int newColor)
-  {
+  public void changeColor(int newColor) {
     currentColor = newColor;
   }
 
-  public void changeDirection(int newDirection)
-  {
+  public void changeDirection(int newDirection) {
     currentDirection = newDirection;
   }
 
-  public final void paint(Canvas c, double scale, int dx, int dy)
-  {
+  public final void paint(Canvas c, double scale, int dx, int dy) {
     if (FrozenBubble.getMode() == FrozenBubble.GAME_NORMAL) {
       drawImage(bubbles[currentColor], 302, 390, c, scale, dx, dy);
-    } else {
+    }
+    else {
       drawImage(colorblindBubbles[currentColor], 302, 390, c, scale, dx, dy);
     }
 

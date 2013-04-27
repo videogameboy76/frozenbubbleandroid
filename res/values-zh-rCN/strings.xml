@@ -4,8 +4,8 @@
   <string name="install_editor">推荐您直接到市场上下载关卡编辑器…</string>
   <string name="market_missing">找不到Android市场! 请手动安装冰冻泡泡编辑器.</string>
   <string name="menu_new_game">开始新游戏</string>
-  <string name="menu_colorblind_mode_on">色盲模式开启</string>
-  <string name="menu_colorblind_mode_off">色盲模式关闭</string>
+  <string name="menu_colorblind_on">色盲模式开启</string>
+  <string name="menu_colorblind_off">色盲模式关闭</string>
   <string name="menu_fullscreen_on">全屏模式开启</string>
   <string name="menu_fullscreen_off">全屏模式关闭</string>
   <string name="menu_sound_options">音效选项</string>
@@ -19,6 +19,58 @@
   <string name="ok">行</string>
   <string name="title_activity_frozen_bubble">冰冻泡泡</string>
   <string name="title_activity_splash_screen">冰冻泡泡</string>
+  <string name="scrolling_credits">"Original Development\n"
+    "------------------------\n"
+    "\nGuillaume Cottenceau - Design and Programming\n"
+    "\nAlexis Younes - Graphics\n"
+    "\nAmaury Amblard-Ladurantie - Coding and Graphics Support\n"
+    "\nMatthias Le Bidan - Sounds\n"
+    "\nhttp://www.frozen-bubble.org/\n\n\n"
+    "\nJava Development\n"
+    "------------------------\n"
+    "\nGlenn Sanson\n\n\n"
+    "\nAndroid Port\n"
+    "------------------------\n"
+    "\nPawel Aleksander Fedorynski - Project Owner\n"
+    "\nEric Fortin - Committer\n"
+    "\nhttps://code.google.com/p/frozenbubbleandroid/\n\n\n"
+    "\nAdditional Code\n"
+    "------------------------\n"
+    "\nAntoine Vianey - Accelerometer Manager\n"
+    "\nhttps://code.google.com/p/androgames-sample/\n\n"
+    "\nPatrick Casey - AndModPlug Library\n"
+    "\nhttp://www.peculiar-games.com/\n\n"
+    "\nMichel Racic - High Score Manager\n"
+    "\nhttp://www.2030.tk/\n\n\n"
+    "\nTranslations\n"
+    "------------------------\n"
+    "\nShanghai Ndoo Network Technology Ltd. - Chinese\n\n"
+    "\nCélim Hanifi - French\n\n"
+    "\nUwe Walschus - German\n\n"
+    "\nJuan Aguado - Spanish\n\n\n"
+    "\nMusic Credits\n"
+    "------------------------\n"
+    "\nAfter the Rain\nby Unknown Artist\n\n"
+    "\nAmbient Light\nby Vogue of Triton\n\n"
+    "\nAmbient Power\nby Vogue of Triton\n\n"
+    "\nAndroid Rupture\nby Baroque of Freelance\n\n"
+    "\nArtificial\nby Moby\n\n"
+    "\nBlue Stars\nby Blackstar\\Timetraveller of Cryptoburners\n\n"
+    "\nChunga-babe!\nby Yannis Brown\n\n"
+    "\nCrystalhammer\nby Karsten Obarski\n\n"
+    "\nDreamscope I\nby Counterpoint of Westower\n\n"
+    "\nFreefall\nby Baroque of Freelance\n\n"
+    "\nGaea\'s Awakening\nby Dreamsection\n\n"
+    "\nHomesick\nby Electric Keet\n\n"
+    "\nIf Crystals…\nby Tran of Renaissance\n\n"
+    "\nPopcorn\nby Unknown Artist\n\n"
+    "\nStardust Memories\nby Jester of Sanity\n\n"
+    "\nSunshine of the Morning Sun\nby Area51 (Dan Nyman)\n\n"
+    "\nTechnostyle III\nby Xenox of Triad\n\n"
+    "\nWorld of Peace\nby Zanoma (Marwan Green Critter)\n\n"
+    "\nAll songs downloaded from:\n"
+    "http://modarchive.org/\n\n\n"
+    "\n\n\nThank You For Playing!"</string>
   <string-array name="shoot_mode_array">
     <item>瞄准后射击</item>
     <item>点击射击</item>

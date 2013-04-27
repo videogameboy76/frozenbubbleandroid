@@ -10,7 +10,7 @@
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * version 2, as published by the Free Software Foundation.
+ * version 2 or 3, as published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,7 +22,6 @@
  * Free Software Foundation, Inc.
  * 675 Mass Ave
  * Cambridge, MA 02139, USA
- *
  *
  * Artwork:
  *    Alexis Younes <73lab at free.fr>
@@ -77,10 +76,9 @@ import android.content.Context;
  * <br>  mrp.UnPausePlay();
  * <br>  // repeat...</code>
  *
- * @author    P.A. Casey (crow) Peculiar-Games.com
- *
  * @version   1.0
  *
+ * @author    P.A. Casey (crow) Peculiar-Games.com
  */
 public class MODResourcePlayer extends PlayerThread {
   //
@@ -89,50 +87,51 @@ public class MODResourcePlayer extends PlayerThread {
   //
   //
   private Context mContext;
-  private InputStream mModfileInStream;
-  private byte[] modData = null;
-  private int modsize;  // holds the size in bytes of the mod file
 
   /**
    * Allocates a MOD/XM/etc. song Player object that can handle Android
    * resource files (typically the songs are stored in the res/raw
    * project directory and conform to Android build process rules,
    * lower-case names, etc.)
-   * <p>
-   * <b>Note about extensions:</b> developers using Eclipse as an IDE
-   * should note that it allows the .xm file extension but may be fussy
-   * about other tracker format extensions.
    *
-   * The cont argument is the application context which allows
-   * MODResourcePlayer to load resources directly.
+   * <p>   <b>Note about extensions:</b>
+   * <br>  Developers using Eclipse as an IDE should note that it allows
+   *       the .xm file extension but may be fussy about other tracker
+   *       format extensions.
    *
-   * @param  cont application Context
+   * <p>   The <code>context</code> argument is the application context
+   *       which allows MODResourcePlayer to load resources directly.
    *
+   * @param  context
+   *         - Application context that is creating this instance.
    */
-  public MODResourcePlayer(Context cont) {
-    // get super class (PlayerThread) with default rate
+  public MODResourcePlayer(Context context) {
+    // Get super class (PlayerThread) with default rate.
     super(0);
-    mContext = cont;
-    // full volume
+    mContext = context;
+    // Set full volume.
     setVolume(255);
   }
 
   /**
    * Load a MOD/XM/etc. song file from an Android resource.
-   * <p>
-   * <b>Note about extensions:</b> developers using Eclipse as an IDE
-   * should note that it allows the .xm file extension but may be fussy
-   * about other tracker format extensions.
+   * 
+   * <p>   <b>Note about extensions:</b>
+   * <br>  Developers using Eclipse as an IDE should note that it allows
+   *       the .xm file extension but may be fussy about other tracker
+   *       format extensions.
    *
-   * The modresource argument is the resource id for the MOD/XM song
-   * file, e.g. R.raw.coolsong
+   * <p>   The <code>modresource</code> argument is the resource id for
+   *       the MOD/XM song file, e.g. R.raw.coolsong
    *
-   * @param  modresource Android resource id for a MOD/XM/etc. (tracker
-   *         format) song file
-   *
+   * @param  modresource
+   *         - Android resource id for a MOD/XM/etc. (tracker format)
+   *         song file.
    */
   public boolean LoadMODResource(int modresource) {
+    byte[] modData = null;
     int currfilesize = 0;
+    InputStream mModfileInStream;
 
     //
     // Unload any mod file we have currently loaded.
@@ -152,26 +151,15 @@ public class MODResourcePlayer extends PlayerThread {
     }
 
     //
-    // If the mod file data buffer has yet to be allocated or is too
-    // small, we need to get a new one.
+    // Allocate a buffer that can hold the current MOD file data.
     //
     //
-    if (modData == null || modData.length < currfilesize) {
-      //
-      // Allocate a new buffer that can hold the current MOD file data.
-      //
-      //
-      modData = new byte[currfilesize];
-    }
+    modData = new byte[currfilesize];
 
     try {
-      modsize = mModfileInStream.read(modData,0, currfilesize);
-      PlayerThread.setModSize(modsize);
+      PlayerThread.setModSize(mModfileInStream.read(modData,0, currfilesize));
     } catch (IOException e) {
-      //
       // Auto-generated catch block.
-      //
-      //
       e.printStackTrace();
     }
 
@@ -186,22 +174,22 @@ public class MODResourcePlayer extends PlayerThread {
   /**
    * Stop playing the song, close down the player and
    * <code>join()</code> the player thread.
-   * <p>
-   * Typically called in the application's (Activity's)
-   * <code>onPause()</code> method 
+   * 
+   * <p>   Typically called in the application's (Activity's)
+   *       <code>onPause()</code> method.
    */
   public void StopAndClose() {
     PausePlay();
     boolean retry = true;
 
-    // now close and join() the mod player thread
+    // Now close and join() the MOD player thread.
     StopThread();
     while (retry) {
       try {
         join();
         retry = false;
       } catch (InterruptedException e) {
-        // keep trying to close the player thread
+        // Keep trying to close the player thread.
       }
     }
 
