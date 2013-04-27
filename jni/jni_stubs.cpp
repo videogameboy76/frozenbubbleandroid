@@ -376,10 +376,10 @@ JNIEXPORT jint JNICALL Java_com_peculiargames_andmodplug_PlayerThread_ModPlug_1J
 /*
  * Class:     com_peculiargames_andmodplug_PlayerThread
  * Method:    ModPlug_JUnload
- * Signature: ([BI)Z
+ * Signature: ()Z
  */
 JNIEXPORT jboolean JNICALL Java_com_peculiargames_andmodplug_PlayerThread_ModPlug_1JUnload
-  (JNIEnv *env, jclass cls, jbyteArray notused, jint size)
+  (JNIEnv *env, jclass cls)
 {
   if (currmodFile) {
     ModPlug_Unload(currmodFile);

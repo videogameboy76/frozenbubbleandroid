@@ -1,41 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.jfedor.frozenbubble"
-    android:versionCode="15"
-    android:versionName="1.14">
-    <supports-screens
-        android:smallScreens="true" 
-        android:normalScreens="true" 
-        android:largeScreens="true" 
-        android:anyDensity="true" />
-    <uses-sdk
-        android:minSdkVersion="10"
-        android:targetSdkVersion="10" />
+  package="org.jfedor.frozenbubble"
+  android:versionCode="16"
+  android:versionName="1.15">
 
-    <application
-        android:allowBackup="true"
-        android:debuggable="false"
-        android:icon="@drawable/app_frozen_bubble"
-        android:label="@string/app_name">
-        <activity
-            android:name="com.efortin.frozenbubble.SplashScreen"
-            android:label="@string/title_activity_splash_screen">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name="FrozenBubble"
-            android:configChanges="orientation|keyboardHidden"
-            android:label="@string/app_name"
-            android:alwaysRetainTaskState="true"
-            android:launchMode="singleInstance">
-            <intent-filter>
-                <action android:name="org.jfedor.frozenbubble.GAME" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
-    </application>
+  <supports-screens
+    android:smallScreens="true" 
+    android:normalScreens="true" 
+    android:largeScreens="true" 
+    android:anyDensity="true" />
 
+  <uses-sdk
+    android:minSdkVersion="4"
+    android:targetSdkVersion="4" />
+
+  <application
+    android:allowBackup="true"
+    android:debuggable="false"
+    android:icon="@drawable/app_frozen_bubble"
+    android:label="@string/app_name">
+
+    <activity
+      android:name="FrozenBubble"
+      android:configChanges="orientation|keyboardHidden"
+      android:label="@string/app_name"
+      android:alwaysRetainTaskState="true"
+      android:launchMode="singleInstance">
+      <intent-filter>
+        <action android:name="org.jfedor.frozenbubble.GAME" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+    </activity>
+
+    <activity
+      android:name="com.efortin.frozenbubble.ScrollingCredits"
+      android:configChanges="orientation|keyboardHidden"
+      android:label="@string/menu_about">
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>>
+    </activity>
+
+    <activity
+      android:name="com.efortin.frozenbubble.SplashScreen"
+      android:configChanges="orientation|keyboardHidden"
+      android:label="@string/title_activity_splash_screen">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+    </activity>
+  </application>
 </manifest>

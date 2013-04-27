@@ -9,7 +9,7 @@
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * version 2, as published by the Free Software Foundation.
+ * version 2 or 3, as published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,7 +21,6 @@
  * Free Software Foundation, Inc.
  * 675 Mass Ave
  * Cambridge, MA 02139, USA
- *
  *
  * Artwork:
  *    Alexis Younes <73lab at free.fr>
@@ -57,6 +56,7 @@ import java.util.Random;
 import java.util.Vector;
 
 import android.graphics.Canvas;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -89,7 +89,6 @@ public class FrozenGame extends GameScreen {
   public final static int KEY_M = 77;
   // Toggle sound on/off
   public final static int KEY_S = 83;
-
   boolean modeKeyPressed, soundKeyPressed;
 
   BmpWrap background;
@@ -119,12 +118,7 @@ public class FrozenGame extends GameScreen {
 
   BubbleSprite[][] bubblePlay;
 
-  int fixedBubbles;
-  double moveDown;
-
   BmpWrap gameWon, gameLost, gamePaused;
-
-  int nbBubbles;
 
   BmpWrap bubbleBlink;
   int blinkDelay;
@@ -136,11 +130,13 @@ public class FrozenGame extends GameScreen {
 
   SoundManager soundManager;
 
-  boolean readyToFire;
-  boolean swapPressed;
   boolean endOfGame;
   boolean frozenify;
+  boolean swapPressed;
+  int fixedBubbles;
   int frozenifyX, frozenifyY;
+  int nbBubbles;
+  double moveDown;
 
   Drawable launcher;
   BmpWrap penguins;
@@ -161,8 +157,7 @@ public class FrozenGame extends GameScreen {
                     Drawable launcher_arg,
                     SoundManager soundManager_arg,
                     LevelManager levelManager_arg,
-                    HighscoreManager highscoreManager_arg)
-  {
+                    HighscoreManager highscoreManager_arg) {
     random               = new Random(System.currentTimeMillis());
     launcher             = launcher_arg;
     penguins             = penguins_arg;
@@ -222,7 +217,8 @@ public class FrozenGame extends GameScreen {
     if (FrozenBubble.getMode() == FrozenBubble.GAME_NORMAL) {
       nextBubble = new ImageSprite(new Rect(302, 440, 302 + 32, 440 + 32),
                                    bubbles[nextColor]);
-    } else {
+    }
+    else {
       nextBubble = new ImageSprite(new Rect(302, 440, 302 + 32, 440 + 32),
                                    bubblesBlind[nextColor]);
     }
@@ -235,8 +231,7 @@ public class FrozenGame extends GameScreen {
     nbBubbles = 0;
   }
 
-  public void cleanUp()
-  {
+  public void cleanUp() {
     //
     //   If the pause bitmap is displayed, remove it.
     //
@@ -266,7 +261,8 @@ public class FrozenGame extends GameScreen {
           bubblePlay[i][j].saveState(map, savedSprites);
           map.putInt(String.format("play-%d-%d", i, j),
                      bubblePlay[i][j].getSavedId());
-        } else {
+        }
+        else {
           map.putInt(String.format("play-%d-%d", i, j), -1);
         }
       }
@@ -284,7 +280,8 @@ public class FrozenGame extends GameScreen {
     if (movingBubble != null) {
       movingBubble.saveState(map, savedSprites);
       map.putInt("movingBubbleId", movingBubble.getSavedId());
-    } else {
+    }
+    else {
       map.putInt("movingBubbleId", -1);
     }
     bubbleManager.saveState(map);
@@ -295,7 +292,6 @@ public class FrozenGame extends GameScreen {
     hurrySprite.saveState(map, savedSprites);
     map.putInt("hurryId", hurrySprite.getSavedId());
     map.putInt("hurryTime", hurryTime);
-    map.putBoolean("readyToFire", readyToFire);
     map.putBoolean("endOfGame", endOfGame);
     map.putBoolean("frozenify", frozenify);
     map.putInt("frozenifyX", frozenifyX);
@@ -307,72 +303,76 @@ public class FrozenGame extends GameScreen {
     }
   }
 
-  private Sprite restoreSprite(Bundle map, Vector<BmpWrap> imageList, int i)
-  {
+  private Sprite restoreSprite(Bundle map, Vector<BmpWrap> imageList, int i) {
     int left = map.getInt(String.format("%d-left", i));
     int right = map.getInt(String.format("%d-right", i));
     int top = map.getInt(String.format("%d-top", i));
     int bottom = map.getInt(String.format("%d-bottom", i));
     int type = map.getInt(String.format("%d-type", i));
     if (type == Sprite.TYPE_BUBBLE) {
-      int color         = map.getInt(String.format("%d-color", i));
-      double moveX      = map.getDouble(String.format("%d-moveX", i));
-      double moveY      = map.getDouble(String.format("%d-moveY", i));
-      double realX      = map.getDouble(String.format("%d-realX", i));
-      double realY      = map.getDouble(String.format("%d-realY", i));
-      boolean fixed     = map.getBoolean(String.format("%d-fixed", i));
-      boolean blink     = map.getBoolean(String.format("%d-blink", i));
-      boolean released  = map.getBoolean(String.format("%d-released", i));
+      int color = map.getInt(String.format("%d-color", i));
+      double moveX = map.getDouble(String.format("%d-moveX", i));
+      double moveY = map.getDouble(String.format("%d-moveY", i));
+      double realX = map.getDouble(String.format("%d-realX", i));
+      double realY = map.getDouble(String.format("%d-realY", i));
+      boolean fixed = map.getBoolean(String.format("%d-fixed", i));
+      boolean blink = map.getBoolean(String.format("%d-blink", i));
+      boolean released = map.getBoolean(String.format("%d-released", i));
       boolean checkJump = map.getBoolean(String.format("%d-checkJump", i));
       boolean checkFall = map.getBoolean(String.format("%d-checkFall", i));
-      int fixedAnim     = map.getInt(String.format("%d-fixedAnim", i));
-      boolean frozen    = map.getBoolean(String.format("%d-frozen", i));
+      int fixedAnim = map.getInt(String.format("%d-fixedAnim", i));
+      boolean frozen = map.getBoolean(String.format("%d-frozen", i));
+      Point lastOpenPosition =
+        new Point(map.getInt(String.format("%d-lastOpenPosition.x", i)),
+                  map.getInt(String.format("%d-lastOpenPosition.y", i)));
       return new BubbleSprite(new Rect(left, top, right, bottom),
                               color, moveX, moveY, realX, realY,
                               fixed, blink, released, checkJump, checkFall,
                               fixedAnim,
                               (frozen ? frozenBubbles[color] : bubbles[color]),
+                              lastOpenPosition,
                               bubblesBlind[color],
                               frozenBubbles[color],
                               targetedBubbles, bubbleBlink,
                               bubbleManager, soundManager, this);
-    } else if (type == Sprite.TYPE_IMAGE) {
+    }
+    else if (type == Sprite.TYPE_IMAGE) {
       int imageId = map.getInt(String.format("%d-imageId", i));
       return new ImageSprite(new Rect(left, top, right, bottom),
                              (BmpWrap)imageList.elementAt(imageId));
-    } else if (type == Sprite.TYPE_LAUNCH_BUBBLE) {
+    }
+    else if (type == Sprite.TYPE_LAUNCH_BUBBLE) {
       int currentColor = map.getInt(String.format("%d-currentColor", i));
-      int currentDirection = map.getInt(String.format("%d-currentDirection",
-                                                      i));
+      int currentDirection =
+        map.getInt(String.format("%d-currentDirection", i));
       return new LaunchBubbleSprite(currentColor, currentDirection,
                                     launcher, bubbles, bubblesBlind);
-    } else if (type == Sprite.TYPE_PENGUIN) {
+    }
+    else if (type == Sprite.TYPE_PENGUIN) {
       int currentPenguin = map.getInt(String.format("%d-currentPenguin", i));
       int count = map.getInt(String.format("%d-count", i));
       int finalState = map.getInt(String.format("%d-finalState", i));
       int nextPosition = map.getInt(String.format("%d-nextPosition", i));
       return new PenguinSprite(penguins, random, currentPenguin, count,
                                finalState, nextPosition);
-    } else {
+    }
+    else {
       Log.e("frozen-bubble", "Unrecognized sprite type: " + type);
       return null;
     }
   }
 
-  public void pause( )
-  {
+  public void pause() {
     resume();
     pausedSprite = new ImageSprite(new Rect(152, 190, 337, 116), gamePaused );
-    this.addSprite( pausedSprite );
+    this.addSprite(pausedSprite);
   }
 
-  public void resume( )
-  {
-    this.removeSprite( pausedSprite );
+  public void resume() {
+    this.removeSprite(pausedSprite);
   }
 
-  public void restoreState(Bundle map, Vector<BmpWrap> imageList)
-  {
+  public void restoreState(Bundle map, Vector<BmpWrap> imageList) {
     Vector<Sprite> savedSprites = new Vector<Sprite>();
     int numSavedSprites = map.getInt("numSavedSprites");
     for (int i = 0; i < numSavedSprites; i++) {
@@ -398,7 +398,8 @@ public class FrozenGame extends GameScreen {
         int spriteIdx = map.getInt(String.format("play-%d-%d", i, j));
         if (spriteIdx != -1) {
           bubblePlay[i][j] = (BubbleSprite)savedSprites.elementAt(spriteIdx);
-        } else {
+        }
+        else {
           bubblePlay[i][j] = null;
         }
       }
@@ -416,26 +417,25 @@ public class FrozenGame extends GameScreen {
     int movingBubbleId = map.getInt("movingBubbleId");
     if (movingBubbleId == -1) {
       movingBubble = null;
-    } else {
+    }
+    else {
       movingBubble = (BubbleSprite)savedSprites.elementAt(movingBubbleId);
     }
     bubbleManager.restoreState(map);
     fixedBubbles = map.getInt("fixedBubbles");
-    moveDown     = map.getDouble("moveDown");
-    nbBubbles    = map.getInt("nbBubbles");
-    blinkDelay   = map.getInt("blinkDelay");
-    int hurryId  = map.getInt("hurryId");
-    hurrySprite  = (ImageSprite)savedSprites.elementAt(hurryId);
-    hurryTime    = map.getInt("hurryTime");
-    readyToFire  = map.getBoolean("readyToFire");
-    endOfGame    = map.getBoolean("endOfGame");
-    frozenify    = map.getBoolean("frozenify");
-    frozenifyX   = map.getInt("frozenifyX");
-    frozenifyY   = map.getInt("frozenifyY");
+    moveDown = map.getDouble("moveDown");
+    nbBubbles = map.getInt("nbBubbles");
+    blinkDelay = map.getInt("blinkDelay");
+    int hurryId = map.getInt("hurryId");
+    hurrySprite = (ImageSprite)savedSprites.elementAt(hurryId);
+    hurryTime = map.getInt("hurryTime");
+    endOfGame = map.getBoolean("endOfGame");
+    frozenify = map.getBoolean("frozenify");
+    frozenifyX = map.getInt("frozenifyX");
+    frozenifyY = map.getInt("frozenifyY");
   }
 
-  private void initFrozenify()
-  {
+  private void initFrozenify() {
     ImageSprite freezeLaunchBubble =
       new ImageSprite(new Rect(301, 389, 34, 42), frozenBubbles[currentColor]);
     ImageSprite freezeNextBubble =
@@ -449,8 +449,7 @@ public class FrozenGame extends GameScreen {
     frozenify  = true;
   }
 
-  private void frozenify()
-  {
+  private void frozenify() {
     frozenifyX--;
     if (frozenifyX < 0) {
       frozenifyX = 7;
@@ -461,7 +460,6 @@ public class FrozenGame extends GameScreen {
         this.addSprite(new ImageSprite(new Rect(152, 190, 337, 116),
                                        gameLost));
         soundManager.playSound(FrozenBubble.SOUND_NOH);
-
         return;
       }
     }
@@ -477,7 +475,6 @@ public class FrozenGame extends GameScreen {
           this.addSprite(new ImageSprite(new Rect(152, 190, 337, 116),
                                          gameLost));
           soundManager.playSound(FrozenBubble.SOUND_NOH);
-
           return;
         }
       }
@@ -489,47 +486,39 @@ public class FrozenGame extends GameScreen {
     this.spriteToBack(launchBubble);
   }
 
-  public BubbleSprite[][] getGrid()
-  {
+  public BubbleSprite[][] getGrid() {
     return bubblePlay;
   }
 
-  public void addFallingBubble(BubbleSprite sprite)
-  {
+  public void addFallingBubble(BubbleSprite sprite) {
     spriteToFront(sprite);
     falling.addElement(sprite);
   }
 
-  public void deleteFallingBubble(BubbleSprite sprite)
-  {
+  public void deleteFallingBubble(BubbleSprite sprite) {
     removeSprite(sprite);
     falling.removeElement(sprite);
   }
 
-  public void addJumpingBubble(BubbleSprite sprite)
-  {
+  public void addJumpingBubble(BubbleSprite sprite) {
     spriteToFront(sprite);
     jumping.addElement(sprite);
   }
 
-  public void deleteJumpingBubble(BubbleSprite sprite)
-  {
+  public void deleteJumpingBubble(BubbleSprite sprite) {
     removeSprite(sprite);
     jumping.removeElement(sprite);
   }
 
-  public Random getRandom()
-  {
+  public Random getRandom() {
     return random;
   }
 
-  public double getMoveDown()
-  {
+  public double getMoveDown() {
     return moveDown;
   }
 
-  private void sendBubblesDown()
-  {
+  private void sendBubblesDown() {
     soundManager.playSound(FrozenBubble.SOUND_NEWROOT);
 
     for (int i=0 ; i<8 ; i++) {
@@ -541,7 +530,6 @@ public class FrozenGame extends GameScreen {
             penguin.updateState(PenguinSprite.STATE_GAME_LOST);
             endOfGame = true;
             initFrozenify();
-
             soundManager.playSound(FrozenBubble.SOUND_LOST);
           }
         }
@@ -552,8 +540,7 @@ public class FrozenGame extends GameScreen {
     compressor.moveDown();
   }
 
-  private void blinkLine(int number)
-  {
+  private void blinkLine(int number) {
     int move = number % 2;
     int column = (number+1) >> 1;
 
@@ -568,8 +555,7 @@ public class FrozenGame extends GameScreen {
                   boolean key_fire, boolean key_swap,
                   double trackball_dx,
                   boolean touch_fire, double touch_x, double touch_y,
-                  boolean ats_touch_fire, double ats_touch_dx)
-  {
+                  boolean ats_touch_fire, double ats_touch_dx) {
     boolean ats = FrozenBubble.getAimThenShoot();
 
     if ((ats && ats_touch_fire) || (!ats && touch_fire)) {
@@ -580,15 +566,18 @@ public class FrozenGame extends GameScreen {
 
     if (key_left && !key_right) {
       move[HORIZONTAL_MOVE] = KEY_LEFT;
-    } else if (key_right && !key_left) {
+    }
+    else if (key_right && !key_left) {
       move[HORIZONTAL_MOVE] = KEY_RIGHT;
-    } else {
+    }
+    else {
       move[HORIZONTAL_MOVE] = 0;
     }
 
     if (key_fire) {
       move[FIRE] = KEY_UP;
-    } else {
+    }
+    else {
       move[FIRE] = 0;
     }
 
@@ -597,7 +586,8 @@ public class FrozenGame extends GameScreen {
         swapNextLaunchBubble();
         swapPressed = true;
       }
-    } else {
+    }
+    else {
       swapPressed = false;
     }
 
@@ -613,16 +603,12 @@ public class FrozenGame extends GameScreen {
       }
     }
 
-    if (move[FIRE] == 0 || (!ats && touch_fire)) {
-      readyToFire = true;
-    }
-
     if (FrozenBubble.getDontRushMe()) {
       hurryTime = 1;
     }
 
     if (endOfGame) {
-      if (move[FIRE] == KEY_UP && readyToFire) {
+      if (move[FIRE] == KEY_UP) {
         //
         //   If endOfGame is set, then the play result absolutely
         //   cannot be GAME_PLAYING.
@@ -637,11 +623,10 @@ public class FrozenGame extends GameScreen {
         //         as the root cause remains unknown.
         //
         //
-        if ( play_result == GAME_PLAYING )
+        if (play_result == GAME_PLAYING)
           play_result = game_result;
 
-        if ( play_result == GAME_WON )
-        {
+        if (play_result == GAME_WON) {
           levelManager.goToNextLevel();
           play_result = GAME_NEXT_WON;
         }
@@ -649,16 +634,18 @@ public class FrozenGame extends GameScreen {
           play_result = GAME_NEXT_LOST;
 
         return play_result;
-      } else {
+      }
+      else {
         penguin.updateState(PenguinSprite.STATE_VOID);
 
         if (frozenify) {
           frozenify();
         }
       }
-    } else {
+    }
+    else {
       if (move[FIRE] == KEY_UP || hurryTime > 480) {
-        if (movingBubble == null && readyToFire) {
+        if (movingBubble == null) {
           nbBubbles++;
 
           movingBubble = new BubbleSprite(new Rect(302, 390, 32, 32),
@@ -672,25 +659,25 @@ public class FrozenGame extends GameScreen {
           this.addSprite(movingBubble);
 
           currentColor = nextColor;
-          nextColor    = bubbleManager.nextBubbleIndex(random);
+          nextColor = bubbleManager.nextBubbleIndex(random);
 
           if (FrozenBubble.getMode() == FrozenBubble.GAME_NORMAL) {
             nextBubble.changeImage(bubbles[nextColor]);
-          } else {
+          }
+          else {
             nextBubble.changeImage(bubblesBlind[nextColor]);
           }
           launchBubble.changeColor(currentColor);
           penguin.updateState(PenguinSprite.STATE_FIRE);
-
           soundManager.playSound(FrozenBubble.SOUND_LAUNCH);
-
-          readyToFire = false;
           hurryTime = 0;
           removeSprite(hurrySprite);
-        } else {
+        }
+        else {
           penguin.updateState(PenguinSprite.STATE_VOID);
         }
-      } else {
+      }
+      else {
         double dx = 0;
         if (move[HORIZONTAL_MOVE] == KEY_LEFT) {
           dx -= 1;
@@ -712,9 +699,11 @@ public class FrozenGame extends GameScreen {
         launchBubble.changeDirection((int)launchBubblePosition);
         if (dx < 0) {
           penguin.updateState(PenguinSprite.STATE_TURN_LEFT);
-        } else if (dx > 0) {
+        }
+        else if (dx > 0) {
           penguin.updateState(PenguinSprite.STATE_TURN_RIGHT);
-        } else {
+        }
+        else {
           penguin.updateState(PenguinSprite.STATE_VOID);
         }
       }
@@ -731,9 +720,9 @@ public class FrozenGame extends GameScreen {
           play_result = GAME_LOST;
           endOfGame = true;
           initFrozenify();
-
           soundManager.playSound(FrozenBubble.SOUND_LOST);
-        } else if (bubbleManager.countBubbles() == 0) {
+        }
+        else if (bubbleManager.countBubbles() == 0) {
           penguin.updateState(PenguinSprite.STATE_GAME_WON);
           this.addSprite(new ImageSprite(new Rect(152, 190, 337, 116),
                                          gameWon));
@@ -741,9 +730,9 @@ public class FrozenGame extends GameScreen {
           game_result = GAME_WON;
           play_result = GAME_WON;
           endOfGame = true;
-
           soundManager.playSound(FrozenBubble.SOUND_WON);
-        } else {
+        }
+        else {
           fixedBubbles++;
           blinkDelay = 0;
 
@@ -766,19 +755,20 @@ public class FrozenGame extends GameScreen {
             play_result = GAME_LOST;
             endOfGame = true;
             initFrozenify();
-
             soundManager.playSound(FrozenBubble.SOUND_LOST);
-          } else if (bubbleManager.countBubbles() == 0) {
+          }
+          else if (bubbleManager.countBubbles() == 0) {
             penguin.updateState(PenguinSprite.STATE_GAME_WON);
             this.addSprite(new ImageSprite(new Rect(152, 190,
-                                                    152 + 337, 190 + 116),
-                                           gameWon));
+                                                    152 + 337,
+                                                    190 + 116), gameWon));
             highscoreManager.endLevel(nbBubbles);
             game_result = GAME_WON;
             play_result = GAME_WON;
             endOfGame = true;
             soundManager.playSound(FrozenBubble.SOUND_WON);
-          } else {
+          }
+          else {
             fixedBubbles++;
             blinkDelay = 0;
 
@@ -805,7 +795,8 @@ public class FrozenGame extends GameScreen {
         if (hurryTime % 40 == 10) {
           addSprite(hurrySprite);
           soundManager.playSound(FrozenBubble.SOUND_HURRY);
-        } else if (hurryTime % 40 == 35) {
+        }
+        else if (hurryTime % 40 == 35) {
           removeSprite(hurrySprite);
         }
       }
@@ -820,7 +811,8 @@ public class FrozenGame extends GameScreen {
       if (blinkDelay == 40) {
         blinkDelay = 0;
       }
-    } else if (fixedBubbles == 7) {
+    }
+    else if (fixedBubbles == 7) {
       if (blinkDelay < 15) {
         blinkLine(blinkDelay);
       }
@@ -846,7 +838,8 @@ public class FrozenGame extends GameScreen {
     compressor.paint(c, scale, dx, dy);
     if (FrozenBubble.getMode() == FrozenBubble.GAME_NORMAL) {
       nextBubble.changeImage(bubbles[nextColor]);
-    } else {
+    }
+    else {
       nextBubble.changeImage(bubblesBlind[nextColor]);
     }
     super.paint(c, scale, dx, dy);
@@ -864,10 +857,8 @@ public class FrozenGame extends GameScreen {
     penguin.updateState(PenguinSprite.STATE_VOID);
   }
 
-  public void swapNextLaunchBubble()
-  {
-    if (currentColor != nextColor)
-    {
+  public void swapNextLaunchBubble() {
+    if (currentColor != nextColor) {
       int tempColor = currentColor;
       currentColor  = nextColor;
       nextColor     = tempColor;

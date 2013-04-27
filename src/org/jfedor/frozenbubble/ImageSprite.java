@@ -9,7 +9,7 @@
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * version 2, as published by the Free Software Foundation.
+ * version 2 or 3, as published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,7 +21,6 @@
  * Free Software Foundation, Inc.
  * 675 Mass Ave
  * Cambridge, MA 02139, USA
- *
  *
  * Artwork:
  *    Alexis Younes <73lab at free.fr>
@@ -60,14 +59,11 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Bundle;
 
-public class ImageSprite extends Sprite
-{
+public class ImageSprite extends Sprite {
   private BmpWrap displayedImage;
 
-  public ImageSprite(Rect area, BmpWrap img)
-  {
+  public ImageSprite(Rect area, BmpWrap img) {
     super(area);
-
     this.displayedImage = img;
   }
 
@@ -79,18 +75,15 @@ public class ImageSprite extends Sprite
     map.putInt(String.format("%d-imageId", getSavedId()), displayedImage.id);
   }
 
-  public int getTypeId()
-  {
+  public int getTypeId() {
     return Sprite.TYPE_IMAGE;
   }
 
-  public void changeImage(BmpWrap img)
-  {
+  public void changeImage(BmpWrap img) {
     this.displayedImage = img;
   }
 
-  public final void paint(Canvas c, double scale, int dx, int dy)
-  {
+  public final void paint(Canvas c, double scale, int dx, int dy) {
     Point p = super.getSpritePosition();
     drawImage(displayedImage, p.x, p.y, c, scale, dx, dy);
   }

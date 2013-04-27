@@ -9,7 +9,7 @@
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * version 2, as published by the Free Software Foundation.
+ * version 2 or 3, as published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,7 +21,6 @@
  * Free Software Foundation, Inc.
  * 675 Mass Ave
  * Cambridge, MA 02139, USA
- *
  *
  * Artwork:
  *    Alexis Younes <73lab at free.fr>
@@ -58,12 +57,10 @@ import java.util.Vector;
 import android.graphics.Canvas;
 import android.os.Bundle;
 
-public abstract class GameScreen
-{
+public abstract class GameScreen {
   private Vector<Sprite> sprites;
 
-  public final void saveSprites(Bundle map, Vector<Sprite> savedSprites)
-  {
+  public final void saveSprites(Bundle map, Vector<Sprite> savedSprites) {
     for (int i = 0; i < sprites.size(); i++) {
       ((Sprite)sprites.elementAt(i)).saveState(map, savedSprites);
       map.putInt(String.format("game-%d", i),
@@ -72,8 +69,7 @@ public abstract class GameScreen
     map.putInt("numGameSprites", sprites.size());
   }
 
-  public final void restoreSprites(Bundle map, Vector<Sprite> savedSprites)
-  {
+  public final void restoreSprites(Bundle map, Vector<Sprite> savedSprites) {
     sprites = new Vector<Sprite>();
     int numSprites = map.getInt("numGameSprites");
     for (int i = 0; i < numSprites; i++) {
@@ -82,30 +78,25 @@ public abstract class GameScreen
     }
   }
 
-  public GameScreen()
-  {
+  public GameScreen() {
     sprites = new Vector<Sprite>();
   }
 
-  public final void addSprite(Sprite sprite)
-  {
+  public final void addSprite(Sprite sprite) {
     sprites.removeElement(sprite);
     sprites.addElement(sprite);
   }
 
-  public final void removeSprite(Sprite sprite)
-  {
+  public final void removeSprite(Sprite sprite) {
     sprites.removeElement(sprite);
   }
 
-  public final void spriteToBack(Sprite sprite)
-  {
+  public final void spriteToBack(Sprite sprite) {
     sprites.removeElement(sprite);
     sprites.insertElementAt(sprite,0);
   }
 
-  public final void spriteToFront(Sprite sprite)
-  {
+  public final void spriteToFront(Sprite sprite) {
     sprites.removeElement(sprite);
     sprites.addElement(sprite);
   }

@@ -9,7 +9,7 @@
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * version 2, as published by the Free Software Foundation.
+ * version 2 or 3, as published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,7 +21,6 @@
  * Free Software Foundation, Inc.
  * 675 Mass Ave
  * Cambridge, MA 02139, USA
- *
  *
  * Artwork:
  *    Alexis Younes <73lab at free.fr>
@@ -50,9 +49,13 @@
  *          [[ http://glenn.sanson.free.fr/fb/ ]]
  *          [[ http://www.frozen-bubble.org/   ]]
  */
-// This file is derived from the LunarLander.java file which is part of
-// the Lunar Lander game included with Android documentation.  The copyright
-// notice for the Lunar Lander is reproduced below.
+
+/*
+ *  This file is derived from the LunarLander.java file which is part of
+ *  the Lunar Lander game included with Android documentation.  The
+ *  copyright notice for the Lunar Lander game is reproduced below.
+ */
+
 /*
  * Copyright © 2007 Google Inc.
  *
@@ -95,89 +98,81 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.efortin.frozenbubble.AccelerometerManager;
+import com.efortin.frozenbubble.ScrollingCredits;
 import com.peculiargames.andmodplug.MODResourcePlayer;
 import com.peculiargames.andmodplug.PlayerThread;
 
 public class FrozenBubble extends Activity
-  implements GameView.GameListener, AccelerometerManager.AccelerometerListener
-{
-  public final static int SOUND_WON                = 0;
-  public final static int SOUND_LOST               = 1;
-  public final static int SOUND_LAUNCH             = 2;
-  public final static int SOUND_DESTROY            = 3;
-  public final static int SOUND_REBOUND            = 4;
-  public final static int SOUND_STICK              = 5;
-  public final static int SOUND_HURRY              = 6;
-  public final static int SOUND_NEWROOT            = 7;
-  public final static int SOUND_NOH                = 8;
-  public final static int SOUND_WHIP               = 9;
-  public final static int NUM_SOUNDS               = 10;
+  implements GameView.GameListener,
+             AccelerometerManager.AccelerometerListener {
+  //
+  // The following screen orientation definitions were added to
+  // ActivityInfo in API level 9.
+  //
+  //
+  public final static int SCREEN_ORIENTATION_SENSOR_LANDSCAPE  = 6;
+  public final static int SCREEN_ORIENTATION_SENSOR_PORTRAIT   = 7;
+  public final static int SCREEN_ORIENTATION_REVERSE_LANDSCAPE = 8;
+  public final static int SCREEN_ORIENTATION_REVERSE_PORTRAIT  = 9;
 
-  public final static int GAME_NORMAL              = 0;
-  public final static int GAME_COLORBLIND          = 1;
+  public final static int SOUND_WON     = 0;
+  public final static int SOUND_LOST    = 1;
+  public final static int SOUND_LAUNCH  = 2;
+  public final static int SOUND_DESTROY = 3;
+  public final static int SOUND_REBOUND = 4;
+  public final static int SOUND_STICK   = 5;
+  public final static int SOUND_HURRY   = 6;
+  public final static int SOUND_NEWROOT = 7;
+  public final static int SOUND_NOH     = 8;
+  public final static int SOUND_WHIP    = 9;
+  public final static int NUM_SOUNDS    = 10;
 
-  public final static int MENU_COLORBLIND_MODE_ON  = 1;
-  public final static int MENU_COLORBLIND_MODE_OFF = 2;
-  public final static int MENU_FULLSCREEN_ON       = 3;
-  public final static int MENU_FULLSCREEN_OFF      = 4;
-  public final static int MENU_SOUND_OPTIONS       = 5;
-  public final static int MENU_DONT_RUSH_ME        = 6;
-  public final static int MENU_RUSH_ME             = 7;
-  public final static int MENU_NEW_GAME            = 8;
-  public final static int MENU_ABOUT               = 9;
-  public final static int MENU_EDITOR              = 10;
-  public final static int MENU_TARGET_MODE         = 11;
+  public final static int GAME_NORMAL     = 0;
+  public final static int GAME_COLORBLIND = 1;
 
-  public final static int AIM_TO_SHOOT             = 0;
-  public final static int POINT_TO_SHOOT           = 1;
-  public final static int ROTATE_TO_SHOOT          = 2;
+  public final static int MENU_COLORBLIND_ON  = 1;
+  public final static int MENU_COLORBLIND_OFF = 2;
+  public final static int MENU_FULLSCREEN_ON  = 3;
+  public final static int MENU_FULLSCREEN_OFF = 4;
+  public final static int MENU_SOUND_OPTIONS  = 5;
+  public final static int MENU_DONT_RUSH_ME   = 6;
+  public final static int MENU_RUSH_ME        = 7;
+  public final static int MENU_NEW_GAME       = 8;
+  public final static int MENU_ABOUT          = 9;
+  public final static int MENU_EDITOR         = 10;
+  public final static int MENU_TARGET_MODE    = 11;
 
-  public final static String PREFS_NAME = "frozenbubble";
-  public final static String TAG        = "FrozenBubble.java";
+  public final static int AIM_TO_SHOOT    = 0;
+  public final static int POINT_TO_SHOOT  = 1;
+  public final static int ROTATE_TO_SHOOT = 2;
 
+  private static boolean dontRushMe = false;
   private static boolean fullscreen = true;
   private static int     gameMode   = GAME_NORMAL;
   private static boolean musicOn    = true;
   private static boolean soundOn    = true;
-  private static boolean dontRushMe = false;
   private static int     targetMode = POINT_TO_SHOOT;
 
-  private GameThread mGameThread = null;
-  private GameView   mGameView   = null;
+  public final static String PREFS_NAME   = "frozenbubble";
+  public final static String TAG          = "FrozenBubble.java";
+  public final static String EDITORACTION = "org.jfedor.frozenbubble.GAME";
 
-  private OrientationEventListener myOrientationEventListener = null;
-
-  private static final String EDITORACTION = "org.jfedor.frozenbubble.GAME";
   private boolean activityCustomStarted = false;
-  private int     currentOrientation; 
-  /*************************************************************************/
-  //
-  //   MOD Player parameters.
-  //
-  //
-  /*************************************************************************/
-  //
-  //   Save song number and position in song at onPause() time
-  //   (to Preferences).
-  //
-  //
-  public static final String PLAYER_PREFS_NAME = "ModPlayerPrefs";
-  public static final String PREFS_SONGNUM     = "SongNum";
-  public static final String PREFS_SONGPATTERN = "SongPattern";
+  private boolean allowUnpause;
+  private int     currentOrientation;
 
+  private GameThread mGameThread = null;
+  private GameView mGameView = null;
+  private OrientationEventListener myOrientationEventListener = null;
+  private MODResourcePlayer resplayer = null;
   private SharedPreferences mConfig;
-  public static final int   DEFAULT_SONG = 0;
-  private MODResourcePlayer resplayer    = null;
-  private int               mod_now;
-  private int               mod_was;
-  private boolean           allowUnpause;
 
   private final int[] MODlist = {
-    R.raw.aftertherain,
-    R.raw.ambientlight,
     R.raw.ambientpower,
+    R.raw.ambientlight,
     R.raw.androidrupture,
     R.raw.artificial,
+    R.raw.aftertherain,
     R.raw.bluestars,
     R.raw.chungababe,
     R.raw.crystalhammer,
@@ -192,12 +187,16 @@ public class FrozenBubble extends Activity
     R.raw.technostyleiii
   };
 
-  /**
-   * Called when the activity is first created.
+  /*
+   * (non-Javadoc)
+   * @see android.app.Activity#onCreate(android.os.Bundle)
+   * 
+   * This method is called when the activity is started.  The activity
+   * may have been reconfigured or the system may have killed the
+   * process, after which it regained focus to invoke this method.
    */
   @Override
-  public void onCreate(Bundle savedInstanceState)
-  {
+  public void onCreate(Bundle savedInstanceState) {
     //if (savedInstanceState != null)
     //{
     //  Log.i(TAG, "FrozenBubble.onCreate(...)");
@@ -209,6 +208,7 @@ public class FrozenBubble extends Activity
     super.onCreate(savedInstanceState);
     setVolumeControlStream(AudioManager.STREAM_MUSIC);
     requestWindowFeature(Window.FEATURE_NO_TITLE);
+
     currentOrientation = getScreenOrientation();
     myOrientationEventListener =
       new OrientationEventListener(this, SensorManager.SENSOR_DELAY_NORMAL) {
@@ -217,98 +217,95 @@ public class FrozenBubble extends Activity
           currentOrientation = getScreenOrientation();
         }
       };
-    if ( myOrientationEventListener.canDetectOrientation() )
+    if (myOrientationEventListener.canDetectOrientation())
       myOrientationEventListener.enable();
+
     // Allow editor functionalities.
     Intent intent = getIntent();
-    if ( ( null == intent ) || ( null == intent.getExtras() ) ||
-         !intent.getExtras().containsKey("levels") )
-    {
+    if ((null == intent) ||
+        (null == intent.getExtras()) ||
+         !intent.getExtras().containsKey("levels")) {
       // Default levels.
       activityCustomStarted = false;
       setContentView(R.layout.activity_frozen_bubble);
+
       mGameView = (GameView)findViewById(R.id.game);
       mGameView.setGameListener(this);
       mGameThread = mGameView.getThread();
-      if ( savedInstanceState != null )
+      if (savedInstanceState != null)
         mGameThread.restoreState(savedInstanceState);
+
       mGameView.requestFocus();
-      setFullscreen();
-      newMusicPlayer( true );
+      playMusic(false);
     }
-    else
-    {
+    else {
       startCustomGame(intent);
     }
-    setTargetMode(targetMode);
+    restoreGamePrefs();
   }
 
   @Override
-  public boolean onCreateOptionsMenu(Menu menu)
-  {
+  public boolean onCreateOptionsMenu(Menu menu) {
     super.onCreateOptionsMenu(menu);
-    menu.add(0, MENU_COLORBLIND_MODE_ON,  0,
-             R.string.menu_colorblind_mode_on);
-    menu.add(0, MENU_COLORBLIND_MODE_OFF, 0,
-             R.string.menu_colorblind_mode_off);
-    menu.add(0, MENU_FULLSCREEN_ON,       0,
-             R.string.menu_fullscreen_on);
-    menu.add(0, MENU_FULLSCREEN_OFF,      0,
-             R.string.menu_fullscreen_off);
-    menu.add(0, MENU_SOUND_OPTIONS,       0,
-             R.string.menu_sound_options);
-    menu.add(0, MENU_TARGET_MODE,         0,
-             R.string.menu_target_mode);
-    menu.add(0, MENU_DONT_RUSH_ME,        0,
-             R.string.menu_dont_rush_me);
-    menu.add(0, MENU_RUSH_ME,             0,
-             R.string.menu_rush_me);
-    menu.add(0, MENU_ABOUT,               0,
-             R.string.menu_about);
-    menu.add(0, MENU_NEW_GAME,            0,
-             R.string.menu_new_game);
-    menu.add(0, MENU_EDITOR,              0,
-             R.string.menu_editor);
+    menu.add(0, MENU_COLORBLIND_ON,  0, R.string.menu_colorblind_on);
+    menu.add(0, MENU_COLORBLIND_OFF, 0, R.string.menu_colorblind_off);
+    menu.add(0, MENU_FULLSCREEN_ON,  0, R.string.menu_fullscreen_on);
+    menu.add(0, MENU_FULLSCREEN_OFF, 0, R.string.menu_fullscreen_off);
+    menu.add(0, MENU_SOUND_OPTIONS,  0, R.string.menu_sound_options);
+    menu.add(0, MENU_TARGET_MODE,    0, R.string.menu_target_mode);
+    menu.add(0, MENU_DONT_RUSH_ME,   0, R.string.menu_dont_rush_me);
+    menu.add(0, MENU_RUSH_ME,        0, R.string.menu_rush_me);
+    menu.add(0, MENU_ABOUT,          0, R.string.menu_about);
+    menu.add(0, MENU_NEW_GAME,       0, R.string.menu_new_game);
+    menu.add(0, MENU_EDITOR,         0, R.string.menu_editor);
     return true;
   }
 
   @Override
-  public boolean onPrepareOptionsMenu(Menu menu)
-  {
+  public boolean onPrepareOptionsMenu(Menu menu) {
     super.onPrepareOptionsMenu(menu);
     allowUnpause = false;
-    menu.findItem(MENU_SOUND_OPTIONS      ).setVisible(true);
-    menu.findItem(MENU_COLORBLIND_MODE_ON ).setVisible(
-                  getMode() == GAME_NORMAL);
-    menu.findItem(MENU_COLORBLIND_MODE_OFF).setVisible(
-                  getMode() != GAME_NORMAL);
-    menu.findItem(MENU_FULLSCREEN_ON      ).setVisible(!fullscreen);
-    menu.findItem(MENU_FULLSCREEN_OFF     ).setVisible(fullscreen);
-    menu.findItem(MENU_TARGET_MODE        ).setVisible(true);
-    menu.findItem(MENU_DONT_RUSH_ME       ).setVisible(!getDontRushMe());
-    menu.findItem(MENU_RUSH_ME            ).setVisible(getDontRushMe());
+    menu.findItem(MENU_SOUND_OPTIONS ).setVisible(true);
+    menu.findItem(MENU_COLORBLIND_ON ).setVisible(getMode() == GAME_NORMAL);
+    menu.findItem(MENU_COLORBLIND_OFF).setVisible(getMode() != GAME_NORMAL);
+    menu.findItem(MENU_FULLSCREEN_ON ).setVisible(!fullscreen);
+    menu.findItem(MENU_FULLSCREEN_OFF).setVisible(fullscreen);
+    menu.findItem(MENU_TARGET_MODE   ).setVisible(true);
+    menu.findItem(MENU_DONT_RUSH_ME  ).setVisible(!getDontRushMe());
+    menu.findItem(MENU_RUSH_ME       ).setVisible(getDontRushMe());
     return true;
   }
 
   @Override
-  public boolean onOptionsItemSelected(MenuItem item)
-  {
+  public boolean onOptionsItemSelected(MenuItem item) {
+    SharedPreferences sp = getSharedPreferences(PREFS_NAME,
+                                                Context.MODE_PRIVATE);
+    SharedPreferences.Editor editor = sp.edit();
+
     switch (item.getItemId()) {
       case MENU_NEW_GAME:
         newGameDialog();
         return true;
-      case MENU_COLORBLIND_MODE_ON:
+      case MENU_COLORBLIND_ON:
         setMode(GAME_COLORBLIND);
+        editor.putInt("gameMode", gameMode);
+        editor.commit();
         return true;
-      case MENU_COLORBLIND_MODE_OFF:
+      case MENU_COLORBLIND_OFF:
         setMode(GAME_NORMAL);
+        editor.putInt("gameMode", gameMode);
+        editor.commit();
         return true;
       case MENU_FULLSCREEN_ON:
         fullscreen = true;
+        editor.putBoolean("fullscreen", fullscreen);
+        editor.commit();
         setFullscreen();
         return true;
       case MENU_FULLSCREEN_OFF:
         fullscreen = false;
+        editor.putBoolean("fullscreen", fullscreen);
+        editor.commit();
         setFullscreen();
         return true;
       case MENU_SOUND_OPTIONS:
@@ -322,20 +319,24 @@ public class FrozenBubble extends Activity
         return true;
       case MENU_DONT_RUSH_ME:
         setDontRushMe(true);
+        editor.putBoolean("dontRushMe", dontRushMe);
+        editor.commit();
         return true;
       case MENU_RUSH_ME:
         setDontRushMe(false);
+        editor.putBoolean("dontRushMe", dontRushMe);
+        editor.commit();
         return true;
       case MENU_EDITOR:
         startEditor();
         return true;
     }
+
     return false;
   }
 
   @Override
-  public void onOptionsMenuClosed(Menu menu)
-  {
+  public void onOptionsMenuClosed(Menu menu) {
     super.onOptionsMenuClosed(menu);
     allowUnpause = true;
   }
@@ -354,12 +355,10 @@ public class FrozenBubble extends Activity
     SharedPreferences.Editor editor = sp.edit();
     // If I didn't run game from editor, save last played level.
     Intent i = getIntent();
-    if ( ( null == i ) || !activityCustomStarted )
-    {
+    if ((null == i) || !activityCustomStarted) {
       editor.putInt("level", mGameThread.getCurrentLevelIndex());
     }
-    else
-    {
+    else {
       // Editor's intent is running.
       editor.putInt("levelCustom", mGameThread.getCurrentLevelIndex());
     }
@@ -367,8 +366,6 @@ public class FrozenBubble extends Activity
     // Pause the MOD player and preserve song information.
     if (resplayer != null)
       resplayer.PausePlay();
-
-    savePlayerState( );
   }
 
   /**
@@ -384,10 +381,11 @@ public class FrozenBubble extends Activity
   }
 
   /**
-   * Notification that something is about to happen, to give the Activity a
-   * chance to save state.
+   * Notification that something is about to happen, to give the
+   * Activity a chance to save state.
    *
-   * @param outState a Bundle into which this Activity should save its state
+   * @param  outState
+   *         - A Bundle into which this Activity should save its state.
    */
   @Override
   protected void onSaveInstanceState(Bundle outState) {
@@ -395,7 +393,6 @@ public class FrozenBubble extends Activity
     // Just have the View's thread save its state into our Bundle.
     super.onSaveInstanceState(outState);
     mGameThread.saveState(outState);
-    savePlayerState();
   }
 
   /* (non-Javadoc)
@@ -412,49 +409,55 @@ public class FrozenBubble extends Activity
     }
   }
 
-  /**
-   * Method to start a game using levels from the level editor.
-   * 
-   * <p>If the level isn't specified from the editor, then the player
-   * selected the option to continue playing from the last level
-   * played, so use the last level played instead.
-   * 
-   * @param intent  the intent from the level editor used to start this
-   * activity, which contains the custom level data.
-   */
-  private void startCustomGame(Intent intent)
-  {
-    activityCustomStarted = true;
-    // Get custom level last played.
-    SharedPreferences sp = getSharedPreferences(PREFS_NAME,
-                                                Context.MODE_PRIVATE);
-    int startingLevel       = sp    .getInt     ("levelCustom",    0);
-    int startingLevelIntent = intent.getIntExtra("startingLevel", -2);
-    startingLevel =
-      (startingLevelIntent == -2) ? startingLevel : startingLevelIntent;
-    mGameView = new GameView(this,
-                             intent.getExtras().getByteArray("levels"),
-                             startingLevel);
-    setContentView(mGameView);
-    mGameView.setGameListener(this);
-    mGameThread = mGameView.getThread();
-    mGameView.requestFocus();
+  @Override
+  public void onWindowFocusChanged (boolean hasFocus) {
+    super.onWindowFocusChanged(hasFocus);
+    allowUnpause = hasFocus;
+  }
+
+  private void restoreGamePrefs() {
+    mConfig    = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+    dontRushMe = mConfig.getBoolean("dontRushMe", false         );
+    fullscreen = mConfig.getBoolean("fullscreen", true          );
+    gameMode   = mConfig.getInt    ("gameMode",   GAME_NORMAL   );
+    musicOn    = mConfig.getBoolean("musicOn",    true          );
+    soundOn    = mConfig.getBoolean("soundOn",    true          );
+    targetMode = mConfig.getInt    ("targetMode", POINT_TO_SHOOT);
+
     setFullscreen();
-    newMusicPlayer(true);
+    setTargetMode(targetMode);
   }
 
   private int getScreenOrientation() {
-    int rotation = getWindowManager().getDefaultDisplay().getRotation();
+    //
+    // The method getOrientation() was deprecated in API level 8.
+    //
+    // For API level 8 or greater, use getRotation().
+    //
+    //
+    int rotation = getWindowManager().getDefaultDisplay().getOrientation();
     DisplayMetrics dm = new DisplayMetrics();
     getWindowManager().getDefaultDisplay().getMetrics(dm);
     int width  = dm.widthPixels;
     int height = dm.heightPixels;
     int orientation;
-    // If the device's natural orientation is portrait:
-    if ((((rotation == Surface.ROTATION_0  )||
-          (rotation == Surface.ROTATION_180)) && (height > width )) ||
-        (((rotation == Surface.ROTATION_90 )||
+    //
+    // The orientation determination is based on the natural orienation
+    // mode of the device, which can be either portrait, landscape, or
+    // square.
+    //
+    // After the natural orientation is determined, convert the device
+    // rotation into a fully qualified orientation.
+    //
+    //
+    if ((((rotation == Surface.ROTATION_0  ) ||
+          (rotation == Surface.ROTATION_180)) && (height > width)) ||
+        (((rotation == Surface.ROTATION_90 ) ||
           (rotation == Surface.ROTATION_270)) && (width  > height))) {
+      //
+      // Natural orientation is portrait.
+      //
+      //
       switch(rotation) {
         case Surface.ROTATION_0:
           orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
@@ -463,19 +466,21 @@ public class FrozenBubble extends Activity
           orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
           break;
         case Surface.ROTATION_180:
-          orientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT;
+          orientation = SCREEN_ORIENTATION_REVERSE_PORTRAIT;
           break;
         case Surface.ROTATION_270:
-          orientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
+          orientation = SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
           break;
         default:
           orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
           break;              
       }
     }
-    // If the device's natural orientation is landscape or if the device
-    // is square:
     else {
+      //
+      // Natural orientation is landscape or square.
+      //
+      //
       switch(rotation) {
         case Surface.ROTATION_0:
           orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
@@ -484,10 +489,10 @@ public class FrozenBubble extends Activity
           orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
           break;
         case Surface.ROTATION_180:
-          orientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
+          orientation = SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
           break;
         case Surface.ROTATION_270:
-          orientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT;
+          orientation = SCREEN_ORIENTATION_REVERSE_PORTRAIT;
           break;
         default:
           orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
@@ -498,8 +503,7 @@ public class FrozenBubble extends Activity
     return orientation;
   }
 
-  private void newGameDialog()
-  {
+  private void newGameDialog() {
     AlertDialog.Builder builder = new AlertDialog.Builder(FrozenBubble.this);
     //
     // Set the dialog title.
@@ -524,21 +528,47 @@ public class FrozenBubble extends Activity
     builder.show();
   }
 
-  private void setFullscreen()
-  {
-    if (fullscreen)
-    {
-      getWindow().addFlags(
-        WindowManager.LayoutParams.FLAG_FULLSCREEN);
-      getWindow().clearFlags(
-        WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+  /**
+   * Method to start a game using levels from the level editor.
+   * 
+   * <p>If the level isn't specified from the editor, then the player
+   * selected the option to continue playing from the last level
+   * played, so use the last level played instead.
+   * 
+   * @param  intent
+   *         - The intent from the level editor used to start this
+   *         activity, which contains the custom level data.
+   */
+  private void startCustomGame(Intent intent) {
+    activityCustomStarted = true;
+    // Get custom level last played.
+    SharedPreferences sp = getSharedPreferences(PREFS_NAME,
+                                                Context.MODE_PRIVATE);
+    int startingLevel       = sp    .getInt     ("levelCustom",    0);
+    int startingLevelIntent = intent.getIntExtra("startingLevel", -2);
+    startingLevel =
+      (startingLevelIntent == -2) ? startingLevel : startingLevelIntent;
+    mGameView = new GameView(this,
+                             intent.getExtras().getByteArray("levels"),
+                             startingLevel);
+    setContentView(mGameView);
+    mGameView.setGameListener(this);
+    mGameThread = mGameView.getThread();
+    mGameView.requestFocus();
+    playMusic(false);
+  }
+
+  private void setFullscreen() {
+    final int flagFs   = WindowManager.LayoutParams.FLAG_FULLSCREEN;
+    final int flagNoFs = WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN;
+
+    if (fullscreen) {
+      getWindow().addFlags(flagFs);
+      getWindow().clearFlags(flagNoFs);
     }
-    else
-    {
-      getWindow().clearFlags(
-        WindowManager.LayoutParams.FLAG_FULLSCREEN);
-      getWindow().addFlags(
-        WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+    else {
+      getWindow().clearFlags(flagFs);
+      getWindow().addFlags(flagNoFs);
     }
     mGameView.requestLayout();
   }
@@ -548,8 +578,7 @@ public class FrozenBubble extends Activity
    * screen the next time it is launched.  This flag is saved to the
    * shared preferences non-volatile data.
    */
-  private void setShowSplashScreen()
-  {
+  private void setShowSplashScreen() {
     SharedPreferences sp = getSharedPreferences(PREFS_NAME,
                                                 Context.MODE_PRIVATE);
     SharedPreferences.Editor editor = sp.edit();
@@ -557,8 +586,7 @@ public class FrozenBubble extends Activity
     editor.commit();
   }
 
-  private void soundOptionsDialog()
-  {
+  private void soundOptionsDialog() {
     boolean isCheckedItem[] = {getSoundOn(), getMusicOn()};
 
     AlertDialog.Builder builder = new AlertDialog.Builder(FrozenBubble.this);
@@ -576,15 +604,13 @@ public class FrozenBubble extends Activity
     .setMultiChoiceItems(R.array.sound_options_array, isCheckedItem,
                          new DialogInterface.OnMultiChoiceClickListener() {
       @Override
-      public void onClick(DialogInterface dialog, int which, boolean isChecked)
-      {
-        switch ( which )
-        {
+      public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+        switch (which) {
           case 0:
-            setSoundOn( isChecked );
+            setSoundOn(isChecked);
             break;
           case 1:
-            setMusicOn( isChecked );
+            setMusicOn(isChecked);
             break;
         }
       }
@@ -594,25 +620,28 @@ public class FrozenBubble extends Activity
       @Override
       public void onClick(DialogInterface dialog, int id) {
         // User clicked OK.
-        if ( resplayer != null )
-        {
-          if ( getMusicOn() == true )
-          {
-            resplayer.setVolume( 255 );
+        if (resplayer != null) {
+          if (getMusicOn() == true) {
+            resplayer.setVolume(255);
           }
-          else
-          {
-            resplayer.setVolume( 0 );
+          else {
+            resplayer.setVolume(0);
           }
         }
+
+        SharedPreferences sp = getSharedPreferences(PREFS_NAME,
+                                                    Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putBoolean("musicOn", musicOn);
+        editor.putBoolean("soundOn", soundOn);
+        editor.commit();
       }
     });
     builder.create();
     builder.show();
   }
 
-  private void targetOptionsDialog()
-  {
+  private void targetOptionsDialog() {
     AlertDialog.Builder builder = new AlertDialog.Builder(FrozenBubble.this);
     //
     // Set the dialog title.
@@ -628,18 +657,16 @@ public class FrozenBubble extends Activity
     .setSingleChoiceItems(R.array.shoot_mode_array, targetMode,
                           new DialogInterface.OnClickListener() {
       @Override
-      public void onClick(DialogInterface builder, int which)
-      {
-        switch ( which )
-        {
+      public void onClick(DialogInterface builder, int which) {
+        switch (which) {
           case 0:
-            setTargetMode( AIM_TO_SHOOT );
+            setTargetMode(AIM_TO_SHOOT);
             break;
           case 1:
-            setTargetMode( POINT_TO_SHOOT );
+            setTargetMode(POINT_TO_SHOOT);
             break;
           case 2:
-            setTargetMode( ROTATE_TO_SHOOT );
+            setTargetMode(ROTATE_TO_SHOOT);
             break;
         }
       }
@@ -649,6 +676,11 @@ public class FrozenBubble extends Activity
       @Override
       public void onClick(DialogInterface builder, int id) {
         // User clicked OK.
+        SharedPreferences sp = getSharedPreferences(PREFS_NAME,
+                                                    Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putInt("targetMode", targetMode);
+        editor.commit();
       }
     });
 
@@ -656,122 +688,105 @@ public class FrozenBubble extends Activity
     builder.show();
   }
 
-  public synchronized static void setMode(int newMode)
-  {
+  public synchronized static void setMode(int newMode) {
     gameMode = newMode;
   }
 
-  public synchronized static int getMode()
-  {
+  public synchronized static int getMode() {
     return gameMode;
   }
 
-  public synchronized static boolean getMusicOn()
-  {
+  public synchronized static boolean getMusicOn() {
     return musicOn;
   }
 
-  public synchronized static void setMusicOn(boolean mo)
-  {
+  public synchronized static void setMusicOn(boolean mo) {
     musicOn = mo;
   }
 
-  public synchronized static boolean getSoundOn()
-  {
+  public synchronized static boolean getSoundOn() {
     return soundOn;
   }
 
-  public synchronized static void setSoundOn(boolean so)
-  {
+  public synchronized static void setSoundOn(boolean so) {
     soundOn = so;
   }
 
-  public synchronized static boolean getAimThenShoot()
-  {
+  public synchronized static boolean getAimThenShoot() {
     return ((targetMode == AIM_TO_SHOOT) || (targetMode == ROTATE_TO_SHOOT));
   }
 
-  public synchronized void setTargetMode(int tm)
-  {
+  public synchronized void setTargetMode(int tm) {
     targetMode = tm;
 
     if ((targetMode == ROTATE_TO_SHOOT) &&
-        AccelerometerManager.isSupported(getApplicationContext()))
-    {
+        AccelerometerManager.isSupported(getApplicationContext())) {
       AccelerometerManager.startListening(getApplicationContext(),this);
-      setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
+      //
+      // In API level 9, SCREEN_ORIENTATION_SENSOR_PORTRAIT was added
+      // to ActivityInfo.  This mode was actually supported by earlier
+      // APIs, but a definition was not yet explicity defined.
+      //
+      // This mode allows the device to display the screen in either
+      // normal or reverse portrait mode based on the device
+      // orientation reported by the accelerometer hardware.
+      //
+      //
+      setRequestedOrientation(SCREEN_ORIENTATION_SENSOR_PORTRAIT);
     }
 
-    if ((targetMode != ROTATE_TO_SHOOT) && AccelerometerManager.isListening())
-    {
+    if ((targetMode != ROTATE_TO_SHOOT) && AccelerometerManager.isListening()) {
       AccelerometerManager.stopListening();
       setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
     }
   }
 
-  public synchronized static boolean getDontRushMe()
-  {
+  public synchronized static boolean getDontRushMe() {
     return dontRushMe;
   }
 
-  public synchronized static void setDontRushMe(boolean dont)
-  {
+  public synchronized static void setDontRushMe(boolean dont) {
     dontRushMe = dont;
   }
 
-  public void cleanUp()
-  {
+  public void cleanUp() {
     if (AccelerometerManager.isListening())
       AccelerometerManager.stopListening();
 
-    if (myOrientationEventListener != null)
-    {
+    if (myOrientationEventListener != null) {
       myOrientationEventListener.disable();
       myOrientationEventListener = null;
     }
 
     if (mGameView != null)
-      mGameView.cleanUp( );
+      mGameView.cleanUp();
 
     mGameView   = null;
     mGameThread = null;
 
-    if (resplayer != null)
-    {
-      resplayer.StopAndClose();
-      resplayer = null;
-    }
+    destroyMusicPlayer();
   }
 
   /**
    * Start a new game and music player.
    */
-  public void newGame()
-  {
+  public void newGame() {
     mGameThread.newGame();
-    newMusicPlayer( true );
+    playMusic(false);
   }
 
-  public void onAccelerationChanged(float x, float y, float z)
-  {
-    if ( mGameThread != null )
-    {
-      if( currentOrientation ==
-          ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT )
+  public void onAccelerationChanged(float x, float y, float z) {
+    if (mGameThread != null) {
+      if (currentOrientation == SCREEN_ORIENTATION_REVERSE_PORTRAIT)
         x = -x;
 
       mGameThread.setPosition(20f+x*2f);
     }
   }
 
-  public void onGameEvent(int type)
-  {
-    switch ( type )
-    {
+  public void onGameEvent(int type) {
+    switch (type) {
       case GameView.EVENT_GAME_WON:
-        mod_was = mod_now;
-        mod_now++;
-        if (mod_now >= MODlist.length) mod_now = 0;
         break;
 
       case GameView.EVENT_GAME_LOST:
@@ -783,47 +798,41 @@ public class FrozenBubble extends Activity
         break;
 
       case GameView.EVENT_GAME_RESUME:
-        //
-        //   If the MOD resource player exists, then simply unpause
-        //   the current MOD.  Otherwise, create it.
-        //
-        //
         if (resplayer == null)
-        {
-          //
-          //   Get a new player thread with this mod file data.
-          //
-          //
-          resplayer = new MODResourcePlayer(this);
-          //
-          //   Restore song number and current pattern so we can resume
-          //   from there...
-          //
-          //
-          mConfig = getSharedPreferences(PLAYER_PREFS_NAME, 0);
-          mod_now = mConfig.getInt(PREFS_SONGNUM, DEFAULT_SONG);
-          if (mod_now >= MODlist.length) mod_now = DEFAULT_SONG;
-          int pattern = mConfig.getInt(PREFS_SONGPATTERN, 0);
-          resplayer.LoadMODResource(MODlist[mod_now]);
-          resplayer.setCurrentPattern(pattern);
-          //
-          // Start up the music.
-          //
-          //
-          resplayer.start();
-          mod_was = mod_now;
-        }
-        else
-        {
-          if ( mod_now != mod_was )
-            playCurrentMOD();
-          else if ( allowUnpause )
-            resplayer.UnPausePlay();
-        }
+          playMusic(true);
+        else if (allowUnpause)
+          resplayer.UnPausePlay();
         break;
 
       case GameView.EVENT_LEVEL_START:
-        playCurrentMOD( );
+        if (mGameView.getThread().getCurrentLevelIndex() == 0) {
+          //
+          // Destroy the current music player, which will free audio
+          // stream resources and allow the system to use them.
+          //
+          //
+          destroyMusicPlayer();
+          //
+          // Clear the game screen and suspend input processing for
+          // three seconds.
+          //
+          // Afterwards,  the "About" screen will be displayed as a
+          // backup just in case anything goes awry with displaying
+          // the end-of-game credits.  It will be displayed after the
+          // user touches the screen when the credits are finished.
+          //
+          //
+          mGameView.clearGameScreen(true, 3000);
+          //
+          // Create an intent to launch the activity to display the
+          // credits screen.
+          //
+          //
+          Intent intent = new Intent(this, ScrollingCredits.class);
+          startActivity(intent);
+        }
+        else
+          playMusic(true);
         break;
 
       default:
@@ -832,105 +841,80 @@ public class FrozenBubble extends Activity
   }
 
   /**
-   * Start up the MOD player
-   *
-   * <p>Get the MOD playlist song index.  If the game is going to be
-   * played starting at the first game level, set the current MOD
-   * index to the first song in the playlist.  Otherwise, load the
-   * song index that was last saved in the MOD player preferences.
-   *
-   * @param startPausedFlag  if true, the player will be paused on
-   * startup.  Otherwise if false, the player will start playing
-   * immediately.
+   * Stop the music player, close the thread, and free the instance.
    */
-  private void newMusicPlayer( boolean startPausedFlag )
-  {
-    if ( mGameView.getThread().getCurrentLevelIndex() == 0 )
-    {
-      mod_now = DEFAULT_SONG;
+  private void destroyMusicPlayer() {
+    synchronized(this) {
+      if (resplayer != null) {
+        resplayer.StopAndClose();
+        resplayer = null;
+      }
     }
-    else
-    {
-      mConfig = getSharedPreferences(PLAYER_PREFS_NAME, 0);
-      mod_now = mConfig.getInt(PREFS_SONGNUM, DEFAULT_SONG);
-      if (mod_now >= MODlist.length) mod_now = DEFAULT_SONG;
-    }
-    //
-    //   If the MOD player instance is not NULL, destroy it and create
-    //   a new one.
-    //
-    //
-    if (resplayer != null)
-    {
-      resplayer.StopAndClose();
-      resplayer = null;
-    }
-    // load the mod file
-    resplayer = new MODResourcePlayer(this);
-    resplayer.setLoopCount(PlayerThread.LOOP_SONG_FOREVER);
-    resplayer.LoadMODResource(MODlist[mod_now]);
-    if ( getMusicOn() == true )
-    {
-      resplayer.setVolume( 255 );
-    }
-    else
-    {
-      resplayer.setVolume( 0 );
-    }
-    // start up the music (well, start the thread, at least...)
-    resplayer.startPaused(startPausedFlag);
-    resplayer.start();
-    allowUnpause = true;
-    mod_was      = mod_now;
   }
 
   /**
-   *   Play the current song in our playlist from the beginning of the
-   *   song.
-   *
-   *   <p>The current MOD index may have been modified externally.
-   *
+   * Create a new music player.
    */
-  private void playCurrentMOD()
-  {
-    if (resplayer != null)
-    {
-      resplayer.PausePlay();
-      if (mod_now >= MODlist.length) mod_now = 0;
-      // load the current MOD into the player
-      resplayer.LoadMODResource(MODlist[mod_now]);
-      resplayer.UnPausePlay();
-      allowUnpause = true;
-      mod_was      = mod_now;
+  private void newMusicPlayer() {
+    // Create a new music player.
+    resplayer = new MODResourcePlayer(this);
+    // Ascertain which song to play.
+    int modNow = mGameView.getThread().getCurrentLevelIndex() % MODlist.length;
+    // Load the mod file.
+    resplayer.LoadMODResource(MODlist[modNow]);
+    // Loop the song forever.
+    resplayer.setLoopCount(PlayerThread.LOOP_SONG_FOREVER);
+    // Set the volume per the game preferences.
+    if (getMusicOn() == true) {
+      resplayer.setVolume(255);
     }
-    else
-      newMusicPlayer( false );
+    else {
+      resplayer.setVolume(0);
+    }
+    // Start the music thread.
+    resplayer.startPaused(true);
+    resplayer.start();
   }
 
-  private void savePlayerState()
+  /**
+   * Load the current song in our playlist.
+   */
+  private void loadCurrentMOD() {
+    // Pause the current song.
+    resplayer.PausePlay();
+    // Ascertain which song to play.
+    int modNow = mGameView.getThread().getCurrentLevelIndex() % MODlist.length;
+    // Load the current MOD into the player.
+    resplayer.LoadMODResource(MODlist[modNow]);
+  }
+
+  /**
+   * This function determines whether a music player instance needs to
+   * be created or if one already exists.  Then, based on the current
+   * level, the song to play is calculated and loaded.  If desired, the
+   * song will start playing immediately, or it can remain paused.
+   *
+   * @param  startPlaying
+   *         - If true, the song starts playing immediately.  Otherwise
+   *         it is paused and must be unpaused to start playing.
+   */
+  private void playMusic(boolean startPlaying)
   {
-    //
-    //   Save song number and current pattern so we can resume from
-    //   there...
-    //
-    //
-    SharedPreferences.Editor prefs =
-      getSharedPreferences(PLAYER_PREFS_NAME, 0).edit();
-    prefs.putInt(PREFS_SONGNUM, mod_now);
-
-    if (resplayer != null)
-      prefs.putInt(PREFS_SONGPATTERN, resplayer.getCurrentPattern());
+    // Determine whether to create a music player or load the song.
+    if (resplayer == null)
+      newMusicPlayer();
     else
-      prefs.putInt(PREFS_SONGPATTERN, 0);
-
-    prefs.commit();
+      loadCurrentMOD();
+    // If desired, start the song immediately.
+    if (startPlaying)
+      resplayer.UnPausePlay();
+    allowUnpause = true;
   }
 
   /**
    * Starts editor / market with editor's download.
    */
-  private void startEditor()
-  {
+  private void startEditor() {
     Intent i = new Intent();
     // First try to run the plus version of Editor.
     i.setClassName("sk.halmi.fbeditplus", 

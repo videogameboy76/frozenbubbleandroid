@@ -10,7 +10,7 @@
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * version 2, as published by the Free Software Foundation.
+ * version 2 or 3, as published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,7 +22,6 @@
  * Free Software Foundation, Inc.
  * 675 Mass Ave
  * Cambridge, MA 02139, USA
- *
  *
  * Artwork:
  *    Alexis Younes <73lab at free.fr>
@@ -55,11 +54,10 @@
 package com.efortin.frozenbubble;
 
 /**
- * @author Michel Racic (http://www.2030.tk)
- * 
- *  SQlite DB adapter class based on the code from
- *  http://www.screaming-penguin.com/node/7742
+ * SQlite DB adapter class based on the code from:<br>
+ * http://www.screaming-penguin.com/node/7742
  *
+ * @author Michel Racic (http://www.2030.tk)
  */
 import java.util.ArrayList;
 import java.util.List;
@@ -72,17 +70,15 @@ import android.database.sqlite.SQLiteStatement;
 import android.util.Log;
 
 public class HighscoreDB {
-
-  private static final String DATABASE_NAME = "frozenbubble";
-  private static final int DATABASE_VERSION = 1;
-  private static final String TABLE_NAME = "highscore";
+  private static final String DATABASE_NAME    = "frozenbubble";
+  private static final int    DATABASE_VERSION = 1;
+  private static final String TABLE_NAME       = "highscore";
 
   private final Context context;
   private final SQLiteDatabase db;
-
   private final SQLiteStatement insertStmt;
-  private static final String INSERT = "insert into " + TABLE_NAME
-  + "(level, name, shots, time) values (?,?,?,?)";
+  private static final String INSERT = "insert into " + TABLE_NAME +
+    "(level, name, shots, time) values (?,?,?,?)";
 
   public HighscoreDB(Context context) {
     this.context = context;
@@ -110,7 +106,7 @@ public class HighscoreDB {
   public List<HighscoreDO> selectAll() {
     List<HighscoreDO> list = new ArrayList<HighscoreDO>();
     Cursor cursor = db.query(TABLE_NAME, null, null, null, null, null,
-    "level asc, shots asc, time asc");
+                             "level asc, shots asc, time asc");
     if (cursor.moveToFirst()) {
       do {
         list.add(new HighscoreDO(cursor.getInt(0), cursor.getInt(1),
@@ -118,7 +114,7 @@ public class HighscoreDB {
       } while (cursor.moveToNext());
     }
     if ((cursor != null) && !cursor.isClosed()) {
-            cursor.close();
+      cursor.close();
     }
     return list;
   }
@@ -126,7 +122,7 @@ public class HighscoreDB {
   public List<HighscoreDO> selectByLevel(int level, int limit) {
     List<HighscoreDO> list = new ArrayList<HighscoreDO>();
     Cursor cursor = db.query(TABLE_NAME, null, "level=" + level, null,
-                    null, null, "shots asc, time asc", "" + limit);
+                             null, null, "shots asc, time asc", "" + limit);
     if (cursor.moveToFirst()) {
       do {
         list.add(new HighscoreDO(cursor.getInt(0), cursor.getInt(1),
@@ -140,9 +136,8 @@ public class HighscoreDB {
   }
 
   private static class OpenHelper extends SQLiteOpenHelper {
-
     OpenHelper(Context context) {
-            super(context, DATABASE_NAME, null, DATABASE_VERSION);
+      super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     @Override
@@ -154,7 +149,7 @@ public class HighscoreDB {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
       Log.w("Example",
-      "Upgrading database, this will drop tables and recreate.");
+            "Upgrading database, this will drop tables and recreate.");
       db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
       onCreate(db);
     }

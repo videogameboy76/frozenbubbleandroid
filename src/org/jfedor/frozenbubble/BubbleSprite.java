@@ -9,7 +9,7 @@
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * version 2, as published by the Free Software Foundation.
+ * version 2 or 3, as published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,7 +21,6 @@
  * Free Software Foundation, Inc.
  * 675 Mass Ave
  * Cambridge, MA 02139, USA
- *
  *
  * Artwork:
  *    Alexis Younes <73lab at free.fr>
@@ -60,13 +59,13 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Bundle;
 
-public class BubbleSprite extends Sprite
-{
+public class BubbleSprite extends Sprite {
   private static final double FALL_SPEED       = 1.;
   private static final double MAX_BUBBLE_SPEED = 8.;   
   private static final double MINIMUM_DISTANCE = 400.;
 
   private int           color;
+  private int           fixedAnim;
   private BmpWrap       bubbleFace;
   private BmpWrap       bubbleBlindFace;
   private BmpWrap       frozenFace;
@@ -79,14 +78,11 @@ public class BubbleSprite extends Sprite
   private double        realX, realY;
   private Point         lastOpenPosition;
 
-  private boolean fixed;
   private boolean blink;
-  private boolean released;
-
-  private boolean checkJump;
   private boolean checkFall;
-
-  private int fixedAnim;
+  private boolean checkJump;
+  private boolean fixed;
+  private boolean released;
 
   public void saveState(Bundle map, Vector<Sprite> savedSprites) {
     if (getSavedId() != -1) {
@@ -106,22 +102,28 @@ public class BubbleSprite extends Sprite
     map.putInt(String.format("%d-fixedAnim", getSavedId()), fixedAnim);
     map.putBoolean(String.format("%d-frozen", getSavedId()),
                    bubbleFace == frozenFace ? true : false);
+    map.putInt(String.format("%d-lastOpenPosition.x", getSavedId()),
+               lastOpenPosition.x);
+    map.putInt(String.format("%d-lastOpenPosition.y", getSavedId()),
+               lastOpenPosition.y);
   }
 
-  public int getTypeId()
-  {
+  public int getTypeId() {
     return Sprite.TYPE_BUBBLE;
   }
 
+  /**
+   * Class constructor used when restoring the game state from a bundle.
+   */
   public BubbleSprite(Rect area, int color, double moveX, double moveY,
                       double realX, double realY, boolean fixed, boolean blink,
                       boolean released, boolean checkJump, boolean checkFall,
                       int fixedAnim, BmpWrap bubbleFace,
+                      Point lastOpenPosition,
                       BmpWrap bubbleBlindFace, BmpWrap frozenFace,
                       BmpWrap[] bubbleFixed, BmpWrap bubbleBlink,
                       BubbleManager bubbleManager, SoundManager soundManager,
-                      FrozenGame frozen)
-  {
+                      FrozenGame frozen) {
     super(area);
 
     this.color = color;
@@ -143,15 +145,17 @@ public class BubbleSprite extends Sprite
     this.bubbleManager = bubbleManager;
     this.soundManager = soundManager;
     this.frozen = frozen;
-    this.lastOpenPosition = currentPosition();
+    this.lastOpenPosition = new Point(lastOpenPosition);
   }
 
+  /**
+   * Class constructor used when creating a launched bubble.
+   */
   public BubbleSprite(Rect area, int direction, int color, BmpWrap bubbleFace,
                       BmpWrap bubbleBlindFace, BmpWrap frozenFace,
                       BmpWrap[] bubbleFixed, BmpWrap bubbleBlink,
                       BubbleManager bubbleManager, SoundManager soundManager,
-                      FrozenGame frozen)
-  {
+                      FrozenGame frozen) {
     super(area);
 
     this.color = color;
@@ -163,7 +167,6 @@ public class BubbleSprite extends Sprite
     this.bubbleManager = bubbleManager;
     this.soundManager = soundManager;
     this.frozen = frozen;
-
     this.moveX = MAX_BUBBLE_SPEED * -Math.cos(direction * Math.PI / 40.);
     this.moveY = MAX_BUBBLE_SPEED * -Math.sin(direction * Math.PI / 40.);
     this.realX = area.left;
@@ -174,11 +177,13 @@ public class BubbleSprite extends Sprite
     fixedAnim = -1;
   }
 
+  /**
+   * Class constructor used when initializing a new level.
+   */
   public BubbleSprite(Rect area, int color, BmpWrap bubbleFace,
                       BmpWrap bubbleBlindFace, BmpWrap frozenFace,
                       BmpWrap bubbleBlink, BubbleManager bubbleManager,
-                      SoundManager soundManager, FrozenGame frozen)
-  {
+                      SoundManager soundManager, FrozenGame frozen) {
     super(area);
 
     this.color = color;
@@ -189,7 +194,6 @@ public class BubbleSprite extends Sprite
     this.bubbleManager = bubbleManager;
     this.soundManager = soundManager;
     this.frozen = frozen;
-
     this.realX = area.left;
     this.realY = area.top;
     this.lastOpenPosition = currentPosition();
@@ -199,8 +203,7 @@ public class BubbleSprite extends Sprite
     bubbleManager.addBubble(bubbleFace);
   }
 
-  Point currentPosition()
-  {
+  Point currentPosition() {
     int posY = (int)Math.floor((realY-28.-frozen.getMoveDown())/28.);
     int posX = (int)Math.floor((realX-174.)/32. + 0.5*(posY%2));
 
@@ -219,28 +222,23 @@ public class BubbleSprite extends Sprite
     return new Point(posX, posY);
   }
 
-  public void removeFromManager()
-  {
+  public void removeFromManager() {
     bubbleManager.removeBubble(bubbleFace);
   }
 
-  public boolean fixed()
-  {
+  public boolean fixed() {
     return fixed;
   }
 
-  public boolean checked()
-  {
+  public boolean checked() {
     return checkFall;
   }
 
-  public boolean released()
-  {
+  public boolean released() {
     return released;
   }
 
-  public void moveDown()
-  {
+  public void moveDown() {
     if (fixed) {
       realY += 28.;
     }
@@ -248,26 +246,25 @@ public class BubbleSprite extends Sprite
     super.absoluteMove(new Point((int)realX, (int)realY));
   }
 
-  public void move()
-  {
+  public void move() {
     realX += moveX;
 
     if (realX>=414.) {
       moveX = -moveX;
       realX += (414. - realX);
       soundManager.playSound(FrozenBubble.SOUND_REBOUND);
-    } else if (realX<=190.) {
+    }
+    else if (realX<=190.) {
       moveX = -moveX;
       realX += (190. - realX);
       soundManager.playSound(FrozenBubble.SOUND_REBOUND);
     }
 
     realY += moveY;
-
     Point currentPosition = currentPosition();
     BubbleSprite[][] grid = frozen.getGrid();
 
-    if ( grid[currentPosition.x][currentPosition.y] == null )
+    if (grid[currentPosition.x][currentPosition.y] == null)
       lastOpenPosition = currentPosition;
 
     Vector<BubbleSprite> neighbors = getNeighbors(lastOpenPosition);
@@ -275,7 +272,6 @@ public class BubbleSprite extends Sprite
     if (checkCollision(neighbors) || realY < 44.+frozen.getMoveDown()) {
       realX = 190.+lastOpenPosition.x*32-(lastOpenPosition.y%2)*16;
       realY = 44.+lastOpenPosition.y*28+frozen.getMoveDown();
-
       fixed = true;
 
       Vector<Sprite> checkJump = new Vector<Sprite>();
@@ -287,8 +283,8 @@ public class BubbleSprite extends Sprite
         for (int i=0 ; i<checkJump.size() ; i++) {
           BubbleSprite current = (BubbleSprite)checkJump.elementAt(i);
           Point currentPoint = current.currentPosition();
-
           frozen.addJumpingBubble(current);
+
           if (i>0) {
             current.removeFromManager();
           }
@@ -314,7 +310,8 @@ public class BubbleSprite extends Sprite
         }
 
         soundManager.playSound(FrozenBubble.SOUND_DESTROY);
-      } else {
+      }
+      else {
         bubbleManager.addBubble(bubbleFace);
         grid[lastOpenPosition.x][lastOpenPosition.y] = this;
         moveX = 0.;
@@ -327,10 +324,8 @@ public class BubbleSprite extends Sprite
     super.absoluteMove(new Point((int)realX, (int)realY));
   }
 
-  Vector<BubbleSprite> getNeighbors(Point p)
-  {
+  Vector<BubbleSprite> getNeighbors(Point p) {
     BubbleSprite[][] grid = frozen.getGrid();
-
     Vector<BubbleSprite> list = new Vector<BubbleSprite>();
 
     if ((p.y % 2) == 0) {
@@ -350,7 +345,8 @@ public class BubbleSprite extends Sprite
           list.addElement(grid[p.x][p.y+1]);
           list.addElement(grid[p.x+1][p.y+1]);
         }
-      } else {
+      }
+      else {
         if (p.y > 0) {
           list.addElement(grid[p.x][p.y-1]);
         }
@@ -359,7 +355,8 @@ public class BubbleSprite extends Sprite
           list.addElement(grid[p.x][p.y+1]);
         }
       }
-    } else {
+    }
+    else {
       if (p.x < 7) {
         list.addElement(grid[p.x+1][p.y]);
       }
@@ -376,7 +373,8 @@ public class BubbleSprite extends Sprite
           list.addElement(grid[p.x][p.y+1]);
           list.addElement(grid[p.x-1][p.y+1]);
         }
-      } else {
+      }
+      else {
         if (p.y > 0) {
           list.addElement(grid[p.x][p.y-1]);
         }
@@ -390,11 +388,11 @@ public class BubbleSprite extends Sprite
     return list;
   }
 
-  void checkJump(Vector<Sprite> jump, BmpWrap compare)
-  {
+  void checkJump(Vector<Sprite> jump, BmpWrap compare) {
     if (checkJump) {
       return;
     }
+
     checkJump = true;
 
     if (this.bubbleFace == compare) {
@@ -402,8 +400,7 @@ public class BubbleSprite extends Sprite
     }
   }
 
-  void checkJump(Vector<Sprite> jump, Vector<BubbleSprite> neighbors)
-  {
+  void checkJump(Vector<Sprite> jump, Vector<BubbleSprite> neighbors) {
     jump.addElement(this);
 
     for (int i=0 ; i<neighbors.size() ; i++) {
@@ -415,13 +412,12 @@ public class BubbleSprite extends Sprite
     }
   }
 
-  public void checkFall()
-  {
+  public void checkFall() {
     if (checkFall) {
       return;
     }
-    checkFall = true;
 
+    checkFall = true;
     Vector<BubbleSprite> v = this.getNeighbors(this.lastOpenPosition);
 
     for (int i=0 ; i<v.size() ; i++) {
@@ -433,8 +429,7 @@ public class BubbleSprite extends Sprite
     }
   }
 
-  boolean checkCollision(Vector<BubbleSprite> neighbors)
-  {
+  boolean checkCollision(Vector<BubbleSprite> neighbors) {
     for (int i=0 ; i<neighbors.size() ; i++) {
       BubbleSprite current = (BubbleSprite)neighbors.elementAt(i);
 
@@ -448,8 +443,7 @@ public class BubbleSprite extends Sprite
     return false;
   }
 
-  boolean checkCollision(BubbleSprite sprite)
-  {
+  boolean checkCollision(BubbleSprite sprite) {
     double value =
       (sprite.getSpriteArea().left - this.realX) *
       (sprite.getSpriteArea().left - this.realX) +
@@ -459,12 +453,10 @@ public class BubbleSprite extends Sprite
     return (value < MINIMUM_DISTANCE);
   }
 
-  public void jump()
-  {
+  public void jump() {
     if (fixed) {
       moveX = -6. + frozen.getRandom().nextDouble() * 12.;
-      moveY = -5. - frozen.getRandom().nextDouble() * 10. ;
-
+      moveY = -5. - frozen.getRandom().nextDouble() * 10.;
       fixed = false;
     }
 
@@ -479,14 +471,12 @@ public class BubbleSprite extends Sprite
     }
   }
 
-  public void fall()
-  {
+  public void fall() {
     if (fixed) {
       moveY = frozen.getRandom().nextDouble()* 5.;
     }
 
     fixed = false;
-
     moveY += FALL_SPEED;
     realY += moveY;
 
@@ -497,33 +487,31 @@ public class BubbleSprite extends Sprite
     }
   }
 
-  public void blink()
-  {
+  public void blink() {
     blink = true;
   }
 
-  public void frozenify()
-  {
-    changeSpriteArea(new Rect(getSpritePosition().x-1, getSpritePosition().y-1,
-                              34, 42));
+  public void frozenify() {
+    changeSpriteArea(new Rect(getSpritePosition().x-1,
+                              getSpritePosition().y-1, 34, 42));
     bubbleFace = frozenFace;
   }
 
-  public final void paint(Canvas c, double scale, int dx, int dy)
-  {
+  public final void paint(Canvas c, double scale, int dx, int dy) {
     checkJump = false;
     checkFall = false;
-
     Point p = getSpritePosition();
 
     if (blink && bubbleFace != frozenFace) {
       blink = false;
       drawImage(bubbleBlink, p.x, p.y, c, scale, dx, dy);
-    } else {
+    }
+    else {
       if (FrozenBubble.getMode() == FrozenBubble.GAME_NORMAL ||
           bubbleFace == frozenFace) {
         drawImage(bubbleFace, p.x, p.y, c, scale, dx, dy);
-      } else {
+      }
+      else {
         drawImage(bubbleBlindFace, p.x, p.y, c, scale, dx, dy);
       }
     }
@@ -531,6 +519,7 @@ public class BubbleSprite extends Sprite
     if (fixedAnim != -1) {
       drawImage(bubbleFixed[fixedAnim], p.x, p.y, c, scale, dx, dy);
       fixedAnim++;
+
       if (fixedAnim == 6) {
         fixedAnim = -1;
       }
