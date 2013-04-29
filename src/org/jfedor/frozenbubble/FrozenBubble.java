@@ -854,8 +854,12 @@ public class FrozenBubble extends Activity
 
   /**
    * Create a new music player.
+   * 
+   * @param  startPaused
+   *         - If false, the song starts playing immediately.  Otherwise
+   *         it is paused and must be unpaused to start playing.
    */
-  private void newMusicPlayer() {
+  private void newMusicPlayer(boolean startPaused) {
     // Create a new music player.
     resplayer = new MODResourcePlayer(this);
     // Ascertain which song to play.
@@ -872,20 +876,26 @@ public class FrozenBubble extends Activity
       resplayer.setVolume(0);
     }
     // Start the music thread.
-    resplayer.startPaused(true);
+    resplayer.startPaused(startPaused);
     resplayer.start();
   }
 
   /**
    * Load the current song in our playlist.
+   * 
+   * @param  startPlaying
+   *         - If true, the song starts playing immediately.  Otherwise
+   *         it is paused and must be unpaused to start playing.
    */
-  private void loadCurrentMOD() {
+  private void loadCurrentMOD(boolean startPlaying) {
     // Pause the current song.
     resplayer.PausePlay();
     // Ascertain which song to play.
     int modNow = mGameView.getThread().getCurrentLevelIndex() % MODlist.length;
     // Load the current MOD into the player.
     resplayer.LoadMODResource(MODlist[modNow]);
+    if (startPlaying)
+      resplayer.UnPausePlay();
   }
 
   /**
@@ -902,12 +912,9 @@ public class FrozenBubble extends Activity
   {
     // Determine whether to create a music player or load the song.
     if (resplayer == null)
-      newMusicPlayer();
+      newMusicPlayer(!startPlaying);
     else
-      loadCurrentMOD();
-    // If desired, start the song immediately.
-    if (startPlaying)
-      resplayer.UnPausePlay();
+      loadCurrentMOD(startPlaying);
     allowUnpause = true;
   }
 
