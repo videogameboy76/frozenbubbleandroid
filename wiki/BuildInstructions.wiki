@@ -7,7 +7,7 @@ This Wiki entry details how to build Frozen Bubble for Android from the source c
 
 = Details =
 
-To build the code for Frozen Bubble, first you must download the archive of the the Android SDK ADT bundle.  The ADT (Android Development Tools) bundle comes with Eclipse - Eclipse is the IDE.  SDK stands for software development kit (the tools to build Android applications from source code), and IDE stands for integrated development environment (a graphical user interface that simplifies software development).
+To build the Frozen Bubble for Android application, you must first download the archive of the the Android SDK ADT bundle.  The ADT (Android Development Tools) bundle comes with Eclipse - Eclipse is the IDE.  SDK stands for software development kit (the tools to build Android applications from source code), and IDE stands for integrated development environment (a graphical user interface that simplifies software development).
 
 http://developer.android.com/sdk/index.html
 
