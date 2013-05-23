@@ -193,10 +193,10 @@ public class PlayerThread extends Thread {
   //
   //
   private int mMinbuffer;
-  private static int mModsize;  // holds the size in bytes of the mod file
+  private int mModsize;  // holds the size in bytes of the mod file
   private final static int BUFFERSIZE = 20000;  // the sample buffer size
   
-  private static AudioTrack mMytrack;
+  private AudioTrack mMytrack;
   private boolean mLoad_ok;
 
   // for storing info about the MOD file currently loaded
@@ -252,14 +252,14 @@ public class PlayerThread extends Thread {
   public static final int EVENT_SONG_COMPLETED = 3;
 
   // track if player has started (after loading a new mod)
-  private static boolean sPlayerStarted;
+  private boolean sPlayerStarted;
 
   // listener user set
   public interface PlayerListener {
     public abstract void onPlayerEvent(int type);
   }
 
-  PlayerListener mPlayerListener;
+  private PlayerListener mPlayerListener = null;
 
   public void setPlayerListener(PlayerListener pl) {
     mPlayerListener = pl;
@@ -586,7 +586,9 @@ public class PlayerThread extends Thread {
         }
       }
 
-      // ******************* WAIT CODE ***********************
+      /*
+       * Wait until notify() is called.
+       */
       synchronized (this) {
         if (mWaitFlag) {
           try {
@@ -600,12 +602,10 @@ public class PlayerThread extends Thread {
           }
         }
       }
-      // clear flushed flag
+      // Clear flushed flag.
       mFlushedData = false;
     }
-    //**********************
-    // experimental
-    //**********************
+    // Release the audio track resources.
     if (mMytrack != null)
     {
       mMytrack.release();
@@ -640,7 +640,7 @@ public class PlayerThread extends Thread {
   /**
    * Set the file size of the MOD/XM song.
    */
-  public static void setModSize(int modsize) {
+  public void setModSize(int modsize) {
     mModsize = modsize;
   }
 
@@ -742,11 +742,10 @@ public class PlayerThread extends Thread {
    *         begin playing when it is started.
    */
   public void startPaused(boolean flag) {
-    //
-    // Set before calling the thread's start() method.  This will cause
-    // it to start in paused mode.
-    //
-    //
+    /*
+     * Set before calling the thread's start() method.  This will cause
+     * it to start in paused mode.
+     */
     mStart_paused = flag;
   }
 
@@ -760,20 +759,19 @@ public class PlayerThread extends Thread {
    * the native player library and de-allocate all resources it used.
    */
   public void StopThread() {
-    // stops the thread playing  (see run() above)
+    // Stops the music player thread (see run() above).
     mPlaying = false;
     mRunning = false;
-    //
-    // This check is usually not needed before stop()ing the audio
-    // track, but seem to get an uninitialized audio track here
-    // occasionally, generating an IllegalStateException.
-    //
-    //
+    /*
+     * This check is usually not needed before stop()ing the audio
+     * track, but seem to get an uninitialized audio track here
+     * occasionally, generating an IllegalStateException.
+     */
     if (mMytrack.getState() == AudioTrack.STATE_INITIALIZED)
       mMytrack.stop();
 
     mPlayerValid = false;
-    mWaitFlag    = false;
+    mWaitFlag = false;
 
     synchronized(this) {
       this.notify();
@@ -784,9 +782,10 @@ public class PlayerThread extends Thread {
    * Close the native internal tracker library (libmodplug) and de-
    * allocate any resources.
    */
-  public static void CloseLIBMODPLUG() {
+  public void CloseLIBMODPLUG() {
     ModPlug_JUnload();
     ModPlug_CloseDown();
+    // Release the audio track resources.
     if (mMytrack != null)
     {
       mMytrack.release();
@@ -976,23 +975,22 @@ public class PlayerThread extends Thread {
   // Native methods in our JNI libmodplug stub code.
   //
   //
-  public static native boolean ModPlug_Init(int rate);
+  public native boolean ModPlug_Init(int rate);
   public native boolean ModPlug_JLoad(byte[] buffer, int size);
   public native String ModPlug_JGetName();
   public native int ModPlug_JNumChannels();
   public native int ModPlug_JGetSoundData(short[] sndbuffer, int datasize);
-  public static native boolean ModPlug_JUnload();
-  public static native boolean ModPlug_CloseDown();
+  public native boolean ModPlug_JUnload();
+  public native boolean ModPlug_CloseDown();
 
   // HACKS ;-)
-  public static native int ModPlug_GetNativeTempo();
-  public static native void ModPlug_ChangeTempo(int tempotweak); 
-  public static native void ModPlug_SetTempo(int tempo); 
-  public static native void ModPlug_ChangePattern(int newpattern);
-  public static native void ModPlug_RepeatPattern(int pattern);
-  public static native boolean ModPlug_CheckPatternChange();
-  public static native void ModPlug_SetPatternLoopMode(boolean flag);
-
+  public native int ModPlug_GetNativeTempo();
+  public native void ModPlug_ChangeTempo(int tempotweak); 
+  public native void ModPlug_SetTempo(int tempo); 
+  public native void ModPlug_ChangePattern(int newpattern);
+  public native void ModPlug_RepeatPattern(int pattern);
+  public native boolean ModPlug_CheckPatternChange();
+  public native void ModPlug_SetPatternLoopMode(boolean flag);
   public native void ModPlug_SetCurrentPattern(int pattern);
   public native void ModPlug_SetNextPattern(int pattern);
 
@@ -1004,13 +1002,13 @@ public class PlayerThread extends Thread {
   public native int ModPlug_GetCurrentRow();
 
   // FOURBYFOUR
-  public static native void ModPlug_SetPatternLoopRange(int from,
-                                                        int to,
-                                                        int when);
-  public static native void ModPlug_SetLoopCount(int loopcount);
+  public native void ModPlug_SetPatternLoopRange(int from,
+                                                 int to,
+                                                 int when);
+  public native void ModPlug_SetLoopCount(int loopcount);
 
   // Log output
-  public static native void ModPlug_LogOutput(boolean flag);
+  public native void ModPlug_LogOutput(boolean flag);
 
   static {
     try {

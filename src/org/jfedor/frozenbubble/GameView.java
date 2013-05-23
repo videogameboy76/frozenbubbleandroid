@@ -115,7 +115,7 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
   
   // listener user set
   public interface GameListener {
-    public abstract void onGameEvent(int type);
+    public abstract void onGameEvent(int event);
   }
   
   GameListener mGameListener;
@@ -622,66 +622,89 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
       }
     }
 
+    /**
+     * Process key presses.  This must be allowed to run regardless of
+     * the game state to correctly handle initial game conditions.
+     * 
+     * @param keyCode
+     *        - the static KeyEvent key identifier.
+     * 
+     * @param msg
+     *        - the key action message.
+     * 
+     * @return
+     *        - true if the key action is processed, false if not.
+     * 
+     * @see android.view.View#onKeyDown(int, android.view.KeyEvent)
+     */
     boolean doKeyDown(int keyCode, KeyEvent msg) {
       synchronized (mSurfaceHolder) {
-        if(updateStateOnEvent(null))
-          return true;
+        updateStateOnEvent(null);
 
-        if (mMode == STATE_RUNNING) {
-          //Log.i("frozen-bubble", "STATE RUNNING");
-          if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
-            mLeft    = true;
-            mWasLeft = true;
-            return true;
-          }
-          else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
-            mRight    = true;
-            mWasRight = true;
-            return true;
-          }
-          else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
-            mFire    = true;
-            mWasFire = true;
-            return true;
-          }
-          else if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
-            mUp    = true;
-            mWasUp = true;
-            return true;
-          }
-          else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-            mDown    = true;
-            mWasDown = true;
-            return true;
-          }
+        if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
+          mLeft    = true;
+          mWasLeft = true;
+          return true;
+        }
+        else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+          mRight    = true;
+          mWasRight = true;
+          return true;
+        }
+        else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
+          mFire    = true;
+          mWasFire = true;
+          return true;
+        }
+        else if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
+          mUp    = true;
+          mWasUp = true;
+          return true;
+        }
+        else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+          mDown    = true;
+          mWasDown = true;
+          return true;
         }
         return false;
       }
     }
 
+    /**
+     * Process key releases.  This must be allowed to run regardless of
+     * the game state in order to properly clear key presses.
+     * 
+     * @param keyCode
+     *        - the static KeyEvent key identifier.
+     * 
+     * @param msg
+     *        - the key action message.
+     * 
+     * @return true if the key action is processed, false if not.
+     * 
+     * @see android.view.View#onKeyUp(int, android.view.KeyEvent)
+     */
     boolean doKeyUp(int keyCode, KeyEvent msg) {
       synchronized (mSurfaceHolder) {
-        if (mMode == STATE_RUNNING) {
-          if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
-            mLeft = false;
-            return true;
-          }
-          else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
-            mRight = false;
-            return true;
-          }
-          else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
-            mFire = false;
-            return true;
-          }
-          else if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
-            mUp = false;
-            return true;
-          }
-          else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-            mDown = false;
-            return true;
-          }
+        if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
+          mLeft = false;
+          return true;
+        }
+        else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+          mRight = false;
+          return true;
+        }
+        else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
+          mFire = false;
+          return true;
+        }
+        else if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
+          mUp = false;
+          return true;
+        }
+        else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+          mDown = false;
+          return true;
         }
         return false;
       }
@@ -806,10 +829,9 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
               if (mGameListener != null) {
                 mGameListener.onGameEvent(EVENT_LEVEL_START);
               }
-              return true;
             }
             setState(STATE_RUNNING);
-            break;
+            return true;
 
           case STATE_RUNNING:
           default:
@@ -1157,7 +1179,7 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
     mContext = context;
     SurfaceHolder holder = getHolder();
     holder.addCallback(this);
-    
+
     thread = new GameThread(holder, null, 0);
     setFocusable(true);
     setFocusableInTouchMode(true);
@@ -1173,7 +1195,7 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
     mContext = context;
     SurfaceHolder holder = getHolder();
     holder.addCallback(this);
-    
+
     thread = new GameThread(holder, levels, startingLevel);
     setFocusable(true);
     setFocusableInTouchMode(true);
@@ -1181,7 +1203,7 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
     thread.setRunning(true);
     thread.start();
   }
-  
+
   public GameThread getThread() {
     return thread;
   }

@@ -784,8 +784,8 @@ public class FrozenBubble extends Activity
     }
   }
 
-  public void onGameEvent(int type) {
-    switch (type) {
+  public void onGameEvent(int event) {
+    switch (event) {
       case GameView.EVENT_GAME_WON:
         break;
 
