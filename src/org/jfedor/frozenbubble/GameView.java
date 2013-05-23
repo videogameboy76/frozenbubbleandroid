@@ -826,12 +826,15 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
             if (mShowScores) {
               mShowScores = false;
               nextLevel();
+              if (getCurrentLevelIndex() != 0)
+                setState(STATE_RUNNING);
               if (mGameListener != null) {
                 mGameListener.onGameEvent(EVENT_LEVEL_START);
               }
+              return true;
             }
             setState(STATE_RUNNING);
-            return true;
+            break;
 
           case STATE_RUNNING:
           default:
