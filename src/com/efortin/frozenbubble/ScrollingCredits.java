@@ -121,7 +121,7 @@ public class ScrollingCredits extends Activity implements Runnable {
       end();
       return true;
     }
-    return false;
+    return checkCreditsDone();
   }
 
   @Override
