@@ -61,7 +61,7 @@ import android.content.Context;
 /**
  * Convenience class extending PlayerThread, handling all the file
  * operations, accepting Android resource IDs for MOD/XM song files.
- *
+ * 
  * <p>   <b>Typical call order:</b>
  * <br>  <code>// get player instance (in topmost activity, etc.)
  * <br>  mrp = MODResourcePlayer();
@@ -75,9 +75,9 @@ import android.content.Context;
  * <br>  mrp.LoadMODResource(R.raw.newcoolsong);
  * <br>  mrp.UnPausePlay();
  * <br>  // repeat...</code>
- *
+ * 
  * @version   1.0
- *
+ * 
  * @author    P.A. Casey (crow) Peculiar-Games.com
  */
 public class MODResourcePlayer extends PlayerThread {
@@ -93,15 +93,15 @@ public class MODResourcePlayer extends PlayerThread {
    * resource files (typically the songs are stored in the res/raw
    * project directory and conform to Android build process rules,
    * lower-case names, etc.)
-   *
+   * 
    * <p>   <b>Note about extensions:</b>
    * <br>  Developers using Eclipse as an IDE should note that it allows
    *       the .xm file extension but may be fussy about other tracker
    *       format extensions.
-   *
+   * 
    * <p>   The <code>context</code> argument is the application context
    *       which allows MODResourcePlayer to load resources directly.
-   *
+   * 
    * @param  context
    *         - Application context that is creating this instance.
    */
@@ -120,10 +120,10 @@ public class MODResourcePlayer extends PlayerThread {
    * <br>  Developers using Eclipse as an IDE should note that it allows
    *       the .xm file extension but may be fussy about other tracker
    *       format extensions.
-   *
+   * 
    * <p>   The <code>modresource</code> argument is the resource id for
    *       the MOD/XM song file, e.g. R.raw.coolsong
-   *
+   * 
    * @param  modresource
    *         - Android resource id for a MOD/XM/etc. (tracker format)
    *         song file.
@@ -157,7 +157,7 @@ public class MODResourcePlayer extends PlayerThread {
     modData = new byte[currfilesize];
 
     try {
-      PlayerThread.setModSize(mModfileInStream.read(modData,0, currfilesize));
+      setModSize(mModfileInStream.read(modData,0, currfilesize));
     } catch (IOException e) {
       // Auto-generated catch block.
       e.printStackTrace();
@@ -181,7 +181,6 @@ public class MODResourcePlayer extends PlayerThread {
   public void StopAndClose() {
     PausePlay();
     boolean retry = true;
-
     // Now close and join() the MOD player thread.
     StopThread();
     while (retry) {
@@ -192,8 +191,7 @@ public class MODResourcePlayer extends PlayerThread {
         // Keep trying to close the player thread.
       }
     }
-
-    PlayerThread.CloseLIBMODPLUG();
+    CloseLIBMODPLUG();
     InvalidatePlayer();
   }
 }

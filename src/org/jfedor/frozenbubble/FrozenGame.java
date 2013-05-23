@@ -79,9 +79,6 @@ public class FrozenGame extends GameScreen {
   public static final int GAME_NEXT_LOST = 4;
   public static final int GAME_NEXT_WON  = 5;
 
-  public static int play_result = GAME_PLAYING;
-  public static int game_result = GAME_LOST;
-
   public static String PARAMETER_PLAYER  = "player";
   public static String PARAMETER_OFFLINE = "offline";
 
@@ -132,10 +129,12 @@ public class FrozenGame extends GameScreen {
 
   boolean endOfGame;
   boolean frozenify;
+  boolean readyToFire;
   boolean swapPressed;
   int fixedBubbles;
   int frozenifyX, frozenifyY;
   int nbBubbles;
+  int playResult;
   double moveDown;
 
   Drawable launcher;
@@ -173,9 +172,9 @@ public class FrozenGame extends GameScreen {
     soundManager         = soundManager_arg;
     levelManager         = levelManager_arg;
     highscoreManager     = highscoreManager_arg;
-    play_result          = GAME_PLAYING;
-    game_result          = GAME_LOST;
+    playResult           = GAME_PLAYING;
     launchBubblePosition = 20;
+    readyToFire          = false;
     swapPressed          = false;
 
     penguin = new PenguinSprite(penguins_arg, random);
@@ -288,10 +287,12 @@ public class FrozenGame extends GameScreen {
     map.putInt("fixedBubbles", fixedBubbles);
     map.putDouble("moveDown", moveDown);
     map.putInt("nbBubbles", nbBubbles);
+    map.putInt("playResult", playResult);
     map.putInt("blinkDelay", blinkDelay);
     hurrySprite.saveState(map, savedSprites);
     map.putInt("hurryId", hurrySprite.getSavedId());
     map.putInt("hurryTime", hurryTime);
+    map.putBoolean("readyToFire", readyToFire);
     map.putBoolean("endOfGame", endOfGame);
     map.putBoolean("frozenify", frozenify);
     map.putInt("frozenifyX", frozenifyX);
@@ -425,10 +426,12 @@ public class FrozenGame extends GameScreen {
     fixedBubbles = map.getInt("fixedBubbles");
     moveDown = map.getDouble("moveDown");
     nbBubbles = map.getInt("nbBubbles");
+    playResult = map.getInt("playResult");
     blinkDelay = map.getInt("blinkDelay");
     int hurryId = map.getInt("hurryId");
     hurrySprite = (ImageSprite)savedSprites.elementAt(hurryId);
     hurryTime = map.getInt("hurryTime");
+    readyToFire = map.getBoolean("readyToFire");
     endOfGame = map.getBoolean("endOfGame");
     frozenify = map.getBoolean("frozenify");
     frozenifyX = map.getInt("frozenifyX");
@@ -603,37 +606,24 @@ public class FrozenGame extends GameScreen {
       }
     }
 
+    if ((move[FIRE] == 0) || touch_fire) {
+      readyToFire = true;
+    }
+
     if (FrozenBubble.getDontRushMe()) {
       hurryTime = 1;
     }
 
-    if (endOfGame) {
+    if (endOfGame && readyToFire) {
       if (move[FIRE] == KEY_UP) {
-        //
-        //   If endOfGame is set, then the play result absolutely
-        //   cannot be GAME_PLAYING.
-        //
-        //   TODO: Figure out how play_result is arriving here with a
-        //         value of GAME_PLAYING.
-        //
-        //         If this issue is addressed, then game_result can be
-        //         eliminated.  The good news is that this issue only
-        //         occurs when the level was lost, so this redundant
-        //         variable workaround works, although it is suboptimal
-        //         as the root cause remains unknown.
-        //
-        //
-        if (play_result == GAME_PLAYING)
-          play_result = game_result;
-
-        if (play_result == GAME_WON) {
+        if (playResult == GAME_WON) {
           levelManager.goToNextLevel();
-          play_result = GAME_NEXT_WON;
+          playResult = GAME_NEXT_WON;
         }
         else
-          play_result = GAME_NEXT_LOST;
+          playResult = GAME_NEXT_LOST;
 
-        return play_result;
+        return playResult;
       }
       else {
         penguin.updateState(PenguinSprite.STATE_VOID);
@@ -644,8 +634,8 @@ public class FrozenGame extends GameScreen {
       }
     }
     else {
-      if (move[FIRE] == KEY_UP || hurryTime > 480) {
-        if (movingBubble == null) {
+      if ((move[FIRE] == KEY_UP) || hurryTime > 480) {
+        if ((movingBubble == null) && readyToFire) {
           nbBubbles++;
 
           movingBubble = new BubbleSprite(new Rect(302, 390, 32, 32),
@@ -670,6 +660,7 @@ public class FrozenGame extends GameScreen {
           launchBubble.changeColor(currentColor);
           penguin.updateState(PenguinSprite.STATE_FIRE);
           soundManager.playSound(FrozenBubble.SOUND_LAUNCH);
+          readyToFire = false;
           hurryTime = 0;
           removeSprite(hurrySprite);
         }
@@ -716,8 +707,7 @@ public class FrozenGame extends GameScreen {
             !movingBubble.released()) {
           penguin.updateState(PenguinSprite.STATE_GAME_LOST);
           highscoreManager.lostLevel();
-          game_result = GAME_LOST;
-          play_result = GAME_LOST;
+          playResult = GAME_LOST;
           endOfGame = true;
           initFrozenify();
           soundManager.playSound(FrozenBubble.SOUND_LOST);
@@ -727,8 +717,7 @@ public class FrozenGame extends GameScreen {
           this.addSprite(new ImageSprite(new Rect(152, 190, 337, 116),
                                          gameWon));
           highscoreManager.endLevel(nbBubbles);
-          game_result = GAME_WON;
-          play_result = GAME_WON;
+          playResult = GAME_WON;
           endOfGame = true;
           soundManager.playSound(FrozenBubble.SOUND_WON);
         }
@@ -751,8 +740,7 @@ public class FrozenGame extends GameScreen {
               !movingBubble.released()) {
             penguin.updateState(PenguinSprite.STATE_GAME_LOST);
             highscoreManager.lostLevel();
-            game_result = GAME_LOST;
-            play_result = GAME_LOST;
+            playResult = GAME_LOST;
             endOfGame = true;
             initFrozenify();
             soundManager.playSound(FrozenBubble.SOUND_LOST);
@@ -763,8 +751,7 @@ public class FrozenGame extends GameScreen {
                                                     152 + 337,
                                                     190 + 116), gameWon));
             highscoreManager.endLevel(nbBubbles);
-            game_result = GAME_WON;
-            play_result = GAME_WON;
+            playResult = GAME_WON;
             endOfGame = true;
             soundManager.playSound(FrozenBubble.SOUND_WON);
           }
