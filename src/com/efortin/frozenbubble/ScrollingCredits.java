@@ -125,11 +125,6 @@ public class ScrollingCredits extends Activity implements Runnable {
   }
 
   @Override
-  public boolean onTrackballEvent(MotionEvent event) {
-    return checkCreditsDone();
-  }
-
-  @Override
   public boolean onTouchEvent(MotionEvent event) {
     return checkCreditsDone();
   }
