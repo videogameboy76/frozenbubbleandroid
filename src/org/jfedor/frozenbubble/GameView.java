@@ -639,7 +639,16 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
      */
     boolean doKeyDown(int keyCode, KeyEvent msg) {
       synchronized (mSurfaceHolder) {
-        updateStateOnEvent(null);
+        /*
+         * Only update the game state if this is a fresh key press.
+         */
+        if ((!mLeft && !mRight && !mFire && !mUp && !mDown) &&
+            ((keyCode == KeyEvent.KEYCODE_DPAD_LEFT) ||
+             (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) ||
+             (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) ||
+             (keyCode == KeyEvent.KEYCODE_DPAD_UP) ||
+             (keyCode == KeyEvent.KEYCODE_DPAD_DOWN)))
+          updateStateOnEvent(null);
 
         if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
           mLeft    = true;
@@ -710,11 +719,24 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
       }
     }
 
+    /**
+     * Process trackball motion events.
+     * <p>
+     * This method only processes trackball motion for the purpose of
+     * aiming the launcher.  The trackball has no effect on the game
+     * state, much like moving a mouse cursor over a screen does not
+     * perform any intrinsic actions in most applications.
+     *  
+     * @param event
+     *        - the motion event associated with the trackball.
+     * 
+     * @return This function returns true if the trackball motion was
+     *         processed, which notifies the caller that this method
+     *         handled the motion event and no other handling is
+     *         necessary.
+     */
     boolean doTrackballEvent(MotionEvent event) {
       synchronized (mSurfaceHolder) {
-        if(updateStateOnEvent(event))
-          return true;
-
         if (mMode == STATE_RUNNING) {
           if (event.getAction() == MotionEvent.ACTION_MOVE) {
             mTrackballDX += event.getX() * TRACKBALL_COEFFICIENT;
