@@ -605,12 +605,28 @@ public class FrozenBubble extends Activity
                          new DialogInterface.OnMultiChoiceClickListener() {
       @Override
       public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+        SharedPreferences sp = getSharedPreferences(PREFS_NAME,
+                                                    Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
+
         switch (which) {
           case 0:
             setSoundOn(isChecked);
+            editor.putBoolean("soundOn", soundOn);
+            editor.commit();
             break;
           case 1:
             setMusicOn(isChecked);
+            if (resplayer != null) {
+              if (getMusicOn() == true) {
+                resplayer.setVolume(255);
+              }
+              else {
+                resplayer.setVolume(0);
+              }
+            }
+            editor.putBoolean("musicOn", musicOn);
+            editor.commit();
             break;
         }
       }
@@ -620,21 +636,6 @@ public class FrozenBubble extends Activity
       @Override
       public void onClick(DialogInterface dialog, int id) {
         // User clicked OK.
-        if (resplayer != null) {
-          if (getMusicOn() == true) {
-            resplayer.setVolume(255);
-          }
-          else {
-            resplayer.setVolume(0);
-          }
-        }
-
-        SharedPreferences sp = getSharedPreferences(PREFS_NAME,
-                                                    Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sp.edit();
-        editor.putBoolean("musicOn", musicOn);
-        editor.putBoolean("soundOn", soundOn);
-        editor.commit();
       }
     });
     builder.create();
