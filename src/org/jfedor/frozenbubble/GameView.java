@@ -127,9 +127,9 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
   class GameThread extends Thread {
     private static final int FRAME_DELAY = 40;
 
-    public static final int STATE_RUNNING    = 1;
-    public static final int STATE_PAUSE      = 2;
-    public static final int STATE_ABOUT      = 4;
+    public static final int STATE_RUNNING = 1;
+    public static final int STATE_PAUSE   = 2;
+    public static final int STATE_ABOUT   = 4;
 
     public static final int GAMEFIELD_WIDTH          = 320;
     public static final int GAMEFIELD_HEIGHT         = 480;
@@ -330,7 +330,7 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
       mImageList = new Vector<BmpWrap>();
 
-      mBubbles   = new BmpWrap[8];
+      mBubbles = new BmpWrap[8];
       for (int i = 0; i < mBubbles.length; i++) {
         mBubbles[i] = NewBmpWrap();
       }
@@ -609,7 +609,7 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
           mDisplayScale = (1.0 * height) / GAMEFIELD_HEIGHT;
           mDisplayDX = (int)((width - (mDisplayScale *
                                        EXTENDED_GAMEFIELD_WIDTH)) / 2);
-          mDisplayDY    = 0;
+          mDisplayDY = 0;
         }
         else {
           mDisplayScale = 1.0 * width / GAMEFIELD_WIDTH;
