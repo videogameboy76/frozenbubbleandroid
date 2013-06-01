@@ -208,6 +208,7 @@ public class FrozenBubble extends Activity
     super.onCreate(savedInstanceState);
     setVolumeControlStream(AudioManager.STREAM_MUSIC);
     requestWindowFeature(Window.FEATURE_NO_TITLE);
+    restoreGamePrefs();
 
     currentOrientation = getScreenOrientation();
     myOrientationEventListener =
@@ -236,12 +237,12 @@ public class FrozenBubble extends Activity
         mGameThread.restoreState(savedInstanceState);
 
       mGameView.requestFocus();
+      setFullscreen();
       playMusic(false);
     }
     else {
       startCustomGame(intent);
     }
-    restoreGamePrefs();
   }
 
   @Override
@@ -424,7 +425,6 @@ public class FrozenBubble extends Activity
     soundOn    = mConfig.getBoolean("soundOn",    true          );
     targetMode = mConfig.getInt    ("targetMode", POINT_TO_SHOOT);
 
-    setFullscreen();
     setTargetMode(targetMode);
   }
 
@@ -555,6 +555,7 @@ public class FrozenBubble extends Activity
     mGameView.setGameListener(this);
     mGameThread = mGameView.getThread();
     mGameView.requestFocus();
+    setFullscreen();
     playMusic(false);
   }
 
