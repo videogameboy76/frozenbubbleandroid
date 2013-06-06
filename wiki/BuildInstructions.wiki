@@ -23,7 +23,9 @@ If you are building older versions of Frozen Bubble (version 1.12 and prior), at
 
 http://developer.android.com/tools/sdk/ndk/index.html
 
-Once you have extracted the NDK, launch Eclipse - it is located in the Eclipse folder of the extracted SDK folder.  You will have to add the path to the NDK to the environment, by selecting "Window → Preferences" in Eclipse.  Select "NDK" under "Android" in the list on the left:
+Once you have extracted the NDK, launch Eclipse - it is located in the Eclipse folder of the extracted SDK folder.  You will have to add the path to the NDK to the environment, by selecting "Window → Preferences" in Eclipse.
+
+Select "NDK" under "Android" in the list on the left.  *Note that the build path for the NDK isn't allowed to contain any spaces or the program won't compile*:
 
 http://imgur.com/fzNmvqa.jpg
 
