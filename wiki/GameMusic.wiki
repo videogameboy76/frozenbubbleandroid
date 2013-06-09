@@ -9,6 +9,8 @@ All the music used in this game is available free for download from the [http://
   * Clear credit is given to the artists for their respective works.
   * No fee is charged for distribution.
 
+The music is licensed under the [http://modarchive.org/index.php?terms-upload Mod Archive distribution license].
+
 = Frozen Bubble Playlist =
 
 _After the Rain_ by Unknown Artist
