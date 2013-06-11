@@ -41,6 +41,18 @@ Right-click the topmost level in the dropdown list on the left, then select "Exp
 
 http://imgur.com/9qW7ZI8.jpg
 
+*It has been noted that on the project source page, the instructions for checking out the code anonymously do not work, because this project does not have a trunk folder.*
+
+https://code.google.com/p/frozenbubbleandroid/source/checkout
+
+states that in order to check out the project anonymously you must use:
+
+http://frozenbubbleandroid.googlecode.com/svn/trunk/ frozenbubbleandroid-read-only
+
+Use this to anonymously check out the source instead:
+
+http://frozenbubbleandroid.googlecode.com/svn/ frozenbubbleandroid-read-only
+
 After the files are copied to your computer, you can import the project into Eclipse.  Open Eclipse, then select "File → Import".  Then select "Existing Projects into Workspace" under "General", and click "Next".
 
 Browse to the folder you placed the source files in with Tortoise SVN, and check "Copy projects into workspace":
