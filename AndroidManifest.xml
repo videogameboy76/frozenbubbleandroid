@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   package="org.jfedor.frozenbubble"
-  android:versionCode="18"
-  android:versionName="1.17">
+  android:versionCode="19"
+  android:versionName="1.18">
 
   <supports-screens
     android:smallScreens="true" 
@@ -50,6 +50,11 @@
         <action android:name="android.intent.action.MAIN" />
         <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter>
+    </activity>
+
+    <activity
+      android:name="org.jfedor.frozenbubble.InterstitialActivity"
+      android:label="Interstitial" >
     </activity>
   </application>
 </manifest>
