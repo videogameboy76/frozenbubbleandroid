@@ -78,11 +78,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -119,6 +121,8 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
   }
   
   GameListener mGameListener;
+  
+  Random rnd = new Random();
   
   public void setGameListener (GameListener gl) {
     mGameListener = gl;
@@ -1018,6 +1022,10 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
         if (game_state == FrozenGame.GAME_NEXT_WON) {
           mShowScores = true;
           pause();
+          if (rnd.nextInt(10) == 0) {
+            Intent intent = new Intent(mContext, InterstitialActivity.class);
+            mContext.startActivity(intent);
+          }
         }
         else
           nextLevel();
