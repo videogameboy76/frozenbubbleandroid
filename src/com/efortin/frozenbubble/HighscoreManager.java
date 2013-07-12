@@ -1,10 +1,10 @@
 /*
  *                 [[ Frozen-Bubble ]]
  *
- * Copyright © 2000-2003 Guillaume Cottenceau.
- * Java sourcecode - Copyright © 2003 Glenn Sanson.
- * High score manager source - Copyright © 2010 Michel Racic.
- * Additional source - Copyright © 2013 Eric Fortin.
+ * Copyright (c) 2000-2003 Guillaume Cottenceau.
+ * Java sourcecode - Copyright (c) 2003 Glenn Sanson.
+ * High score manager source - Copyright (c) 2010 Michel Racic.
+ * Additional source - Copyright (c) 2013 Eric Fortin.
  *
  * This code is distributed under the GNU General Public License
  *
@@ -46,7 +46,7 @@
  * Android port:
  *    Pawel Aleksander Fedorynski <pfedor@fuw.edu.pl>
  *    Eric Fortin <videogameboy76 at yahoo.com>
- *    Copyright © Google Inc.
+ *    Copyright (c) Google Inc.
  *
  *          [[ http://glenn.sanson.free.fr/fb/ ]]
  *          [[ http://www.frozen-bubble.org/   ]]
@@ -65,6 +65,10 @@ import android.os.Bundle;
  */
 public class HighscoreManager {
 
+  public static final String PUZZLE_DATABASE_NAME      = "frozenbubble";
+  public static final String MULTIPLAYER_DATABASE_NAME = "multiplayer";
+
+  private boolean isPaused = true;
   private int currentLevel = 0;
   private long startTime   = 0;
   private long pausedTime  = 0;
@@ -73,14 +77,14 @@ public class HighscoreManager {
   private final Context     ctx;
   String name = null;
 
-  public HighscoreManager(Context context) {
+  public HighscoreManager(Context context, String databaseName) {
     ctx = context;
-    db = new HighscoreDB(ctx);
+    db = new HighscoreDB(ctx, databaseName);
   }
 
   /**
-   * @param  nbBubbles
-   *         - The number of bubbles launched by the player.
+   * @param nbBubbles
+   *        - The number of bubbles launched by the player.
    */
   public void endLevel(int nbBubbles) {
     long endTime  = System.currentTimeMillis();
@@ -132,17 +136,30 @@ public class HighscoreManager {
     startTime    = System.currentTimeMillis();
     currentLevel = level;
     pausedTime   = 0;
+    isPaused     = false;
     //Log.i("FrozenBubble-highscore", "startLevel(" + level + ")");
   }
 
+  /**
+   * Accumulate the play time between pause/resume cycles.
+   * <p>
+   * <code>pausedTime</code> is an accumulation of the play time
+   * between pause/resume cycles.
+   */
   public void pauseLevel() {
-    pausedTime += System.currentTimeMillis() - startTime;
+    long currentTime = System.currentTimeMillis();
+    if (!isPaused) {
+      isPaused = true;
+      pausedTime += currentTime - startTime;
+    }
+    startTime = currentTime;
     //Log.i("FrozenBubble-highscore", "pauseLevel() " + (pausedTime / 1000F) +
     //  " seconds used");
   }
 
   public void resumeLevel() {
     startTime = System.currentTimeMillis();
+    isPaused = false;
     //Log.i("FrozenBubble-highscore", "resumeLevel() " + (pausedTime / 1000F) +
     //  " seconds used");
   }

@@ -17,6 +17,8 @@
   <string name="menu_settings">Settings</string>
   <string name="cancel">Cancel</string>
   <string name="ok">OK</string>
+  <string name="play_level_music">Play Level Music</string>
+  <string name="play_sound_effects">Play Sound Effects</string>
   <string name="title_activity_frozen_bubble">Frozen Bubble</string>
   <string name="title_activity_splash_screen">Frozen Bubble</string>
   <string name="scrolling_credits">"Original Development\n"
@@ -63,6 +65,7 @@
     "\nGaea\'s Awakening\nby Dreamsection\n\n"
     "\nHomesick\nby Electric Keet\n\n"
     "\nIf Crystals…\nby Tran of Renaissance\n\n"
+    "\nFrozen Bubble Intro\nby Matthias Le Bidan\n\n"
     "\nPopcorn\nby Unknown Artist\n\n"
     "\nStardust Memories\nby Jester of Sanity\n\n"
     "\nSunshine of the Morning Sun\nby Area51 (Dan Nyman)\n\n"
@@ -77,7 +80,12 @@
     <item>Rotate Then Shoot</item>
   </string-array>
   <string-array name="sound_options_array">
-    <item>Play Sound Effects</item>
-    <item>Play Level Music</item>
+    <item>@string/play_sound_effects</item>
+    <item>@string/play_level_music</item>
   </string-array>
+  <string-array name="targeting_values_array">
+    <item>0</item>
+    <item>1</item>
+    <item>2</item>
+   </string-array>
 </resources>

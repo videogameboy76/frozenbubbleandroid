@@ -1,10 +1,10 @@
 /*
  *                 [[ Frozen-Bubble ]]
  *
- * Copyright © 2000-2003 Guillaume Cottenceau.
- * Java sourcecode - Copyright © 2003 Glenn Sanson.
- * MOD player source - Copyright © 2011 Patrick Casey.
- * Additional source - Copyright © 2013 Eric Fortin.
+ * Copyright (c) 2000-2003 Guillaume Cottenceau.
+ * Java sourcecode - Copyright (c) 2003 Glenn Sanson.
+ * MOD player source - Copyright (c) 2011 Patrick Casey.
+ * Additional source - Copyright (c) 2013 Eric Fortin.
  *
  * This code is distributed under the GNU General Public License
  *
@@ -45,7 +45,7 @@
  * Android port:
  *    Pawel Aleksander Fedorynski <pfedor@fuw.edu.pl>
  *    Eric Fortin <videogameboy76 at yahoo.com>
- *    Copyright © Google Inc.
+ *    Copyright (c) Google Inc.
  *
  *          [[ http://glenn.sanson.free.fr/fb/ ]]
  *          [[ http://www.frozen-bubble.org/   ]]
@@ -102,8 +102,8 @@ public class MODResourcePlayer extends PlayerThread {
    * <p>   The <code>context</code> argument is the application context
    *       which allows MODResourcePlayer to load resources directly.
    * 
-   * @param  context
-   *         - Application context that is creating this instance.
+   * @param context
+   *        - Application context that is creating this instance.
    */
   public MODResourcePlayer(Context context) {
     // Get super class (PlayerThread) with default rate.
@@ -124,9 +124,9 @@ public class MODResourcePlayer extends PlayerThread {
    * <p>   The <code>modresource</code> argument is the resource id for
    *       the MOD/XM song file, e.g. R.raw.coolsong
    * 
-   * @param  modresource
-   *         - Android resource id for a MOD/XM/etc. (tracker format)
-   *         song file.
+   * @param modresource
+   *        - Android resource id for a MOD/XM/etc. (tracker format)
+   *        song file.
    */
   public boolean LoadMODResource(int modresource) {
     byte[] modData = null;

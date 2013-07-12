@@ -1,9 +1,9 @@
 /*
  *                 [[ Frozen-Bubble ]]
  *
- * Copyright © 2000-2003 Guillaume Cottenceau.
- * Java sourcecode - Copyright © 2003 Glenn Sanson.
- * Additional source - Copyright © 2013 Eric Fortin.
+ * Copyright (c) 2000-2003 Guillaume Cottenceau.
+ * Java sourcecode - Copyright (c) 2003 Glenn Sanson.
+ * Additional source - Copyright (c) 2013 Eric Fortin.
  *
  * This code is distributed under the GNU General Public License
  *
@@ -44,7 +44,7 @@
  * Android port:
  *    Pawel Aleksander Fedorynski <pfedor@fuw.edu.pl>
  *    Eric Fortin <videogameboy76 at yahoo.com>
- *    Copyright © Google Inc.
+ *    Copyright (c) Google Inc.
  *
  *          [[ http://glenn.sanson.free.fr/fb/ ]]
  *          [[ http://www.frozen-bubble.org/   ]]
@@ -61,13 +61,13 @@ import android.os.Bundle;
 
 public class LaunchBubbleSprite extends Sprite {
   private int currentColor;
-  private int currentDirection;
+  private double currentDirection;
 
   private Drawable  launcher;
   private BmpWrap[] bubbles;
   private BmpWrap[] colorblindBubbles;
 
-  public LaunchBubbleSprite(int initialColor, int initialDirection,
+  public LaunchBubbleSprite(int initialColor, double initialDirection,
                             Drawable launcher,
                             BmpWrap[] bubbles, BmpWrap[] colorblindBubbles) {
     super(new Rect(276, 362, 276 + 86, 362 + 76));
@@ -79,14 +79,15 @@ public class LaunchBubbleSprite extends Sprite {
     this.colorblindBubbles = colorblindBubbles;
   }
 
-  public void saveState(Bundle map, Vector<Sprite> saved_sprites) {
+  public void saveState(Bundle map, Vector<Sprite> saved_sprites, int id) {
     if (getSavedId() != -1) {
       return;
     }
-    super.saveState(map, saved_sprites);
-    map.putInt(String.format("%d-currentColor", getSavedId()), currentColor);
-    map.putInt(String.format("%d-currentDirection", getSavedId()),
-               currentDirection);
+    super.saveState(map, saved_sprites, id);
+    map.putInt(String.format("%d-%d-currentColor", id, getSavedId()),
+               currentColor);
+    map.putDouble(String.format("%d-%d-currentDirection", id, getSavedId()),
+                  currentDirection);
   }
 
   public int getTypeId() {
@@ -97,7 +98,7 @@ public class LaunchBubbleSprite extends Sprite {
     currentColor = newColor;
   }
 
-  public void changeDirection(int newDirection) {
+  public void changeDirection(double newDirection) {
     currentDirection = newDirection;
   }
 
@@ -113,7 +114,8 @@ public class LaunchBubbleSprite extends Sprite {
     c.save();
     int xCenter = 318;
     int yCenter = 406;
-    c.rotate((float)(0.025 * 180 * (currentDirection - 20)),
+    c.rotate((float)(0.025 * 180 * (currentDirection -
+                                    FrozenGame.START_LAUNCH_DIRECTION)),
              (float)(xCenter * scale + dx), (float)(yCenter * scale + dy));
     launcher.setBounds((int)((xCenter - 50) * scale + dx),
                        (int)((yCenter - 50) * scale + dy),

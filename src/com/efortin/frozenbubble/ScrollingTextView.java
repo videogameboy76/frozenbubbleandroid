@@ -1,9 +1,9 @@
 /*
  *                 [[ Frozen-Bubble ]]
  *
- * Copyright © 2000-2003 Guillaume Cottenceau.
- * Java sourcecode - Copyright © 2003 Glenn Sanson.
- * Additional source - Copyright © 2013 Eric Fortin.
+ * Copyright (c) 2000-2003 Guillaume Cottenceau.
+ * Java sourcecode - Copyright (c) 2003 Glenn Sanson.
+ * Additional source - Copyright (c) 2013 Eric Fortin.
  *
  * This code is distributed under the GNU General Public License
  *
@@ -44,7 +44,7 @@
  * Android port:
  *    Pawel Aleksander Fedorynski <pfedor@fuw.edu.pl>
  *    Eric Fortin <videogameboy76 at yahoo.com>
- *    Copyright © Google Inc.
+ *    Copyright (c) Google Inc.
  *
  *          [[ http://glenn.sanson.free.fr/fb/ ]]
  *          [[ http://www.frozen-bubble.org/   ]]
@@ -237,9 +237,9 @@ public class ScrollingTextView extends TextView implements Runnable {
    * <p>If the scroll count is set to -1, then the text will scroll
    * indefinitely.
    * 
-   * @param  scrollCount
-   *         - The additional number of times to scroll the text.  If
-   *         this parameter is zero, the text will still scroll once.
+   * @param scrollCount
+   *        - The additional number of times to scroll the text.  If
+   *        this parameter is zero, the text will still scroll once.
    */
   public void setScrollRepeatLimit(int scrollCount) {
     this.scrollCount = scrollCount;

@@ -1,9 +1,9 @@
 /*
  *                 [[ Frozen-Bubble ]]
  *
- * Copyright © 2000-2003 Guillaume Cottenceau.
- * Java sourcecode - Copyright © 2003 Glenn Sanson.
- * Additional source - Copyright © 2013 Eric Fortin.
+ * Copyright (c) 2000-2003 Guillaume Cottenceau.
+ * Java sourcecode - Copyright (c) 2003 Glenn Sanson.
+ * Additional source - Copyright (c) 2013 Eric Fortin.
  *
  * This code is distributed under the GNU General Public License
  *
@@ -44,7 +44,7 @@
  * Android port:
  *    Pawel Aleksander Fedorynski <pfedor@fuw.edu.pl>
  *    Eric Fortin <videogameboy76 at yahoo.com>
- *    Copyright © Google Inc.
+ *    Copyright (c) Google Inc.
  *
  *          [[ http://glenn.sanson.free.fr/fb/ ]]
  *          [[ http://www.frozen-bubble.org/   ]]
@@ -67,14 +67,17 @@ public class BubbleManager {
     this.bubblesLeft  = 0;
   }
 
-  public void saveState(Bundle map) {
-    map.putInt     ("BubbleManager-bubblesLeft", bubblesLeft);
-    map.putIntArray("BubbleManager-countBubbles", countBubbles);
+  public void saveState(Bundle map, int id) {
+    map.putInt(String.format("%d-BubbleManager-bubblesLeft", id), bubblesLeft);
+    map.putIntArray(String.format("%d-BubbleManager-countBubbles", id),
+                    countBubbles);
   }
 
-  public void restoreState(Bundle map) {
-    bubblesLeft  = map.getInt     ("BubbleManager-bubblesLeft");
-    countBubbles = map.getIntArray("BubbleManager-countBubbles");
+  public void restoreState(Bundle map, int id) {
+    bubblesLeft  =
+        map.getInt(String.format("%d-BubbleManager-bubblesLeft", id));
+    countBubbles =
+        map.getIntArray(String.format("%d-BubbleManager-countBubbles", id));
   }
 
   public void addBubble(BmpWrap bubble) {
@@ -89,6 +92,13 @@ public class BubbleManager {
 
   public int countBubbles() {
     return bubblesLeft;
+  }
+
+  public void initialize() {
+    for (int i=0 ; i<bubbles.length ; i++) {
+      countBubbles[i] = 0;
+    }
+    bubblesLeft = 0;
   }
 
   public int nextBubbleIndex(Random rand) {

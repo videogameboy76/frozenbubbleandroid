@@ -1,9 +1,9 @@
 /*
  *                 [[ Frozen-Bubble ]]
  *
- * Copyright © 2000-2003 Guillaume Cottenceau.
- * Java sourcecode - Copyright © 2003 Glenn Sanson.
- * Additional source - Copyright © 2013 Eric Fortin.
+ * Copyright (c) 2000-2003 Guillaume Cottenceau.
+ * Java sourcecode - Copyright (c) 2003 Glenn Sanson.
+ * Additional source - Copyright (c) 2013 Eric Fortin.
  *
  * This code is distributed under the GNU General Public License
  *
@@ -44,7 +44,7 @@
  * Android port:
  *    Pawel Aleksander Fedorynski <pfedor@fuw.edu.pl>
  *    Eric Fortin <videogameboy76 at yahoo.com>
- *    Copyright © Google Inc.
+ *    Copyright (c) Google Inc.
  *
  *          [[ http://glenn.sanson.free.fr/fb/ ]]
  *          [[ http://www.frozen-bubble.org/   ]]
@@ -74,17 +74,17 @@ public abstract class Sprite {
     saved_id = -1;
   }
 
-  public void saveState(Bundle map, Vector<Sprite> saved_sprites) {
+  public void saveState(Bundle map, Vector<Sprite> saved_sprites, int id) {
     if (saved_id != -1) {
       return;
     }
     saved_id = saved_sprites.size();
     saved_sprites.addElement(this);
-    map.putInt(String.format("%d-left", saved_id), spriteArea.left);
-    map.putInt(String.format("%d-right", saved_id), spriteArea.right);
-    map.putInt(String.format("%d-top", saved_id), spriteArea.top);
-    map.putInt(String.format("%d-bottom", saved_id), spriteArea.bottom);
-    map.putInt(String.format("%d-type", saved_id), getTypeId());
+    map.putInt(String.format("%d-%d-left", id, saved_id), spriteArea.left);
+    map.putInt(String.format("%d-%d-right", id, saved_id), spriteArea.right);
+    map.putInt(String.format("%d-%d-top", id, saved_id), spriteArea.top);
+    map.putInt(String.format("%d-%d-bottom", id, saved_id), spriteArea.bottom);
+    map.putInt(String.format("%d-%d-type", id, saved_id), getTypeId());
   }
 
   public final int getSavedId() {
