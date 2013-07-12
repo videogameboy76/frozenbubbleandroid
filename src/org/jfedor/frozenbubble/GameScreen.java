@@ -1,9 +1,9 @@
 /*
  *                 [[ Frozen-Bubble ]]
  *
- * Copyright © 2000-2003 Guillaume Cottenceau.
- * Java sourcecode - Copyright © 2003 Glenn Sanson.
- * Additional source - Copyright © 2013 Eric Fortin.
+ * Copyright (c) 2000-2003 Guillaume Cottenceau.
+ * Java sourcecode - Copyright (c) 2003 Glenn Sanson.
+ * Additional source - Copyright (c) 2013 Eric Fortin.
  *
  * This code is distributed under the GNU General Public License
  *
@@ -44,7 +44,7 @@
  * Android port:
  *    Pawel Aleksander Fedorynski <pfedor@fuw.edu.pl>
  *    Eric Fortin <videogameboy76 at yahoo.com>
- *    Copyright © Google Inc.
+ *    Copyright (c) Google Inc.
  *
  *          [[ http://glenn.sanson.free.fr/fb/ ]]
  *          [[ http://www.frozen-bubble.org/   ]]
@@ -60,20 +60,22 @@ import android.os.Bundle;
 public abstract class GameScreen {
   private Vector<Sprite> sprites;
 
-  public final void saveSprites(Bundle map, Vector<Sprite> savedSprites) {
+  public final void saveSprites(Bundle map, Vector<Sprite> savedSprites,
+                                int id) {
     for (int i = 0; i < sprites.size(); i++) {
-      ((Sprite)sprites.elementAt(i)).saveState(map, savedSprites);
-      map.putInt(String.format("game-%d", i),
+      ((Sprite)sprites.elementAt(i)).saveState(map, savedSprites, id);
+      map.putInt(String.format("%d-game-%d", id, i),
                  ((Sprite)sprites.elementAt(i)).getSavedId());
     }
-    map.putInt("numGameSprites", sprites.size());
+    map.putInt(String.format("%d-numGameSprites", id), sprites.size());
   }
 
-  public final void restoreSprites(Bundle map, Vector<Sprite> savedSprites) {
+  public final void restoreSprites(Bundle map, Vector<Sprite> savedSprites,
+                                   int id) {
     sprites = new Vector<Sprite>();
-    int numSprites = map.getInt("numGameSprites");
+    int numSprites = map.getInt(String.format("%d-numGameSprites", id));
     for (int i = 0; i < numSprites; i++) {
-      int spriteIdx = map.getInt(String.format("game-%d", i));
+      int spriteIdx = map.getInt(String.format("%d-game-%d", id, i));
       sprites.addElement(savedSprites.elementAt(spriteIdx));
     }
   }
@@ -85,6 +87,17 @@ public abstract class GameScreen {
   public final void addSprite(Sprite sprite) {
     sprites.removeElement(sprite);
     sprites.addElement(sprite);
+  }
+
+  public final void removeAllBubbleSprites() {
+    int i = 0;
+    while ((sprites.size() > 0) && (i < sprites.size())) {
+      if(((Sprite)sprites.elementAt(i)).getTypeId() == Sprite.TYPE_BUBBLE) {
+        removeSprite((Sprite)sprites.elementAt(i));
+      }
+      else
+        i++;
+    }
   }
 
   public final void removeSprite(Sprite sprite) {

@@ -3,7 +3,6 @@
  *
  * Copyright (c) 2000-2003 Guillaume Cottenceau.
  * Java sourcecode - Copyright (c) 2003 Glenn Sanson.
- * High score manager source - Copyright (c) 2010 Michel Racic.
  * Additional source - Copyright (c) 2013 Eric Fortin.
  *
  * This code is distributed under the GNU General Public License
@@ -51,90 +50,37 @@
  *          [[ http://www.frozen-bubble.org/   ]]
  */
 
-package com.efortin.frozenbubble;
+package org.gsanson.frozenbubble;
 
-/**
- * @author Michel Racic (http://www.2030.tk)
- */
-public class HighscoreDO {
-  private int id;
-  private int level;
-  private String name;
-  private int shots;
-  private long time;
+public interface Opponent {
 
   /**
-   * Used when reading entries from the database.
-   *
-   * @param id
-   * @param level
-   * @param name
-   * @param shots
-   * @param time
+   * Checks whether opponent has a control command awaiting
+   * @return
    */
-  public HighscoreDO(int id, int level, String name, int shots, long time) {
-    super();
-    this.shots = shots;
-    this.id    = id;
-    this.level = level;
-    this.name  = name;
-    this.time  = time;
-  }
+  public boolean isComputing();
 
   /**
-   * Used when an entry is not yet in the database (no ID).
-   *
-   * @param level
-   * @param name
-   * @param shots
-   * @param time
+   * Get the exact direction (radian value) pointer should reach
+   * @param currentDirection
+   * @return
    */
-  public HighscoreDO(int level, String name, int shots, long time) {
-    super();
-    this.shots = shots;
-    id         = -1;
-    this.level = level;
-    this.name  = name;
-    this.time  = time;
-  }
+  public double getExactDirection(double currentDirection);
 
-  public int getId() {
-    return id;
-  }
+  /**
+   * The action opponent want to make (left, right, fire)
+   * @param currentDirection
+   * @return
+   */
+  public int getAction(double currentDirection);
 
-  public void setId(int id) {
-    this.id = id;
-  }
+  /**
+   * Make any necessary computation before next turn
+   * @param currentColor
+   * @param nextColor
+   * @param compressor
+   */
+  public void compute(int currentColor, int nextColor, int compressor);
 
-  public int getLevel() {
-    return level;
-  }
-
-  public void setLevel(int level) {
-    this.level = level;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public int getShots() {
-    return shots;
-  }
-
-  public void setShots(int shots) {
-    this.shots = shots;
-  }
-
-  public long getTime() {
-    return time;
-  }
-
-  public void setTime(long time) {
-    this.time = time;
-  }
+  public int[] getBallDestination();
 }

@@ -17,6 +17,8 @@
   <string name="menu_settings">设置</string>
   <string name="cancel">取消</string>
   <string name="ok">行</string>
+  <string name="play_level_music">奏乐</string>
+  <string name="play_sound_effects">播放声音效果</string>
   <string name="title_activity_frozen_bubble">冰冻泡泡</string>
   <string name="title_activity_splash_screen">冰冻泡泡</string>
   <string name="scrolling_credits">"Original Development\n"
@@ -63,6 +65,7 @@
     "\nGaea\'s Awakening\nby Dreamsection\n\n"
     "\nHomesick\nby Electric Keet\n\n"
     "\nIf Crystals…\nby Tran of Renaissance\n\n"
+    "\nFrozen Bubble Intro\nby Matthias Le Bidan\n\n"
     "\nPopcorn\nby Unknown Artist\n\n"
     "\nStardust Memories\nby Jester of Sanity\n\n"
     "\nSunshine of the Morning Sun\nby Area51 (Dan Nyman)\n\n"
@@ -77,7 +80,12 @@
     <item>旋转和射击</item>
   </string-array>
   <string-array name="sound_options_array">
-    <item>播放声音效果</item>
-    <item>奏乐</item>
+    <item>@string/play_sound_effects</item>
+    <item>@string/play_level_music</item>
   </string-array>
+  <string-array name="targeting_values_array">
+    <item>0</item>
+    <item>1</item>
+    <item>2</item>
+   </string-array>
 </resources>

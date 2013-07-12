@@ -1,9 +1,9 @@
 /*
  *                 [[ Frozen-Bubble ]]
  *
- * Copyright © 2000-2003 Guillaume Cottenceau.
- * Java sourcecode - Copyright © 2003 Glenn Sanson.
- * Additional source - Copyright © 2013 Eric Fortin.
+ * Copyright (c) 2000-2003 Guillaume Cottenceau.
+ * Java sourcecode - Copyright (c) 2003 Glenn Sanson.
+ * Additional source - Copyright (c) 2013 Eric Fortin.
  *
  * This code is distributed under the GNU General Public License
  *
@@ -44,7 +44,7 @@
  * Android port:
  *    Pawel Aleksander Fedorynski <pfedor@fuw.edu.pl>
  *    Eric Fortin <videogameboy76 at yahoo.com>
- *    Copyright © Google Inc.
+ *    Copyright (c) Google Inc.
  *
  *          [[ http://glenn.sanson.free.fr/fb/ ]]
  *          [[ http://www.frozen-bubble.org/   ]]
@@ -52,11 +52,32 @@
 
 package org.jfedor.frozenbubble;
 
+import java.util.Random;
 import java.util.Vector;
 
 import android.os.Bundle;
 
 public class LevelManager {
+  public static final int EASY     = 4;
+  public static final int NORMAL   = 5;
+  public static final int MODERATE = 6;
+  public static final int HARD     = 7;
+  public static final int INSANE   = 8;
+
+  public static final String[] DifficultyStrings = {
+    "frozen bubble",
+    "frozen bubble",
+    "frozen bubble",
+    "frozen bubble",
+    "easy",
+    "normal",
+    "moderate",
+    "hard",
+    "insane"
+  };
+
+  private boolean randomMode;
+  private long randomSeed;
   private int currentLevel;
   private Vector<byte[][]> levelList;
 
@@ -68,7 +89,43 @@ public class LevelManager {
     currentLevel = map.getInt("LevelManager-currentLevel");
   }
 
+  /**
+   * Constructor used to provide randomly generated levels.
+   * 
+   * @param seed
+   *        - the random bubble generation seed.
+   * 
+   * @param difficulty
+   *        - the number of different bubble colors to generate.  Higher
+   *        numbers make the level more difficult to play.  Use the
+   *        static difficulty values defined in this class to set the
+   *        level difficulty (e.g., EASY, HARD, etc.).
+   */
+  public LevelManager(long seed, int difficulty) {
+    this.randomMode = true;
+    this.randomSeed = seed;
+    this.currentLevel = difficulty;
+    currentLevel = ((currentLevel - 1) % INSANE) + 1;
+    if (currentLevel < EASY)
+      this.currentLevel = EASY;
+    else
+      this.currentLevel = difficulty;
+    levelList = new Vector<byte[][]>();
+    levelList.addElement(getLevel(null));
+  }
+
+  /**
+   * Constructor used to parse levels provided via a formatted array.
+   * 
+   * @param levels
+   *        - the byte array containing the level information.
+   * 
+   * @param startingLevel
+   *        - the current level starting index.
+   */
   public LevelManager(byte[] levels, int startingLevel) {
+    randomMode = false;
+    randomSeed = 0;
     String allLevels = new String(levels);
     currentLevel = startingLevel;
     levelList = new Vector<byte[][]>();
@@ -109,43 +166,66 @@ public class LevelManager {
       }
     }
 
-    int tempX = 0;
-    int tempY = 0;
+    if (!randomMode) {
+      int tempX = 0;
+      int tempY = 0;
 
-    for (int i=0 ; i<data.length() ; i++) {
-      if (data.charAt(i) >= 48 && data.charAt(i) <= 55) {
-        temp[tempX][tempY] = (byte)(data.charAt(i) - 48);
-        tempX++;
-      }
-      else if (data.charAt(i) == 45) {
-        temp[tempX][tempY] = -1;
-        tempX++;
-      }
-
-      if (tempX == 8) {
-        tempY++;
-
-        if (tempY == 12) {
-          return temp;
+      for (int i=0 ; i<data.length() ; i++) {
+        if (data.charAt(i) >= 48 && data.charAt(i) <= 55) {
+          temp[tempX][tempY] = (byte)(data.charAt(i) - 48);
+          tempX++;
         }
-
-        tempX = tempY % 2;
+        else if (data.charAt(i) == 45) {
+          temp[tempX][tempY] = -1;
+          tempX++;
+        }
+  
+        if (tempX == 8) {
+          tempY++;
+  
+          if (tempY == 12) {
+            return temp;
+          }
+  
+          tempX = tempY % 2;
+        }
       }
+    }
+    else {
+      Random rand = new Random(randomSeed);
+      rand.nextInt(7);
+      for (int j=0 ; j<5 ; j++) {
+        for (int i=0 ; i<8 ; i++) {
+          temp[i][j] = (byte)rand.nextInt(currentLevel);
+        }
+      }
+      randomSeed = rand.nextInt();
     }
     return temp;
   }
 
   public byte[][] getCurrentLevel() {
-    if (currentLevel < levelList.size()) {
-      return (byte[][])levelList.elementAt(currentLevel);
+    if (!randomMode) {
+      if (currentLevel < levelList.size()) {
+        return (byte[][])levelList.elementAt(currentLevel);
+      }
+    }
+    else {
+      return (byte[][])levelList.elementAt(0);
     }
     return null;
   }
 
   public void goToNextLevel() {
-    currentLevel++;
-    if (currentLevel >= levelList.size()) {
-      currentLevel = 0;
+    if (!randomMode) {
+      currentLevel++;
+      if (currentLevel >= levelList.size()) {
+        currentLevel = 0;
+      }
+    }
+    else {
+      levelList.clear();
+      levelList.addElement(getLevel(null));
     }
   }
 

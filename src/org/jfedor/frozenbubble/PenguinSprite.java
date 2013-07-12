@@ -1,9 +1,9 @@
 /*
  *                 [[ Frozen-Bubble ]]
  *
- * Copyright © 2000-2003 Guillaume Cottenceau.
- * Java sourcecode - Copyright © 2003 Glenn Sanson.
- * Additional source - Copyright © 2013 Eric Fortin.
+ * Copyright (c) 2000-2003 Guillaume Cottenceau.
+ * Java sourcecode - Copyright (c) 2003 Glenn Sanson.
+ * Additional source - Copyright (c) 2013 Eric Fortin.
  *
  * This code is distributed under the GNU General Public License
  *
@@ -44,7 +44,7 @@
  * Android port:
  *    Pawel Aleksander Fedorynski <pfedor@fuw.edu.pl>
  *    Eric Fortin <videogameboy76 at yahoo.com>
- *    Copyright © Google Inc.
+ *    Copyright (c) Google Inc.
  *
  *          [[ http://glenn.sanson.free.fr/fb/ ]]
  *          [[ http://www.frozen-bubble.org/   ]]
@@ -60,12 +60,15 @@ import android.graphics.Rect;
 import android.os.Bundle;
 
 public class PenguinSprite extends Sprite {
-  public final static int STATE_TURN_LEFT = 0;
+  public final static int PENGUIN_HEIGHT = 45;
+  public final static int PENGUIN_WIDTH  = 57;
+
+  public final static int STATE_TURN_LEFT  = 0;
   public final static int STATE_TURN_RIGHT = 1;
-  public final static int STATE_FIRE = 2;
-  public final static int STATE_VOID = 3;
-  public final static int STATE_GAME_WON = 4;
-  public final static int STATE_GAME_LOST = 5;
+  public final static int STATE_FIRE       = 2;
+  public final static int STATE_VOID       = 3;
+  public final static int STATE_GAME_WON   = 4;
+  public final static int STATE_GAME_LOST  = 5;
 
   public final static int[][] LOST_SEQUENCE =
     {{1,0}, {2,8}, {3,9}, {4,10}, {5,11}, {6,12}, {7,13}, {5,14}};
@@ -80,8 +83,8 @@ public class PenguinSprite extends Sprite {
   private BmpWrap spritesImage;
   private Random rand;
 
-  public PenguinSprite(BmpWrap sprites, Random rand) {
-    super(new Rect(361, 436, 361 + 55, 436 + 43));
+  public PenguinSprite(Rect r, BmpWrap sprites, Random rand) {
+    super(r);
 
     this.spritesImage = sprites;
     this.rand = rand;
@@ -91,10 +94,10 @@ public class PenguinSprite extends Sprite {
     nextPosition   = 0;
   }
 
-  public PenguinSprite(BmpWrap sprites, Random rand,
+  public PenguinSprite(Rect r, BmpWrap sprites, Random rand,
                        int currentPenguin, int count,
                        int finalState, int nextPosition) {
-    super(new Rect(361, 436, 361 + 55, 436 + 43));
+    super(r);
 
     this.spritesImage   = sprites;
     this.rand           = rand;
@@ -105,16 +108,27 @@ public class PenguinSprite extends Sprite {
   }
 
   @Override
-  public void saveState(Bundle map, Vector<Sprite> saved_sprites) {
+  public void saveState(Bundle map, Vector<Sprite> saved_sprites, int id) {
     if (getSavedId() != -1) {
       return;
     }
-    super.saveState(map, saved_sprites);
-    map.putInt(String.format("%d-currentPenguin", getSavedId()),
-                             currentPenguin);
-    map.putInt(String.format("%d-count", getSavedId()), count);
-    map.putInt(String.format("%d-finalState", getSavedId()), finalState);
-    map.putInt(String.format("%d-nextPosition", getSavedId()), nextPosition);
+    super.saveState(map, saved_sprites, id);
+    map.putInt(String.format("%d-%d-currentPenguin", id, getSavedId()),
+               currentPenguin);
+    map.putInt(String.format("%d-%d-count", id, getSavedId()), count);
+    map.putInt(String.format("%d-%d-finalState", id, getSavedId()),
+               finalState);
+    map.putInt(String.format("%d-%d-nextPosition", id, getSavedId()),
+               nextPosition);
+  }
+
+  public static Rect getPenguinRect(int player) {
+    if (player == 1)
+      return new Rect(361, 436, 361 + PenguinSprite.PENGUIN_WIDTH - 2,
+                      436 + PenguinSprite.PENGUIN_HEIGHT - 2);
+    else
+      return new Rect(221, 436, 221 + PenguinSprite.PENGUIN_WIDTH - 2,
+                      436 + PenguinSprite.PENGUIN_HEIGHT - 2);
   }
 
   public int getTypeId() {
@@ -179,9 +193,12 @@ public class PenguinSprite extends Sprite {
 
   public void paint(Canvas c, double scale, int dx, int dy) {
     Rect r = this.getSpriteArea();
+    /*
+     * Clip the specified penguin graphic from the image array.
+     */
     drawImageClipped(spritesImage,
-                     360 - (currentPenguin % 4) * 57,
-                     435 - (currentPenguin / 4) * 45,
+                     (r.left - 1) - ((currentPenguin % 4) * PENGUIN_WIDTH),
+                     (r.top - 1) - ((currentPenguin / 4) * PENGUIN_HEIGHT),
                      r, c, scale, dx, dy);
   }
 }

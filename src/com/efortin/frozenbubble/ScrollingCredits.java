@@ -1,9 +1,9 @@
 /*
  *                 [[ Frozen-Bubble ]]
  *
- * Copyright © 2000-2003 Guillaume Cottenceau.
- * Java sourcecode - Copyright © 2003 Glenn Sanson.
- * Additional source - Copyright © 2013 Eric Fortin.
+ * Copyright (c) 2000-2003 Guillaume Cottenceau.
+ * Java sourcecode - Copyright (c) 2003 Glenn Sanson.
+ * Additional source - Copyright (c) 2013 Eric Fortin.
  *
  * This code is distributed under the GNU General Public License
  *
@@ -44,7 +44,7 @@
  * Android port:
  *    Pawel Aleksander Fedorynski <pfedor@fuw.edu.pl>
  *    Eric Fortin <videogameboy76 at yahoo.com>
- *    Copyright © Google Inc.
+ *    Copyright (c) Google Inc.
  *
  *          [[ http://glenn.sanson.free.fr/fb/ ]]
  *          [[ http://www.frozen-bubble.org/   ]]
@@ -69,15 +69,10 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 
-import com.peculiargames.andmodplug.MODResourcePlayer;
-import com.peculiargames.andmodplug.PlayerThread;
-
 public class ScrollingCredits extends Activity implements Runnable {
   private boolean victoryScreenShown = false;
   private ScrollingTextView credits;
-  private MODResourcePlayer resplayer = null;
-  private static final int DEFAULT_SONG = 0;
-  private final int[] MODlist = { R.raw.worldofpeace };
+  private ModPlayer myModPlayer = null;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -92,7 +87,8 @@ public class ScrollingCredits extends Activity implements Runnable {
     credits.setScrollDirection(ScrollingTextView.SCROLL_UP);
     credits.setTextSize(18.0f);
     // Start the credits music.
-    playMusic();
+    myModPlayer = new ModPlayer(this, R.raw.worldofpeace,
+                                FrozenBubble.getMusicOn(), false);
     // Post this runnable instance to the scrolling text view.
     credits.postDelayed(this, 100);
   }
@@ -139,48 +135,6 @@ public class ScrollingCredits extends Activity implements Runnable {
       pauseCredits();
   }
 
-  /**
-   * Stop the music player, close the thread, and free the instance.
-   */
-  private void destroyMusicPlayer() {
-    if (resplayer != null) {
-      resplayer.StopAndClose();
-      resplayer = null;
-    }
-  }
-
-  /**
-   * Create a new music player if necessary, load the song, and start
-   * playing it.
-   */
-  private void playMusic() {
-    boolean threadStarted = resplayer != null;
-    // If the MOD player instance is NULL, create a new music player.
-    if (resplayer == null)
-      resplayer = new MODResourcePlayer(this);
-    else
-      resplayer.PausePlay();
-    // Load the module music file.
-    resplayer.LoadMODResource(MODlist[DEFAULT_SONG]);
-    // Loop the song forever.
-    resplayer.setLoopCount(PlayerThread.LOOP_SONG_FOREVER);
-    // Set the volume per the game preferences.
-    if (FrozenBubble.getMusicOn() == true) {
-      resplayer.setVolume(255);
-    }
-    else {
-      resplayer.setVolume(0);
-    }
-    // Start up the music.
-    if (!threadStarted)
-    {
-      resplayer.startPaused(false);
-      resplayer.start();
-    }
-    else
-      resplayer.UnPausePlay();
-  }
-
   private void displayImage(int id) {
     // Construct a new LinearLayout programmatically. 
     LinearLayout linearLayout = new LinearLayout(this);
@@ -190,7 +144,7 @@ public class ScrollingCredits extends Activity implements Runnable {
     // ImageView setup for the image.
     ImageView imageView = new ImageView(this);
     // Set image resource.
-    imageView.setImageResource(R.drawable.victory);
+    imageView.setImageResource(id);
     // Set image position and scaling.
     imageView.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT,
                                                LayoutParams.FILL_PARENT));
@@ -210,9 +164,9 @@ public class ScrollingCredits extends Activity implements Runnable {
    * be applied before setting the view content by applying the XML
    * layout or it will generate an exception.
    * 
-   * @param  layoutResID
-   *         - The resource ID of the XML layout to use for the window
-   *         layout settings.
+   * @param layoutResID
+   *        - The resource ID of the XML layout to use for the window
+   *        layout settings.
    */
   private void setWindowLayout(int layoutResID) {
     final int flagFs   = WindowManager.LayoutParams.FLAG_FULLSCREEN;
@@ -246,7 +200,10 @@ public class ScrollingCredits extends Activity implements Runnable {
   }
 
   public void cleanUp() {
-    destroyMusicPlayer();
+    if (myModPlayer != null) {
+      myModPlayer.destroyMusicPlayer();
+      myModPlayer = null;
+    }
   }
 
   public void end() {
@@ -256,7 +213,7 @@ public class ScrollingCredits extends Activity implements Runnable {
     // destroy the current player.
     //
     //
-    destroyMusicPlayer();
+    cleanUp();
     //
     // Create an intent to launch the game activity.  Since it was
     // running in the background while this activity was running, it
@@ -269,14 +226,14 @@ public class ScrollingCredits extends Activity implements Runnable {
   }
 
   public void pauseCredits() {
-    if (resplayer != null)
-      resplayer.PausePlay();
+    if (myModPlayer != null)
+      myModPlayer.pausePlay();
     credits.setPaused(true);
   }
 
   public void resumeCredits() {
-    if (resplayer != null)
-      resplayer.UnPausePlay();
+    if (myModPlayer != null)
+      myModPlayer.unPausePlay();
     credits.setPaused(false);
   }
 
