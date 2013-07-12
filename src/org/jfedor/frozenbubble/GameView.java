@@ -102,6 +102,7 @@ import com.efortin.frozenbubble.HighscoreDO;
 import com.efortin.frozenbubble.HighscoreManager;
 
 class GameView extends SurfaceView implements SurfaceHolder.Callback {
+  private static boolean mInterstitialShown = false;
   private boolean    mBlankScreen = false;
   private Context    mContext;
   private GameThread thread;
@@ -121,8 +122,6 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
   }
   
   GameListener mGameListener;
-  
-  Random rnd = new Random();
   
   public void setGameListener (GameListener gl) {
     mGameListener = gl;
@@ -1022,7 +1021,8 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
         if (game_state == FrozenGame.GAME_NEXT_WON) {
           mShowScores = true;
           pause();
-          if (rnd.nextInt(10) == 0) {
+          if (!mInterstitialShown && new Random().nextInt(10) == 0) {
+            mInterstitialShown = true;
             Intent intent = new Intent(mContext, InterstitialActivity.class);
             mContext.startActivity(intent);
           }
