@@ -89,6 +89,10 @@ public class HighscoreDB {
     insertStmt = db.compileStatement(INSERT);
   }
 
+  public void close() {
+    db.close();
+  }
+
   public long insert(HighscoreDO hi) {
     insertStmt.bindLong(1, hi.getLevel());
     insertStmt.bindString(2, hi.getName());
@@ -130,6 +134,24 @@ public class HighscoreDB {
         list.add(new HighscoreDO(cursor.getInt(0), cursor.getInt(1),
                  cursor.getString(2), cursor.getInt(3), cursor.getLong(4)));
       } while (cursor.moveToNext());
+    }
+    if ((cursor != null) && !cursor.isClosed()) {
+      cursor.close();
+    }
+    return list;
+  }
+
+  public List<HighscoreDO> selectLastByLevel(int level, int limit) {
+    List<HighscoreDO> list = new ArrayList<HighscoreDO>();
+    Cursor cursor = db.query(TABLE_NAME, null, "level=" + level, null,
+                             null, null, "shots asc, time asc", null);
+    if (cursor.moveToLast()) {
+      int index = 0;
+      do {
+        list.add(new HighscoreDO(cursor.getInt(0), cursor.getInt(1),
+                 cursor.getString(2), cursor.getInt(3), cursor.getLong(4)));
+        index++;
+      } while (cursor.moveToPrevious() && (index < limit));
     }
     if ((cursor != null) && !cursor.isClosed()) {
       cursor.close();

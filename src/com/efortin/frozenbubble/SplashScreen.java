@@ -216,7 +216,12 @@ public class SplashScreen extends Activity {
     myImageView = new ImageView(this);
 
     if (FrozenBubble.isRunning)
-      startFrozenBubble(0);
+      startFrozenBubble(FrozenBubble.numPlayers);
+    else if (getIntent().hasExtra("startHomeScreen")) {
+      setBackgroundImage(R.drawable.home_screen);
+      setContentView(myLayout);
+      startHomeScreen();
+    }
     else {
       setBackgroundImage(R.drawable.splash);
       setContentView(myLayout);

@@ -120,14 +120,14 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
   public static final int EVENT_GAME_PAUSED = 4;
   public static final int EVENT_GAME_RESUME = 5;
   public static final int EVENT_LEVEL_START = 6;
-  
+
   // Listener user set.
   public interface GameListener {
     public abstract void onGameEvent(int event);
   }
-  
+
   GameListener mGameListener;
-  
+
   public void setGameListener (GameListener gl) {
     mGameListener = gl;
   }
@@ -142,6 +142,17 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
   public final static int SCREEN_ORIENTATION_REVERSE_LANDSCAPE = 8;
   public final static int SCREEN_ORIENTATION_REVERSE_PORTRAIT  = 9;
 
+  /*
+   * TODO: implement keyboard keypress functionality.
+   */
+  // Change mode (normal/colorblind)
+  public final static int KEY_M = 77;
+  // Pause/resume game
+  public final static int KEY_P = 80;
+  // Toggle sound on/off
+  public final static int KEY_S = 83;
+  boolean modeKeyPressed, pauseKeyPressed, soundKeyPressed;
+
   class MultiplayerGameThread extends Thread {
 
     private static final int FRAME_DELAY = 40;
@@ -151,6 +162,7 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
     public static final int STATE_ABOUT   = 4;
 
     private static final double TRACKBALL_COEFFICIENT      = 5;
+    private static final double TOUCH_BUTTON_THRESHOLD     = 16;
     private static final double TOUCH_FIRE_Y_THRESHOLD     = 380;
     private static final double TOUCH_SWAP_X_THRESHOLD     = 14;
     private static final double ATS_TOUCH_COEFFICIENT      = 0.2;
@@ -198,6 +210,8 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
     private Bitmap mGameLostOrig;
     private Bitmap mGamePausedOrig;
     private Bitmap mHurryOrig;
+    private Bitmap mPauseButtonOrig;
+    private Bitmap mPlayButtonOrig;
     private Bitmap mPenguinsOrig;
     private Bitmap mPenguins2Orig;
     private Bitmap mCompressorHeadOrig;
@@ -216,6 +230,8 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
     private BmpWrap mGameLost;
     private BmpWrap mGamePaused;
     private BmpWrap mHurry;
+    private BmpWrap mPauseButton;
+    private BmpWrap mPlayButton;
     private BmpWrap mPenguins;
     private BmpWrap mPenguins2;
     private BmpWrap mCompressorHead;
@@ -247,9 +263,7 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
         // said you have to call recycle() on all the bitmaps and set
         // the pointers to null to facilitate garbage collection.  So I did
         // and the crashes went away.
-        mFrozenGame1.cleanUp();
         mFrozenGame1 = null;
-        mFrozenGame2.cleanUp();
         mFrozenGame2 = null;
         mImagesReady = false;
 
@@ -291,6 +305,10 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
         mGamePausedOrig = null;
         mHurryOrig.recycle();
         mHurryOrig = null;
+        mPauseButtonOrig.recycle();
+        mPauseButtonOrig = null;
+        mPlayButtonOrig.recycle();
+        mPlayButtonOrig = null;
         mPenguinsOrig.recycle();
         mPenguinsOrig = null;
         mPenguins2Orig.recycle();
@@ -329,6 +347,8 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
           mGameLost.bmp.recycle();
           mGamePaused.bmp.recycle();
           mHurry.bmp.recycle();
+          mPauseButton.bmp.recycle();
+          mPlayButton.bmp.recycle();
           mPenguins.bmp.recycle();
           mPenguins2.bmp.recycle();
           mCompressorHead.bmp.recycle();
@@ -374,6 +394,10 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
         mGamePaused = null;
         mHurry.bmp = null;
         mHurry = null;
+        mPauseButton.bmp = null;
+        mPauseButton = null;
+        mPlayButton.bmp = null;
+        mPlayButton = null;
         mPenguins.bmp = null;
         mPenguins = null;
         mPenguins2.bmp = null;
@@ -393,6 +417,7 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
         mSoundManager.cleanUp();
         mSoundManager = null;
         mLevelManager = null;
+        mHighscoreManager.close();
       }
     }
 
@@ -521,13 +546,27 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
      */
     boolean doTouchEvent(MotionEvent event) {
       synchronized (mSurfaceHolder) {
+        double x = xFromScr(event.getX());
+        double y = yFromScr(event.getY());
+
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+          if ((Math.abs(x - 183) <= TOUCH_BUTTON_THRESHOLD) &&
+              (Math.abs(y - 460) <= TOUCH_BUTTON_THRESHOLD)) {
+            pauseKeyPressed = !pauseKeyPressed;
+            if (mFrozenGame1 != null)
+              mFrozenGame1.pauseButtonPressed(pauseKeyPressed);
+          }
+          else if (pauseKeyPressed)
+            return false;
+        }
+
         if(updateStateOnEvent(event))
           return true;
 
-        if (mMode == STATE_RUNNING) {
-          double x = xFromScr(event.getX());
-          double y = yFromScr(event.getY());
+        if ((mMode == STATE_RUNNING) && (pauseKeyPressed))
+          pause();
 
+        if (mMode == STATE_RUNNING) {
           // Set the values used when Point To Shoot is on.
           if (event.getAction() == MotionEvent.ACTION_DOWN) {
             if (y < TOUCH_FIRE_Y_THRESHOLD) {
@@ -661,7 +700,7 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
      * @param level
      *        - the level difficulty index.
      */
-    private void drawHighscoreScreen(Canvas canvas, int level) {
+    private void drawHighScoreScreen(Canvas canvas, int level) {
       canvas.drawRGB(0, 0, 0);
       int x = 168;
       int y = 20;
@@ -679,28 +718,29 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
                   x, y, canvas, mDisplayScale, mDisplayDX, mDisplayDY);
       y += 2 * ysp;
 
-      List<HighscoreDO> hlist = mHighscoreManager.getHighscore(level, 15);
+      List<HighscoreDO> hlist = mHighscoreManager.getLowScore(level, 15);
       long lastScoreId = mHighscoreManager.getLastScoreId();
-      int j = hlist.size();
-      int i = j - 1;
-      String entries[] = new String[j];
+      int i = 1;
       for (HighscoreDO hdo : hlist) {
         String you = "";
         if (lastScoreId == hdo.getId()) {
           you = "|";
         }
         // TODO: Add player name support.
-        // entries[i] = you + (i + 1) + " - " + hdo.getName().toLowerCase() +
-        //                " - " + hdo.getShots() + " shots - " +
-        //                (hdo.getTime() / 1000) + " sec";
-        entries[i] = you + (i + 1) + " - " + hdo.getShots() + " shots - " +
-                       (hdo.getTime() / 1000) + " sec";
-        i--;
-      }
-
-      for (i = 0; i < j; i++) {
-        mFont.print(entries[i], x + indent, y, canvas,
-                    mDisplayScale, mDisplayDX, mDisplayDY);
+        // mFont.print(you + i++ + " - " + hdo.getName().toLowerCase()
+        // + " - "
+        // + hdo.getShots()
+        // + " - " + (hdo.getTime() / 1000)
+        // + " sec", x + indent,
+        // y, canvas,
+        // mDisplayScale, mDisplayDX, mDisplayDY);
+        mFont.print(you + i++ + " - "
+          + hdo.getShots()
+          + " shots - "
+          + (hdo.getTime() / 1000)
+          + " sec", x + indent,
+          y, canvas,
+          mDisplayScale, mDisplayDX, mDisplayDY);
         y += ysp;
       }
     }
@@ -933,9 +973,13 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
       mGameLostOrig = BitmapFactory.decodeResource(
         res, R.drawable.lose_panel, options);
       mGamePausedOrig = BitmapFactory.decodeResource(
-        res, R.drawable.paused, options);
+        res, R.drawable.pause_panel, options);
       mHurryOrig = BitmapFactory.decodeResource(
         res, R.drawable.hurry, options);
+      mPauseButtonOrig = BitmapFactory.decodeResource(
+        res, R.drawable.pause_button, options);
+      mPlayButtonOrig = BitmapFactory.decodeResource(
+        res, R.drawable.play_button, options);
       mPenguinsOrig = BitmapFactory.decodeResource(
         res, R.drawable.penguins, options);
       mPenguins2Orig = BitmapFactory.decodeResource(
@@ -981,6 +1025,8 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
       mGameLost       = NewBmpWrap();
       mGamePaused     = NewBmpWrap();
       mHurry          = NewBmpWrap();
+      mPauseButton    = NewBmpWrap();
+      mPlayButton     = NewBmpWrap();
       mPenguins       = NewBmpWrap();
       mPenguins2      = NewBmpWrap();
       mCompressorHead = NewBmpWrap();
@@ -1009,7 +1055,8 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
         mFrozenGame1 = new FrozenGame(mBackground, mBubbles, mBubblesBlind,
                                       mFrozenBubbles, mTargetedBubbles,
                                       mBubbleBlink, mGameWon, mGameLost,
-                                      mGamePaused, mHurry, mPenguins,
+                                      mGamePaused, mHurry,
+                                      mPauseButton, mPlayButton, mPenguins,
                                       mCompressorHead, mCompressor,
                                       malusBar2, mLauncher,
                                       mSoundManager, mLevelManager,
@@ -1017,7 +1064,8 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
         mFrozenGame2 = new FrozenGame(mBackground, mBubbles, mBubblesBlind,
                                       mFrozenBubbles, mTargetedBubbles,
                                       mBubbleBlink, mGameWon, mGameLost,
-                                      mGamePaused, mHurry, mPenguins2,
+                                      mGamePaused, mHurry,
+                                      null, null, mPenguins2,
                                       mCompressorHead, mCompressor,
                                       malusBar1, mLauncher,
                                       mSoundManager, mLevelManager, null, 2);
@@ -1032,10 +1080,12 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
 
           if (mGameListener != null)
             mGameListener.onGameEvent(EVENT_GAME_PAUSED);
-
-          mFrozenGame1     .pause();
-          mFrozenGame2     .pause();
-          mHighscoreManager.pauseLevel();
+          if (mFrozenGame1 != null)
+            mFrozenGame1.pause();
+          if (mFrozenGame2 != null)
+            mFrozenGame2.pause();
+          if (mHighscoreManager != null)
+            mHighscoreManager.pauseLevel();
         }
       }
     }
@@ -1060,6 +1110,8 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
       scaleFrom(mGameLost, mGameLostOrig);
       scaleFrom(mGamePaused, mGamePausedOrig);
       scaleFrom(mHurry, mHurryOrig);
+      scaleFrom(mPauseButton, mPauseButtonOrig);
+      scaleFrom(mPlayButton, mPlayButtonOrig);
       scaleFrom(mPenguins, mPenguinsOrig);
       scaleFrom(mPenguins2, mPenguins2Orig);
       scaleFrom(mCompressorHead, mCompressorHeadOrig);
@@ -1125,7 +1177,7 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
                   }
                   else if (mMode == STATE_PAUSE) {
                     if (mShowScores)
-                      drawHighscoreScreen(c, mHighscoreManager.getLevel());
+                      drawHighScoreScreen(c, mHighscoreManager.getLevel());
                     else
                       doDraw(c);
                   }
@@ -1328,6 +1380,10 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
     }
 
     private void updateGameState() {
+      if ((mFrozenGame1 == null) || (mFrozenGame2 == null) ||
+          (mOpponent == null) || (mHighscoreManager == null))
+        return;
+
       int game1_state = mFrozenGame1.play(mLeft || mWasLeft,
                                           mRight || mWasRight,
                                           mFire || mUp || mWasFire || mWasUp,
@@ -1432,6 +1488,10 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
     numPlayer1GamesWon = 0;
     numPlayer2GamesWon = 0;
 
+    modeKeyPressed  = false;
+    pauseKeyPressed = false;
+    soundKeyPressed = false;
+
     mGameThread = new MultiplayerGameThread(holder);
     setFocusable(true);
     setFocusableInTouchMode(true);
@@ -1471,8 +1531,9 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
   @Override
   public void onWindowFocusChanged(boolean hasWindowFocus) {
     //Log.i("frozen-bubble", "GameView.onWindowFocusChanged()");
-    if (! hasWindowFocus) {
-      mGameThread.pause();
+    if (!hasWindowFocus) {
+      if (mGameThread != null)
+        mGameThread.pause();
     }
   }
 
