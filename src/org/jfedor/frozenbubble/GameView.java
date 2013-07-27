@@ -120,14 +120,14 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
   public static final int EVENT_GAME_PAUSED = 4;
   public static final int EVENT_GAME_RESUME = 5;
   public static final int EVENT_LEVEL_START = 6;
-  
+
   // Listener user set.
   public interface GameListener {
     public abstract void onGameEvent(int event);
   }
-  
+
   GameListener mGameListener;
-  
+
   public void setGameListener (GameListener gl) {
     mGameListener = gl;
   }
@@ -319,7 +319,7 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
       mGameLostOrig = BitmapFactory.decodeResource(
         res, R.drawable.lose_panel, options);
       mGamePausedOrig = BitmapFactory.decodeResource(
-        res, R.drawable.paused, options);
+        res, R.drawable.pause_panel, options);
       mHurryOrig = BitmapFactory.decodeResource(
         res, R.drawable.hurry, options);
       mPenguinsOrig = BitmapFactory.decodeResource(
@@ -456,9 +456,10 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
           if (mGameListener != null)
             mGameListener.onGameEvent(EVENT_GAME_PAUSED);
-
-          mFrozenGame      .pause();
-          mHighscoreManager.pauseLevel();
+          if (mFrozenGame != null)
+            mFrozenGame.pause();
+          if (mHighscoreManager != null)
+            mHighscoreManager.pauseLevel();
         }
       }
     }
@@ -509,7 +510,7 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
                   }
                   else if (mMode == STATE_PAUSE) {
                     if (mShowScores)
-                      drawHighscoreScreen(c, mHighscoreManager.getLevel());
+                      drawHighScoreScreen(c, mHighscoreManager.getLevel());
                     else
                       doDraw(c);
                   }
@@ -971,7 +972,7 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
      * @param level
      *        - the level index.
      */
-    private void drawHighscoreScreen(Canvas canvas, int level) {
+    private void drawHighScoreScreen(Canvas canvas, int level) {
       canvas.drawRGB(0, 0, 0);
       int x = 168;
       int y = 20;
@@ -982,7 +983,7 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
                   mDisplayScale, mDisplayDX, mDisplayDY);
       y += 2 * ysp;
 
-      List<HighscoreDO> hlist = mHighscoreManager.getHighscore(level, 15);
+      List<HighscoreDO> hlist = mHighscoreManager.getHighScore(level, 15);
       long lastScoreId = mHighscoreManager.getLastScoreId();
       int i = 1;
       for (HighscoreDO hdo : hlist) {
@@ -1025,6 +1026,9 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     private void updateGameState() {
+      if ((mFrozenGame == null) || (mHighscoreManager == null))
+        return;
+
       int game_state = mFrozenGame.play(mLeft || mWasLeft,
                                         mRight || mWasRight,
                                         mFire || mUp || mWasFire || mWasUp,
@@ -1084,7 +1088,6 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
         // said you have to call recycle() on all the bitmaps and set
         // the pointers to null to facilitate garbage collection.  So I did
         // and the crashes went away.
-        mFrozenGame.cleanUp();
         mFrozenGame = null;
         mImagesReady = false;
 
@@ -1213,6 +1216,7 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
         mSoundManager.cleanUp();
         mSoundManager = null;
         mLevelManager = null;
+        mHighscoreManager.close();
       }
     }
 
@@ -1284,8 +1288,9 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
   @Override
   public void onWindowFocusChanged(boolean hasWindowFocus) {
     //Log.i("frozen-bubble", "GameView.onWindowFocusChanged()");
-    if (! hasWindowFocus) {
-      mGameThread.pause();
+    if (!hasWindowFocus) {
+      if (mGameThread != null)
+        mGameThread.pause();
     }
   }
 

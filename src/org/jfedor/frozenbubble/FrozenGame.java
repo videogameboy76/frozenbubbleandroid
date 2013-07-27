@@ -88,12 +88,6 @@ public class FrozenGame extends GameScreen {
   public static final int HURRY_ME_TIME = 480;
   public static final int RELEASE_TIME  = 300;
 
-  // Change mode (normal/colorblind)
-  public final static int KEY_M = 77;
-  // Toggle sound on/off
-  public final static int KEY_S = 83;
-  boolean modeKeyPressed, soundKeyPressed;
-
   BmpWrap background;
   BmpWrap[] bubbles;
   BmpWrap[] bubblesBlind;
@@ -130,6 +124,8 @@ public class FrozenGame extends GameScreen {
   ImageSprite hurrySprite;
   int hurryTime;
 
+  ImageSprite pauseButtonSprite;
+  ImageSprite playButtonSprite;
   ImageSprite pausedSprite;
 
   SoundManager soundManager;
@@ -159,6 +155,8 @@ public class FrozenGame extends GameScreen {
                     BmpWrap gameLost_arg,
                     BmpWrap gamePaused_arg,
                     BmpWrap hurry_arg,
+                    BmpWrap pauseButton_arg,
+                    BmpWrap playButton_arg,
                     BmpWrap penguins_arg,
                     BmpWrap compressorHead_arg,
                     BmpWrap compressor_arg,
@@ -183,25 +181,31 @@ public class FrozenGame extends GameScreen {
     soundManager         = soundManager_arg;
     levelManager         = levelManager_arg;
     highscoreManager     = highscoreManager_arg;
-    player             = player_arg;
+    malusBar             = malusBar_arg;
+    player               = player_arg;
     playResult           = GAME_PLAYING;
     launchBubblePosition = START_LAUNCH_DIRECTION;
     readyToFire          = false;
     swapPressed          = false;
 
+    if ((pauseButton_arg != null) && (playButton_arg != null)) {
+      pauseButtonSprite = new ImageSprite(new Rect(167, 444, 32, 32),
+                                          pauseButton_arg);
+      playButtonSprite  = new ImageSprite(new Rect(167, 444, 32, 32),
+                                          playButton_arg);
+      this.addSprite(pauseButtonSprite);
+    }
+
     penguin = new PenguinSprite(PenguinSprite.getPenguinRect(player),
                                 penguins_arg, random);
     this.addSprite(penguin);
+
     compressor  = new Compressor(compressorHead_arg, compressor_arg);
     hurrySprite = new ImageSprite(new Rect(203, 265, 203 + 240, 265 + 90),
                                   hurry_arg);
 
-    malusBar = null;
-    if (malusBar_arg != null)
-    {
-      malusBar = malusBar_arg;
+    if (malusBar != null)
       this.addSprite(malusBar);
-    }
 
     falling = new Vector<Sprite>();
     goingUp = new Vector<Sprite>();
@@ -209,8 +213,8 @@ public class FrozenGame extends GameScreen {
 
     bubblePlay    = new BubbleSprite[8][13];
     bubbleManager = new BubbleManager(bubbles);
-    byte[][] currentLevel = levelManager.getCurrentLevel();
 
+    byte[][] currentLevel = levelManager.getCurrentLevel();
     if (currentLevel == null) {
       //Log.i("frozen-bubble", "Level not available.");
       return;
@@ -270,21 +274,12 @@ public class FrozenGame extends GameScreen {
                     HighscoreManager highscoreManager_arg) {
     this(background_arg, bubbles_arg, bubblesBlind_arg, frozenBubbles_arg,
          targetedBubbles_arg, bubbleBlink_arg, gameWon_arg, gameLost_arg,
-         gamePaused_arg, hurry_arg, penguins_arg, compressorHead_arg,
+         gamePaused_arg, hurry_arg, null, null, penguins_arg, compressorHead_arg,
          compressor_arg, null, launcher_arg, soundManager_arg,
          levelManager_arg, highscoreManager_arg, 1);
   }
 
-  public void cleanUp() {
-    //
-    //   If the pause bitmap is displayed, remove it.
-    //
-    //
-    resume();
-  }
-
   public void saveState(Bundle map) {
-    cleanUp();
     Vector<Sprite> savedSprites = new Vector<Sprite>();
     saveSprites(map, savedSprites, player);
     for (int i = 0; i < jumping.size(); i++) {
@@ -437,6 +432,19 @@ public class FrozenGame extends GameScreen {
     resume();
     pausedSprite = new ImageSprite(new Rect(152, 190, 337, 116), gamePaused );
     this.addSprite(pausedSprite);
+  }
+
+  public void pauseButtonPressed(boolean paused) {
+    if (paused) {
+      this.removeSprite(pauseButtonSprite);
+      this.removeSprite(playButtonSprite);
+      this.addSprite(playButtonSprite);
+    }
+    else {
+      this.removeSprite(pauseButtonSprite);
+      this.removeSprite(playButtonSprite);
+      this.addSprite(pauseButtonSprite);
+    }
   }
 
   public void resume() {
@@ -766,7 +774,7 @@ public class FrozenGame extends GameScreen {
 
       for (int i = 0; i < 15; i++) {
         if (lanes[i]) {
-          int color = random.nextInt(LevelManager.MODERATE);
+          int color = random.nextInt(FrozenBubble.getDifficulty());
           BubbleSprite malusBubble = new BubbleSprite(
             new Rect(columnX[i], 44+15*28, 32, 32),
             START_LAUNCH_DIRECTION,
