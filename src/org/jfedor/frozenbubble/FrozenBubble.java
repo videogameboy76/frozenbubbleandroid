@@ -154,6 +154,7 @@ public class FrozenBubble extends Activity
   public static boolean isRunning  = false;
   public static int     numPlayers = 0;
 
+  private static boolean adsOn      = true;
   private static int     collision  = BubbleSprite.MIN_PIX;
   private static boolean compressor = false;
   private static int     difficulty = LevelManager.MODERATE;
@@ -477,6 +478,7 @@ public class FrozenBubble extends Activity
   private void restoreGamePrefs() {
     SharedPreferences mConfig = getSharedPreferences(PREFS_NAME,
                                                      Context.MODE_PRIVATE);
+    adsOn      = mConfig.getBoolean("adsOn",      true                 );
     collision  = mConfig.getInt    ("collision",  BubbleSprite.MIN_PIX );
     compressor = mConfig.getBoolean("compressor", false                );
     difficulty = mConfig.getInt    ("difficulty", LevelManager.MODERATE);
@@ -741,6 +743,14 @@ public class FrozenBubble extends Activity
 
     builder.create();
     builder.show();
+  }
+
+  public synchronized static boolean getAdsOn() {
+    return adsOn;
+  }
+
+  public synchronized static void setAdsOn(boolean newAdsOn) {
+    adsOn = newAdsOn;
   }
 
   public synchronized static boolean getAimThenShoot() {

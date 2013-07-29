@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen
-   xmlns:android="http://schemas.android.com/apk/res/android"
-   xmlns:efortin="https://code.google.com/p/frozenbubbleandroid" >
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:efortin="https://code.google.com/p/frozenbubbleandroid"
+    android:layout_width="fill_parent" >
+
   <PreferenceCategory
     android:summary="Frozen Bubble Game Options"
     android:title="Player information" >
@@ -29,6 +30,12 @@
   <PreferenceCategory
     android:summary="Frozen Bubble Game Options"
     android:title="@string/menu_settings" >
+  <CheckBoxPreference
+    android:defaultValue="true"
+    android:key="ads_option"
+    android:summary="On/Off"
+    android:title="Enable Ads" />
+
   <CheckBoxPreference
     android:defaultValue="true"
     android:key="colorblind_option"
