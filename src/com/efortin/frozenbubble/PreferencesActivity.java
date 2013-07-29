@@ -65,6 +65,7 @@ import android.preference.PreferenceManager;
 import android.view.KeyEvent;
 
 public class PreferencesActivity extends PreferenceActivity{
+  private boolean adsOn      = true;
   private int     collision  = BubbleSprite.MIN_PIX;
   private boolean compressor = false;
   private int     difficulty = LevelManager.MODERATE;
@@ -77,6 +78,7 @@ public class PreferencesActivity extends PreferenceActivity{
   private int     targetMode = FrozenBubble.POINT_TO_SHOOT;
 
   private void getFrozenBubblePrefs() {
+    adsOn      = FrozenBubble.getAdsOn();
     collision  = FrozenBubble.getCollision();
     compressor = FrozenBubble.getCompressor();
     difficulty = FrozenBubble.getDifficulty();
@@ -113,6 +115,7 @@ public class PreferencesActivity extends PreferenceActivity{
   private void savePreferences() {
     SharedPreferences prefs =
         PreferenceManager.getDefaultSharedPreferences(this);
+    adsOn      = prefs.getBoolean("ads_option", true);
     collision  = prefs.getInt("collision_option", BubbleSprite.MIN_PIX);
     compressor = prefs.getBoolean("compressor_option", false);
     difficulty = prefs.getInt("difficulty_option", LevelManager.MODERATE);
@@ -134,6 +137,7 @@ public class PreferencesActivity extends PreferenceActivity{
     SharedPreferences sp = getSharedPreferences(FrozenBubble.PREFS_NAME,
                                                 Context.MODE_PRIVATE);
     SharedPreferences.Editor editor = sp.edit();
+    editor.putBoolean("adsOn", adsOn);
     editor.putInt("collision", collision);
     editor.putBoolean("compressor", compressor);
     editor.putInt("difficulty", difficulty);
@@ -153,6 +157,7 @@ public class PreferencesActivity extends PreferenceActivity{
         PreferenceManager.getDefaultSharedPreferences(this);
     SharedPreferences.Editor editor = prefs.edit();
 
+    editor.putBoolean("ads_option", adsOn);
     editor.putInt("collision_option", collision);
     editor.putBoolean("compressor_option", compressor);
     editor.putInt("difficulty_option", difficulty);
@@ -166,6 +171,7 @@ public class PreferencesActivity extends PreferenceActivity{
   }
 
   private void setFrozenBubblePrefs() {
+    FrozenBubble.setAdsOn(adsOn);
     FrozenBubble.setCollision(collision);
     FrozenBubble.setCompressor(compressor);
     FrozenBubble.setDifficulty(difficulty);
