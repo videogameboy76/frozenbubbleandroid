@@ -151,8 +151,7 @@ public class FrozenBubble extends Activity
   public final static int POINT_TO_SHOOT  = 1;
   public final static int ROTATE_TO_SHOOT = 2;
 
-  public static boolean isRunning  = false;
-  public static int     numPlayers = 0;
+  public static int numPlayers = 0;
 
   private static boolean adsOn      = true;
   private static int     collision  = BubbleSprite.MIN_PIX;
@@ -219,7 +218,6 @@ public class FrozenBubble extends Activity
     //  Log.i(TAG, "FrozenBubble.onCreate(null)");
     //}
     super.onCreate(savedInstanceState);
-    isRunning = true;
     setVolumeControlStream(AudioManager.STREAM_MUSIC);
     requestWindowFeature(Window.FEATURE_NO_TITLE);
     restoreGamePrefs();
@@ -237,46 +235,14 @@ public class FrozenBubble extends Activity
 
     // Allow editor functionalities.
     Intent intent = getIntent();
-    if ((null == intent) ||
-        (null == intent.getExtras()) ||
-         !intent.getExtras().containsKey("levels")) {
-      // Default levels.
-      activityCustomStarted = false;
-      // Check if this is a single player or multiplayer game.
-      numPlayers = 1;
-      if (intent.hasExtra("numPlayers"))
-        numPlayers = intent.getIntExtra("numPlayers", 1);
-      if (numPlayers > 1) {
-        mMultiplayerGameView = new MultiplayerGameView(this, numPlayers);
-        setContentView(mMultiplayerGameView);
-        mMultiplayerGameView.setGameListener(this);
-        mMultiplayerGameThread = mMultiplayerGameView.getThread();
-        if (savedInstanceState != null) {
-          int savedPlayers = savedInstanceState.getInt("numPlayers");
-          if (savedPlayers == 2)
-            mMultiplayerGameThread.restoreState(savedInstanceState);
-        }
-        mMultiplayerGameThread.startOpponent();
-        mMultiplayerGameView.requestFocus();
-      }
-      else {
-        setContentView(R.layout.activity_frozen_bubble);
-        mGameView = (GameView)findViewById(R.id.game);
-        mGameView.setGameListener(this);
-        mGameThread = mGameView.getThread();
-        if (savedInstanceState != null) {
-          int savedPlayers = savedInstanceState.getInt("numPlayers");
-          if (savedPlayers == 1)
-            mGameThread.restoreState(savedInstanceState);
-        }
-
-        mGameView.requestFocus();
-      }
-      setFullscreen();
-      playMusic(false);
-    }
-    else {
-      startCustomGame(intent);
+    try {
+      if ((null == intent) || (null == intent.getExtras()) ||
+          !intent.getExtras().containsKey("levels"))
+        startDefaultGame(intent, savedInstanceState);
+      else
+        startCustomGame(intent);
+    } catch (NullPointerException npe) {
+      startDefaultGame(intent, savedInstanceState);
     }
   }
 
@@ -384,7 +350,7 @@ public class FrozenBubble extends Activity
   @Override
   public boolean onKeyDown(int keyCode, KeyEvent event) {
     if (keyCode == KeyEvent.KEYCODE_BACK) {
-      isRunning = false;
+      numPlayers = 0;
       //
       // Preserve game information and perform activity cleanup.
       //
@@ -426,7 +392,7 @@ public class FrozenBubble extends Activity
   protected void onDestroy() {
     //Log.i(TAG, "FrozenBubble.onDestroy()");
     super.onDestroy();
-    isRunning = false;
+    numPlayers = 0;
     cleanUp();
   }
 
@@ -454,18 +420,19 @@ public class FrozenBubble extends Activity
    */
   @Override
   protected void onNewIntent(Intent intent) {
-    if (null != intent && EDITORACTION.equals(intent.getAction())) {
-      if (mGameView != null)
-        mGameView.cleanUp();
-      mGameView   = null;
-      mGameThread = null;
+    if (null != intent) {
+      if (EDITORACTION.equals(intent.getAction())) {
+        cleanUpGameView();
+        startCustomGame(intent);
+      }
+      else if ((numPlayers != 0) && intent.hasExtra("numPlayers")) {
+        int newNumPlayers = intent.getIntExtra("numPlayers", 1);
 
-      if (mMultiplayerGameView != null)
-        mMultiplayerGameView.cleanUp();
-      mMultiplayerGameView   = null;
-      mMultiplayerGameThread = null;
-
-      startCustomGame(intent);
+        if (newNumPlayers != numPlayers) {
+          cleanUpGameView();
+          startDefaultGame(intent, null);
+        }
+      }
     }
   }
 
@@ -622,6 +589,55 @@ public class FrozenBubble extends Activity
     mGameView.setGameListener(this);
     mGameThread = mGameView.getThread();
     mGameView.requestFocus();
+    setFullscreen();
+    playMusic(false);
+  }
+
+  /**
+   * Method to start a game using default levels, if puzzle game mode
+   * was selected.
+   * 
+   * @param intent
+   *        - The intent used to start this activity.
+   * @param savedInstanceState
+   *        - the bundle of saved state information.
+   */
+  private void startDefaultGame(Intent intent, Bundle savedInstanceState) {
+    // Default levels.
+    activityCustomStarted = false;
+    // Check if this is a single player or multiplayer game.
+    numPlayers = 1;
+    if (intent != null) {
+      if (intent.hasExtra("numPlayers"))
+        numPlayers = intent.getIntExtra("numPlayers", 1);
+    }
+
+    if (numPlayers > 1) {
+      mMultiplayerGameView = new MultiplayerGameView(this, numPlayers);
+      setContentView(mMultiplayerGameView);
+      mMultiplayerGameView.setGameListener(this);
+      mMultiplayerGameThread = mMultiplayerGameView.getThread();
+      if (savedInstanceState != null) {
+        int savedPlayers = savedInstanceState.getInt("numPlayers");
+        if (savedPlayers == 2)
+          mMultiplayerGameThread.restoreState(savedInstanceState);
+      }
+      mMultiplayerGameThread.startOpponent();
+      mMultiplayerGameView.requestFocus();
+    }
+    else {
+      setContentView(R.layout.activity_frozen_bubble);
+      mGameView = (GameView)findViewById(R.id.game);
+      mGameView.setGameListener(this);
+      mGameThread = mGameView.getThread();
+      if (savedInstanceState != null) {
+        int savedPlayers = savedInstanceState.getInt("numPlayers");
+        if (savedPlayers == 1)
+          mGameThread.restoreState(savedInstanceState);
+      }
+
+      mGameView.requestFocus();
+    }
     setFullscreen();
     playMusic(false);
   }
@@ -861,6 +877,14 @@ public class FrozenBubble extends Activity
       myOrientationEventListener = null;
     }
 
+    cleanUpGameView();
+
+    if (myModPlayer != null)
+      myModPlayer.destroyMusicPlayer();
+    myModPlayer = null;
+  }
+
+  private void cleanUpGameView() {
     if (mGameView != null)
       mGameView.cleanUp();
     mGameView   = null;
@@ -870,10 +894,6 @@ public class FrozenBubble extends Activity
       mMultiplayerGameView.cleanUp();
     mMultiplayerGameView   = null;
     mMultiplayerGameThread = null;
-
-    if (myModPlayer != null)
-      myModPlayer.destroyMusicPlayer();
-    myModPlayer = null;
   }
 
   /**
