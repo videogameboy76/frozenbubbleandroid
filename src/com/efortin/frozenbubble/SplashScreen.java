@@ -109,7 +109,7 @@ public class SplashScreen extends Activity {
     start2pGameButton.setOnClickListener(new Button.OnClickListener(){
 
       public void onClick(View v){
-        // Process the button tap and start a 2 player game.
+        // Process the button tap and start/resume a 2 player game.
         startFrozenBubble(2);
       }
     });
@@ -215,7 +215,7 @@ public class SplashScreen extends Activity {
                                               LayoutParams.FILL_PARENT));
     myImageView = new ImageView(this);
 
-    if (FrozenBubble.isRunning)
+    if (FrozenBubble.numPlayers != 0)
       startFrozenBubble(FrozenBubble.numPlayers);
     else if (getIntent().hasExtra("startHomeScreen")) {
       setBackgroundImage(R.drawable.home_screen);
@@ -354,8 +354,7 @@ public class SplashScreen extends Activity {
     //
     //
     Intent intent = new Intent(this, FrozenBubble.class);
-    if (numPlayers > 1)
-      intent.putExtra("numPlayers", (int)numPlayers);
+    intent.putExtra("numPlayers", (int)numPlayers);
     startActivity(intent);
     //
     // Terminate the splash screen activity.
