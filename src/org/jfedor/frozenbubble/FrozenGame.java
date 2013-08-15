@@ -116,7 +116,7 @@ public class FrozenGame extends GameScreen {
 
   BubbleSprite[][] bubblePlay;
 
-  BmpWrap gameWon, gameLost, gamePaused;
+  BmpWrap gameWon, gameLost;
 
   BmpWrap bubbleBlink;
   int blinkDelay;
@@ -177,7 +177,6 @@ public class FrozenGame extends GameScreen {
     bubbleBlink          = bubbleBlink_arg;
     gameWon              = gameWon_arg;
     gameLost             = gameLost_arg;
-    gamePaused           = gamePaused_arg;
     soundManager         = soundManager_arg;
     levelManager         = levelManager_arg;
     highscoreManager     = highscoreManager_arg;
@@ -200,9 +199,11 @@ public class FrozenGame extends GameScreen {
                                 penguins_arg, random);
     this.addSprite(penguin);
 
-    compressor  = new Compressor(compressorHead_arg, compressor_arg);
-    hurrySprite = new ImageSprite(new Rect(203, 265, 203 + 240, 265 + 90),
-                                  hurry_arg);
+    compressor   = new Compressor(compressorHead_arg, compressor_arg);
+    hurrySprite  = new ImageSprite(new Rect(203, 265, 203 + 240, 265 + 90),
+                                   hurry_arg);
+    pausedSprite = new ImageSprite(new Rect(152, 190, 337, 116),
+                                   gamePaused_arg );
 
     if (malusBar != null)
       this.addSprite(malusBar);
@@ -429,8 +430,7 @@ public class FrozenGame extends GameScreen {
   }
 
   public void pause() {
-    resume();
-    pausedSprite = new ImageSprite(new Rect(152, 190, 337, 116), gamePaused );
+    this.removeSprite(pausedSprite);
     this.addSprite(pausedSprite);
   }
 
