@@ -78,16 +78,18 @@ public class PreferencesActivity extends PreferenceActivity{
   private int     targetMode = FrozenBubble.POINT_TO_SHOOT;
 
   private void getFrozenBubblePrefs() {
-    adsOn      = FrozenBubble.getAdsOn();
-    collision  = FrozenBubble.getCollision();
-    compressor = FrozenBubble.getCompressor();
-    difficulty = FrozenBubble.getDifficulty();
-    dontRushMe = FrozenBubble.getDontRushMe();
-    fullscreen = FrozenBubble.getFullscreen();
-    gameMode   = FrozenBubble.getMode();
-    musicOn    = FrozenBubble.getMusicOn();
-    soundOn    = FrozenBubble.getSoundOn();
-    targetMode = FrozenBubble.getTargetMode();
+    SharedPreferences mConfig = getSharedPreferences(FrozenBubble.PREFS_NAME,
+                                                     Context.MODE_PRIVATE);
+    adsOn      = mConfig.getBoolean("adsOn",      true                       );
+    collision  = mConfig.getInt    ("collision",  BubbleSprite.MIN_PIX       );
+    compressor = mConfig.getBoolean("compressor", false                      );
+    difficulty = mConfig.getInt    ("difficulty", LevelManager.MODERATE      );
+    dontRushMe = mConfig.getBoolean("dontRushMe", false                      );
+    fullscreen = mConfig.getBoolean("fullscreen", true                       );
+    gameMode   = mConfig.getInt    ("gameMode",   FrozenBubble.GAME_NORMAL   );
+    musicOn    = mConfig.getBoolean("musicOn",    true                       );
+    soundOn    = mConfig.getBoolean("soundOn",    true                       );
+    targetMode = mConfig.getInt    ("targetMode", FrozenBubble.POINT_TO_SHOOT);
 
     if (gameMode == FrozenBubble.GAME_NORMAL)
       colorMode = false;
@@ -133,21 +135,6 @@ public class PreferencesActivity extends PreferenceActivity{
       gameMode = FrozenBubble.GAME_COLORBLIND;
 
     setFrozenBubblePrefs();
-
-    SharedPreferences sp = getSharedPreferences(FrozenBubble.PREFS_NAME,
-                                                Context.MODE_PRIVATE);
-    SharedPreferences.Editor editor = sp.edit();
-    editor.putBoolean("adsOn", adsOn);
-    editor.putInt("collision", collision);
-    editor.putBoolean("compressor", compressor);
-    editor.putInt("difficulty", difficulty);
-    editor.putBoolean("dontRushMe", dontRushMe);
-    editor.putBoolean("fullscreen", fullscreen);
-    editor.putInt("gameMode", gameMode);
-    editor.putBoolean("musicOn", musicOn);
-    editor.putBoolean("soundOn", soundOn);
-    editor.putInt("targetMode", targetMode);
-    editor.commit();
   }
 
   private void setDefaultPreferences() {
@@ -181,5 +168,20 @@ public class PreferencesActivity extends PreferenceActivity{
     FrozenBubble.setMusicOn(musicOn);
     FrozenBubble.setSoundOn(soundOn);
     FrozenBubble.setTargetMode(targetMode);
+
+    SharedPreferences sp = getSharedPreferences(FrozenBubble.PREFS_NAME,
+                                                Context.MODE_PRIVATE);
+    SharedPreferences.Editor editor = sp.edit();
+    editor.putBoolean("adsOn", adsOn);
+    editor.putInt("collision", collision);
+    editor.putBoolean("compressor", compressor);
+    editor.putInt("difficulty", difficulty);
+    editor.putBoolean("dontRushMe", dontRushMe);
+    editor.putBoolean("fullscreen", fullscreen);
+    editor.putInt("gameMode", gameMode);
+    editor.putBoolean("musicOn", musicOn);
+    editor.putBoolean("soundOn", soundOn);
+    editor.putInt("targetMode", targetMode);
+    editor.commit();
   }
 }
