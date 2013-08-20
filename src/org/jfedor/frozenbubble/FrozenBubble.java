@@ -267,11 +267,11 @@ public class FrozenBubble extends Activity
   public boolean onPrepareOptionsMenu(Menu menu) {
     super.onPrepareOptionsMenu(menu);
     allowUnpause = false;
-    menu.findItem(MENU_SOUND_OPTIONS ).setVisible(true);
     menu.findItem(MENU_COLORBLIND_ON ).setVisible(getMode() == GAME_NORMAL);
     menu.findItem(MENU_COLORBLIND_OFF).setVisible(getMode() != GAME_NORMAL);
     menu.findItem(MENU_FULLSCREEN_ON ).setVisible(!fullscreen);
     menu.findItem(MENU_FULLSCREEN_OFF).setVisible(fullscreen);
+    menu.findItem(MENU_SOUND_OPTIONS ).setVisible(true);
     menu.findItem(MENU_TARGET_MODE   ).setVisible(true);
     menu.findItem(MENU_DONT_RUSH_ME  ).setVisible(!getDontRushMe());
     menu.findItem(MENU_RUSH_ME       ).setVisible(getDontRushMe());

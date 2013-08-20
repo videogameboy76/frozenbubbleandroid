@@ -186,7 +186,7 @@ public class SplashScreen extends Activity {
   }
 
   @Override
-  public boolean onKeyDown(int keyCode, KeyEvent msg) {
+  public boolean onKeyDown(int keyCode, KeyEvent event) {
     if (keyCode == KeyEvent.KEYCODE_BACK) {
       cleanUp();
       //
@@ -194,8 +194,9 @@ public class SplashScreen extends Activity {
       //
       //
       finish();
+      return true;
     }
-    return false;
+    return super.onKeyDown(keyCode, event);
   }
 
   /*
