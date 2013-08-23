@@ -86,6 +86,8 @@ public class SplashScreen extends Activity {
   private final static int BTN2_ID   = 102;
   private final static int BTN3_ID   = 103;
 
+  private static int buttonSelected = BTN1_ID;
+
   private Boolean homeShown = false;
   private Boolean musicOn = true;
   private ImageView myImageView = null;
@@ -109,6 +111,7 @@ public class SplashScreen extends Activity {
     start2pGameButton.setOnClickListener(new Button.OnClickListener(){
 
       public void onClick(View v){
+        buttonSelected = BTN2_ID;
         // Process the button tap and start/resume a 2 player game.
         startFrozenBubble(2);
       }
@@ -120,6 +123,8 @@ public class SplashScreen extends Activity {
     start2pGameButton.setFadingEdgeLength(5);
     start2pGameButton.setShadowLayer(5, 5, 5, R.color.black);
     start2pGameButton.setId(BTN2_ID);
+    start2pGameButton.setFocusable(true);
+    start2pGameButton.setFocusableInTouchMode(true);
     LayoutParams myParams1 = new LayoutParams(LayoutParams.WRAP_CONTENT,
                                               LayoutParams.WRAP_CONTENT);
     myParams1.addRule(RelativeLayout.CENTER_HORIZONTAL);
@@ -133,6 +138,7 @@ public class SplashScreen extends Activity {
     start1pGameButton.setOnClickListener(new Button.OnClickListener(){
 
       public void onClick(View v){
+        buttonSelected = BTN1_ID;
         // Process the button tap and start/resume a 1 player game.
         startFrozenBubble(1);
       }
@@ -144,6 +150,8 @@ public class SplashScreen extends Activity {
     start1pGameButton.setFadingEdgeLength(5);
     start1pGameButton.setShadowLayer(5, 5, 5, R.color.black);
     start1pGameButton.setId(BTN1_ID);
+    start1pGameButton.setFocusable(true);
+    start1pGameButton.setFocusableInTouchMode(true);
     LayoutParams myParams2 = new LayoutParams(LayoutParams.WRAP_CONTENT,
                                               LayoutParams.WRAP_CONTENT);
     myParams2.addRule(RelativeLayout.CENTER_HORIZONTAL);
@@ -157,6 +165,7 @@ public class SplashScreen extends Activity {
     optionsButton.setOnClickListener(new Button.OnClickListener(){
 
       public void onClick(View v){
+        buttonSelected = BTN3_ID;
         // Process the button tap and start the preferences activity.
         startPreferencesScreen();
       }
@@ -168,6 +177,8 @@ public class SplashScreen extends Activity {
     optionsButton.setFadingEdgeLength(5);
     optionsButton.setShadowLayer(5, 5, 5, R.color.black);
     optionsButton.setId(BTN3_ID);
+    optionsButton.setFocusable(true);
+    optionsButton.setFocusableInTouchMode(true);
     LayoutParams myParams3 = new LayoutParams(LayoutParams.WRAP_CONTENT,
                                               LayoutParams.WRAP_CONTENT);
     myParams3.addRule(RelativeLayout.CENTER_HORIZONTAL);
@@ -304,6 +315,13 @@ public class SplashScreen extends Activity {
     musicOn = mConfig.getBoolean("musicOn", true );
   }
 
+  private void selectInitialButton() {
+    // Select the last button that was pressed.
+    Button selectedButton = (Button) myLayout.findViewById(buttonSelected);
+    selectedButton.requestFocus();
+    selectedButton.setSelected(true);
+  }
+
   private void setBackgroundImage(int resId) {
     if (myImageView.getParent() != null)
       myLayout.removeView(myImageView);
@@ -370,6 +388,12 @@ public class SplashScreen extends Activity {
       setBackgroundImage(R.drawable.home_screen);
       addHomeButtons();
       setContentView(myLayout);
+      myLayout.setFocusable(true);
+      myLayout.setFocusableInTouchMode(true);
+      myLayout.requestFocus();
+      // Highlight the appropriate button to show as selected.
+      selectInitialButton();
+      // Create a new music player to play the home screen music.
       myModPlayer = new ModPlayer(this, R.raw.introzik, musicOn, false);
     }
   }
