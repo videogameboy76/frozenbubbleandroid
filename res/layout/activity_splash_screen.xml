@@ -8,7 +8,7 @@
   <ImageView
     android:contentDescription="@string/title_activity_splash_screen"
     android:src="@drawable/splash"
-    android:id="@+id/imageView1"
+    android:id="@+id/splash"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent" />
 </RelativeLayout>
