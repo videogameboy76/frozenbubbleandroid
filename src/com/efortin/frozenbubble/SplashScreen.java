@@ -109,11 +109,17 @@ public class SplashScreen extends Activity {
     // Construct the 2 player game button.
     Button start2pGameButton = new Button(this);
     start2pGameButton.setOnClickListener(new Button.OnClickListener(){
-
       public void onClick(View v){
         buttonSelected = BTN2_ID;
         // Process the button tap and start/resume a 2 player game.
         startFrozenBubble(2);
+      }
+    });
+    start2pGameButton.setOnTouchListener(new Button.OnTouchListener(){
+      public boolean onTouch(View v, MotionEvent event){
+        if (event.getAction() == MotionEvent.ACTION_DOWN)
+          v.requestFocus();
+        return false;
       }
     });
     start2pGameButton.setText("Player vs. CPU");
@@ -136,11 +142,17 @@ public class SplashScreen extends Activity {
     // Construct the 1 player game button.
     Button start1pGameButton = new Button(this);
     start1pGameButton.setOnClickListener(new Button.OnClickListener(){
-
       public void onClick(View v){
         buttonSelected = BTN1_ID;
         // Process the button tap and start/resume a 1 player game.
         startFrozenBubble(1);
+      }
+    });
+    start1pGameButton.setOnTouchListener(new Button.OnTouchListener(){
+      public boolean onTouch(View v, MotionEvent event){
+        if (event.getAction() == MotionEvent.ACTION_DOWN)
+          v.requestFocus();
+        return false;
       }
     });
     start1pGameButton.setText("Puzzle");
@@ -163,11 +175,17 @@ public class SplashScreen extends Activity {
     // Construct the options button.
     Button optionsButton = new Button(this);
     optionsButton.setOnClickListener(new Button.OnClickListener(){
-
       public void onClick(View v){
         buttonSelected = BTN3_ID;
         // Process the button tap and start the preferences activity.
         startPreferencesScreen();
+      }
+    });
+    optionsButton.setOnTouchListener(new Button.OnTouchListener(){
+      public boolean onTouch(View v, MotionEvent event){
+        if (event.getAction() == MotionEvent.ACTION_DOWN)
+          v.requestFocus();
+        return false;
       }
     });
     optionsButton.setText("Options");

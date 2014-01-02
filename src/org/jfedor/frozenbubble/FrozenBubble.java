@@ -408,6 +408,8 @@ public class FrozenBubble extends Activity
     //Log.i(TAG, "FrozenBubble.onSaveInstanceState()");
     // Just have the View's thread save its state into our Bundle.
     super.onSaveInstanceState(outState);
+    saveState();
+
     if (mGameThread != null)
       mGameThread.saveState(outState);
 
@@ -936,6 +938,8 @@ public class FrozenBubble extends Activity
         break;
 
       case GameView.EVENT_GAME_PAUSED:
+        saveState();
+
         if (myModPlayer != null)
           myModPlayer.pausePlay();
         break;
@@ -987,31 +991,16 @@ public class FrozenBubble extends Activity
   }
 
   /**
-   * Pause the game and save the current game information.
+   * Pause the game.
    */
   private void pause() {
-    if (mGameView != null) {
+    if (mGameView != null)
       mGameView.getThread().pause();
-      // Allow editor functionalities.
-      SharedPreferences sp = getSharedPreferences(PREFS_NAME,
-                                                  Context.MODE_PRIVATE);
-      SharedPreferences.Editor editor = sp.edit();
-      // If I didn't run game from editor, save last played level.
-      Intent i = getIntent();
-      if ((null == i) || !activityCustomStarted) {
-        editor.putInt("level", mGameThread.getCurrentLevelIndex());
-      }
-      else {
-        // Editor's intent is running.
-        editor.putInt("levelCustom", mGameThread.getCurrentLevelIndex());
-      }
-      editor.commit();
-    }
 
     if (mMultiplayerGameView != null)
       mMultiplayerGameView.getThread().pause();
 
-    // Pause the MOD player and preserve song information.
+    // Pause the MOD player.
     if (myModPlayer != null)
       myModPlayer.pausePlay();
   }
@@ -1044,6 +1033,28 @@ public class FrozenBubble extends Activity
     else
       myModPlayer.loadNewSong(MODlist[modNow], startPlaying);
     allowUnpause = true;
+  }
+
+  /**
+   * Save critically important game information.
+   */
+  public void saveState() {
+    if (mGameView != null) {
+      // Allow editor functionalities.
+      SharedPreferences sp = getSharedPreferences(PREFS_NAME,
+                                                  Context.MODE_PRIVATE);
+      SharedPreferences.Editor editor = sp.edit();
+      // If I didn't run game from editor, save last played level.
+      Intent i = getIntent();
+      if ((null == i) || !activityCustomStarted) {
+        editor.putInt("level", mGameThread.getCurrentLevelIndex());
+      }
+      else {
+        // Editor's intent is running.
+        editor.putInt("levelCustom", mGameThread.getCurrentLevelIndex());
+      }
+      editor.commit();
+    }
   }
 
   /**

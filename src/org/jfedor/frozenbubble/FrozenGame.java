@@ -203,7 +203,7 @@ public class FrozenGame extends GameScreen {
     hurrySprite  = new ImageSprite(new Rect(203, 265, 203 + 240, 265 + 90),
                                    hurry_arg);
     pausedSprite = new ImageSprite(new Rect(152, 190, 337, 116),
-                                   gamePaused_arg );
+                                   gamePaused_arg);
 
     if (malusBar != null)
       this.addSprite(malusBar);
@@ -347,6 +347,8 @@ public class FrozenGame extends GameScreen {
     hurrySprite.saveState(map, savedSprites, player);
     map.putInt(String.format("%d-hurryId", player), hurrySprite.getSavedId());
     map.putInt(String.format("%d-hurryTime", player), hurryTime);
+    pausedSprite.saveState(map, savedSprites, player);
+    map.putInt(String.format("%d-pausedId", player), pausedSprite.getSavedId());
     map.putBoolean(String.format("%d-readyToFire", player), readyToFire);
     map.putBoolean(String.format("%d-endOfGame", player), endOfGame);
     map.putBoolean(String.format("%d-frozenify", player), frozenify);
@@ -528,6 +530,8 @@ public class FrozenGame extends GameScreen {
     int hurryId = map.getInt(String.format("%d-hurryId", player));
     hurrySprite = (ImageSprite)savedSprites.elementAt(hurryId);
     hurryTime = map.getInt(String.format("%d-hurryTime", player));
+    int pausedId = map.getInt(String.format("%d-pausedId", player));
+    pausedSprite = (ImageSprite)savedSprites.elementAt(pausedId);
     readyToFire = map.getBoolean(String.format("%d-readyToFire", player));
     endOfGame = map.getBoolean(String.format("%d-endOfGame", player));
     frozenify = map.getBoolean(String.format("%d-frozenify", player));
