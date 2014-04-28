@@ -52,6 +52,7 @@
 
 package com.efortin.frozenbubble;
 
+import java.io.IOException;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -1237,6 +1238,11 @@ public class NetworkGameManager extends Thread
         }
         session.setMulticastListener(this);
       } catch(UnknownHostException uhe) {
+        if (session != null) {
+          session.cleanUp();
+        }
+        session = null;
+      } catch(IOException ioe) {
         if (session != null) {
           session.cleanUp();
         }
