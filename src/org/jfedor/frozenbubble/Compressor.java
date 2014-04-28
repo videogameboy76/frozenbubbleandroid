@@ -58,23 +58,26 @@ import android.os.Bundle;
 public class Compressor {
   private BmpWrap compressorHead;
   private BmpWrap compressor;
+  double moveDown;
   int steps;
 
   public Compressor(BmpWrap compressorHead, BmpWrap compressor) {
     this.compressorHead = compressorHead;
     this.compressor = compressor;
+    this.moveDown = 0.;
     this.steps = 0;
   }
 
-  public void saveState(Bundle map, int id) {
-    map.putInt(String.format("%d-compressor-steps", id), steps);
+  public double getMoveDown() {
+    return moveDown;
   }
 
-  public void restoreState(Bundle map, int id) {
-    steps = map.getInt(String.format("%d-compressor-steps", id));
+  public int getSteps() {
+    return steps;
   }
 
   public void moveDown() {
+    moveDown += 28.;
     steps++;
   }
 
@@ -90,5 +93,15 @@ public class Compressor {
     c.drawBitmap(compressorHead.bmp,
                  (float)(160 * scale + dx),
                  (float)((-7 + 28 * steps) * scale + dy), null);
+  }
+
+  public void restoreState(Bundle map, int id) {
+    moveDown = map.getDouble(String.format("%d-compressor-moveDown", id));
+    steps = map.getInt(String.format("%d-compressor-steps", id));
+  }
+
+  public void saveState(Bundle map, int id) {
+    map.putDouble(String.format("%d-compressor-moveDown", id), moveDown);
+    map.putInt(String.format("%d-compressor-steps", id), steps);
   }
 };

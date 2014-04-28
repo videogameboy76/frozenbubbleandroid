@@ -79,6 +79,11 @@ import java.util.List;
 import java.util.Vector;
 
 import org.gsanson.frozenbubble.MalusBar;
+import org.jfedor.frozenbubble.GameScreen.eventEnum;
+import org.jfedor.frozenbubble.GameScreen.gameEnum;
+import org.jfedor.frozenbubble.GameScreen.stateEnum;
+import org.jfedor.frozenbubble.MultiplayerGameView.NetGameInterface.NetworkStatus;
+import org.jfedor.frozenbubble.MultiplayerGameView.NetGameInterface.RemoteInterface;
 
 import android.app.Activity;
 import android.content.Context;
@@ -89,6 +94,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -99,106 +105,641 @@ import android.view.SurfaceView;
 import com.efortin.frozenbubble.ComputerAI;
 import com.efortin.frozenbubble.HighscoreDO;
 import com.efortin.frozenbubble.HighscoreManager;
+import com.efortin.frozenbubble.NetworkGameManager;
+import com.efortin.frozenbubble.NetworkGameManager.GameFieldData;
+import com.efortin.frozenbubble.NetworkGameManager.PlayerAction;
+import com.efortin.frozenbubble.NetworkGameManager.connectEnum;
+import com.efortin.frozenbubble.VirtualInput;
 
-class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback {
+public class MultiplayerGameView extends SurfaceView
+  implements SurfaceHolder.Callback {
 
-  public static final int GAMEFIELD_WIDTH          = 320;
-  public static final int GAMEFIELD_HEIGHT         = 480;
-  public static final int EXTENDED_GAMEFIELD_WIDTH = 640;
+  public static final int  GAMEFIELD_WIDTH          = 320;
+  public static final int  GAMEFIELD_HEIGHT         = 480;
+  public static final int  EXTENDED_GAMEFIELD_WIDTH = 640;
 
-  private int                   numPlayer1GamesWon;
-  private int                   numPlayer2GamesWon;
-  private Context               mContext;
-  private MultiplayerGameThread mGameThread;
-  private ComputerAI            mOpponent;
-  //**********************************************************
-  // Listener interface for various events
-  //**********************************************************
-  // Event types.
-  public static final int EVENT_GAME_WON    = 2;
-  public static final int EVENT_GAME_LOST   = 3;
-  public static final int EVENT_GAME_PAUSED = 4;
-  public static final int EVENT_GAME_RESUME = 5;
-  public static final int EVENT_LEVEL_START = 6;
-
-  // Listener user set.
-  public interface GameListener {
-    public abstract void onGameEvent(int event);
-  }
-
-  GameListener mGameListener;
-
-  public void setGameListener (GameListener gl) {
-    mGameListener = gl;
-  }
-
-  //
-  // The following screen orientation definitions were added to
-  // ActivityInfo in API level 9.
-  //
-  //
+  /*
+   * The following screen orientation definitions were added to
+   * ActivityInfo in API level 9.
+   */
   public final static int SCREEN_ORIENTATION_SENSOR_LANDSCAPE  = 6;
   public final static int SCREEN_ORIENTATION_SENSOR_PORTRAIT   = 7;
   public final static int SCREEN_ORIENTATION_REVERSE_LANDSCAPE = 8;
   public final static int SCREEN_ORIENTATION_REVERSE_PORTRAIT  = 9;
 
-  /*
-   * TODO: implement keyboard keypress functionality.
+  private int                   numPlayer1GamesWon;
+  private int                   numPlayer2GamesWon;
+  private Context               mContext;
+  private MultiplayerGameThread mGameThread;
+  private NetworkGameManager    mNetworkManager;
+  private RemoteInterface       remoteInterface;
+  private ComputerAI            mOpponent;
+  private VirtualInput          mLocalInput;
+  private VirtualInput          mRemoteInput;
+  private PlayerInput           mPlayer1;
+  private PlayerInput           mPlayer2;
+  private boolean               muteKeyToggle  = false;
+  private boolean               pauseKeyToggle = false;
+
+  //********************************************************************
+  // Listener interface for various events
+  //********************************************************************
+
+  /**
+   * Game event listener user set.
+   * @author Eric Fortin
+   *
    */
-  // Change mode (normal/colorblind)
-  public final static int KEY_M = 77;
-  // Pause/resume game
-  public final static int KEY_P = 80;
-  // Toggle sound on/off
-  public final static int KEY_S = 83;
-  boolean modeKeyPressed, pauseKeyPressed, soundKeyPressed;
+  public interface GameListener {
+    public abstract void onGameEvent(eventEnum event);
+  }
+
+  GameListener mGameListener;
+
+  public void setGameListener(GameListener gl) {
+    mGameListener = gl;
+  }
+
+  /**
+   * Network game interface.  This interface declares methods that must
+   * be implemented by the network management class to implement a
+   * distributed network multiplayer game.
+   * @author Eric Fortin
+   *
+   */
+  public interface NetGameInterface {
+    /**
+     * This class encapsulates player action and game field storage for
+     * use by the game thread to determine when to process remote player
+     * actions and game field bubble grid synchronization tasks.
+     * @author Eric Fortin
+     *
+     */
+    public class RemoteInterface {
+      public boolean       gotAction;
+      public boolean       gotFieldData;
+      public PlayerAction  playerAction;
+      public GameFieldData gameFieldData;
+
+      public RemoteInterface(PlayerAction action, GameFieldData fieldData) {
+        gotAction = false;
+        gotFieldData = false;
+        playerAction = action;
+        gameFieldData = fieldData;
+      }
+
+      public void cleanUp() {
+        gotAction = false;
+        gotFieldData = false;
+        playerAction = null;
+        gameFieldData = null;
+      }
+    };
+
+    /**
+     * A class to encapsulate all network status variables used in
+     * drawing the network status screen.
+     * @author efortin
+     *
+     */
+    public class NetworkStatus {
+      public int     localPlayerId;
+      public int     remotePlayerId;
+      public boolean isConnected;
+      public boolean reservedGameId;
+      public boolean playerJoined;
+      public boolean gotFieldData;
+      public boolean gotPrefsData;
+      public boolean readyToPlay;
+      public String  localIpAddress;
+      public String  remoteIpAddress;
+
+      public NetworkStatus() {
+        isConnected     = false;
+        reservedGameId  = false;
+        playerJoined    = false;
+        gotFieldData    = false;
+        gotPrefsData    = false;
+        readyToPlay     = false;
+        localIpAddress  = null;
+        remoteIpAddress = null;
+      }
+    };
+
+    /*
+     * Force the implementer to supply the following methods.
+     */
+    public abstract void checkRemoteChecksum();
+    public abstract void cleanUp();
+    public abstract boolean gameIsReadyForAction();
+    public abstract short getLatestRemoteActionId();
+    public abstract boolean getRemoteAction();
+    public abstract PlayerAction getRemoteActionPreview();
+    public abstract RemoteInterface getRemoteInterface();
+    public abstract void newGame();
+    public abstract void pause();
+    public abstract void sendLocalPlayerAction(int playerId,
+                                               boolean compress,
+                                               boolean launch,
+                                               boolean swap,
+                                               int keyCode,
+                                               int launchColor,
+                                               int nextColor,
+                                               int newNextColor,
+                                               int attackBarBubbles,
+                                               byte attackBubbles[],
+                                               double aimPosition);
+    public abstract void setLocalChecksum(short checksum);
+    public abstract void setRemoteChecksum(short checksum);
+    public abstract void unPause();
+    public abstract void updateNetworkStatus(NetworkStatus status);
+  }
+
+  /**
+   * This class encapsulates player input action variables and methods.
+   * <p>This is to provide a common interface to the game independent
+   * of the input source.
+   * @author Eric Fortin
+   *
+   */
+  class PlayerInput extends VirtualInput {
+    private boolean mCenter        = false;
+    private boolean mDown          = false;
+    private boolean mLeft          = false;
+    private boolean mRight         = false;
+    private boolean mUp            = false;
+    private double  mTrackballDx   = 0;
+    private boolean mTouchSwap     = false;
+    private double  mTouchX;
+    private double  mTouchY;
+    private boolean mTouchFireATS  = false;
+    private double  mTouchDxATS    = 0;
+    private double  mTouchLastX    = 0;
+
+    /**
+     * Construct and configure this player input instance.
+     * @param id - the player ID, e.g.,
+     * <code>VirtualInput.PLAYER1</code>.
+     * @param type - <code>true</code> if the player is a simulation.
+     * @param remote - <code>true</code> if this player is playing on a
+     * remote machine, <code>false</code> if this player is local.
+     * @see VirtualInput
+     */
+    public PlayerInput(int id, boolean type, boolean remote) {
+      init();
+      configure(id, type, remote);
+    }
+
+    /**
+     * Check if a center button press action is active.
+     * @return True if the player pressed the center button.
+     */
+    public boolean actionCenter() {
+      boolean tempCenter = mWasCenter;
+      mWasCenter = false;
+      return tempCenter;
+    }
+
+    /**
+     * Check if a bubble launch action is active.
+     * @return True if the player is launching a bubble.
+     */
+    public boolean actionUp() {
+      boolean tempFire = mWasCenter || mWasUp;
+      mWasCenter = false;
+      mWasUp = false;
+      return mCenter || mUp || tempFire;
+    }
+
+    /**
+     * Check if a move left action is active.
+     * @return True if the player is moving left.
+     */
+    public boolean actionLeft() {
+      boolean tempLeft = mWasLeft;
+      mWasLeft = false;
+      return mLeft || tempLeft;
+    }
+
+    /**
+     * Check if a move right action is active.
+     * @return True if the player is moving right.
+     */
+    public boolean actionRight() {
+      boolean tempRight = mWasRight;
+      mWasRight = false;
+      return mRight || tempRight;
+    }
+
+    /**
+     * Check if a bubble swap action is active.
+     * @return True if the player is swapping the launch bubble.
+     */
+    public boolean actionDown() {
+      boolean tempSwap = mWasDown || mTouchSwap;
+      mWasDown = false;
+      mTouchSwap = false;
+      return mDown || tempSwap;
+    }
+
+    /**
+     * Check if a touchscreen initiated bubble launch is active.
+     * @return True if the player is launching a bubble.
+     */
+    public boolean actionTouchFire() {
+      boolean tempFire = mTouchFire;
+      mTouchFire = false;
+      return tempFire;
+    }
+
+    /**
+     * Check if an ATS (aim-then-shoot) touchscreen initiated bubble
+     * launch is active.
+     * @return True if the player is launching a bubble.
+     */
+    public boolean actionTouchFireATS() {
+      boolean tempFire = mTouchFireATS;
+      mTouchFireATS = false;
+      return tempFire;
+    }
+
+    /**
+     * Based on the provided keypress, check if it corresponds to a new
+     * player action.
+     * @param keyCode
+     * @return True if the current keypress indicates a new player action.
+     */
+    public boolean checkNewActionKeyPress(int keyCode) {
+      return (!mLeft && !mRight && !mCenter && !mUp && !mDown) &&
+             ((keyCode == KeyEvent.KEYCODE_DPAD_LEFT) ||
+              (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) ||
+              (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) ||
+              (keyCode == KeyEvent.KEYCODE_DPAD_UP) ||
+              (keyCode == KeyEvent.KEYCODE_DPAD_DOWN));
+    }
+
+    /**
+     * Obtain the ATS (aim-then-shoot) touch horizontal position change.
+     * @return The horizontal touch change in position.
+     */
+    public double getTouchDxATS() {
+      double tempDx = mTouchDxATS;
+      mTouchDxATS = 0;
+      return tempDx;
+    }
+
+    /**
+     * Obtain the horizontal touch position.
+     * @return The horizontal touch position.
+     */
+    public double getTouchX() {
+      return mTouchX;
+    }
+
+    /**
+     * Obtain the vertical touch position.
+     * @return The vertical touch position.
+     */
+    public double getTouchY() {
+      return mTouchY;
+    }
+
+    /**
+     * Obtain the trackball position change.
+     * @return The trackball position change.
+     */
+    public double getTrackBallDx() {
+      double tempDx = mTrackballDx;
+      mTrackballDx = 0;
+      return tempDx;
+    }
+
+    public void init() {
+      this.init_vars();
+      mTrackballDx  = 0;
+      mTouchFire    = false;
+      mTouchSwap    = false;
+      mTouchFireATS = false;
+      mTouchDxATS   = 0;
+    }
+
+    /**
+     * Process key presses.
+     * @param keyCode
+     * @return True if the key press was processed, false if not.
+     */
+    public boolean setKeyDown(int keyCode) {
+      if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
+        mLeft    = true;
+        mWasLeft = true;
+        return true;
+      }
+      else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+        mRight    = true;
+        mWasRight = true;
+        return true;
+      }
+      else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
+        mCenter    = true;
+        mWasCenter = true;
+        return true;
+      }
+      else if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
+        mUp    = true;
+        mWasUp = true;
+        return true;
+      }
+      else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+        mDown    = true;
+        mWasDown = true;
+        return true;
+      }
+      return false;
+    }
+
+    /**
+     * Process key releases.
+     * @param keyCode
+     * @return True if the key release was processed, false if not.
+     */
+    public boolean setKeyUp(int keyCode) {
+      if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
+        mLeft = false;
+        return true;
+      }
+      else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+        mRight = false;
+        return true;
+      }
+      else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
+        mCenter = false;
+        return true;
+      }
+      else if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
+        mUp = false;
+        return true;
+      }
+      else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+        mDown = false;
+        return true;
+      }
+      return false;
+    }
+
+    public boolean setTouchEvent(int event, double x, double y) {
+      if (mGameThread.mMode == stateEnum.RUNNING) {
+        // Set the values used when Point To Shoot is on.
+        if (event == MotionEvent.ACTION_DOWN) {
+          if (y < MultiplayerGameThread.TOUCH_FIRE_Y_THRESHOLD) {
+            mTouchFire = true;
+            mTouchX = x;
+            mTouchY = y;
+          }
+          else if (Math.abs(x - 318) <=
+                   MultiplayerGameThread.TOUCH_SWAP_X_THRESHOLD)
+            mTouchSwap = true;
+        }
+
+        // Set the values used when Aim Then Shoot is on.
+        if (event == MotionEvent.ACTION_DOWN) {
+          if (y < MultiplayerGameThread.ATS_TOUCH_FIRE_Y_THRESHOLD) {
+            mTouchFireATS = true;
+          }
+          mTouchLastX = x;
+        }
+        else if (event == MotionEvent.ACTION_MOVE) {
+          if (y >= MultiplayerGameThread.ATS_TOUCH_FIRE_Y_THRESHOLD) {
+            mTouchDxATS = (x - mTouchLastX) *
+            MultiplayerGameThread.ATS_TOUCH_COEFFICIENT;
+          }
+          mTouchLastX = x;
+        }
+        return true;
+      }
+      return false;
+    }
+
+    /**
+     * Accumulate the change in trackball horizontal position.
+     * @param trackBallDX
+     */
+    public void setTrackBallDx(double trackBallDX) {
+      mTrackballDx += trackBallDX;
+    }
+  }
+
+  private boolean checkImmediateAction() {
+    boolean actNow = false;
+    /*
+     * Preview the current action if one is available to see if it
+     * contains an asynchronous action (e.g., launch bubble swap).
+     */
+    PlayerAction previewAction = mNetworkManager.getRemoteActionPreview();
+
+    if (previewAction != null) {
+      actNow = previewAction.compress || previewAction.swapBubble;
+    }
+
+    return actNow;
+  }
+
+  private void monitorRemotePlayer() {
+    if ((mNetworkManager != null) && (mRemoteInput != null)) {
+      /*
+       * Check the remote player interface for game field updates.
+       * Reject the game field data if it doesn't correspond to the
+       * latest remote player game field.  This is determined based on
+       * whether the game field data action ID matches the latest remote
+       * player action ID.
+       */
+      if (remoteInterface.gotFieldData) {
+        if (mNetworkManager.getLatestRemoteActionId() ==
+            remoteInterface.gameFieldData.localActionID) {
+          setPlayerGameField(remoteInterface.gameFieldData);
+        }
+        remoteInterface.gotFieldData = false;
+      }
+
+      /*
+       * Once the game is ready, if the game thread is not running, then
+       * allow the remote player to update the game thread state.
+       *
+       * If an asynchronous action is available or we are clear to
+       * perform a synchronous action, retrieve and clear the current
+       * available action from the action queue.
+       */
+      if (mNetworkManager.gameIsReadyForAction() && (checkImmediateAction() ||
+          mRemoteInput.mGameRef.getOkToFire() ||
+          (mGameThread.mMode != stateEnum.RUNNING))) {
+        if (mNetworkManager.getRemoteAction()) {
+          setPlayerAction(remoteInterface.playerAction);
+          remoteInterface.gotAction = false;
+        }
+        else if (mRemoteInput.mGameRef.getOkToFire()) {
+          mNetworkManager.checkRemoteChecksum();
+        }
+      }
+    }
+  }
+
+  /**
+   * Set the player action for a remote player - as in a person playing
+   * via a client device over a network.
+   * @param newAction - the object containing the remote input info.
+   */
+  private synchronized void setPlayerAction(PlayerAction newAction) {
+    if (newAction == null) {
+      return;
+    }
+
+    VirtualInput playerRef;
+
+    if (newAction.playerID == VirtualInput.PLAYER1) {
+      playerRef = mPlayer1;
+    }
+    else if (newAction.playerID == VirtualInput.PLAYER2) {
+      playerRef = mPlayer2;
+    }
+    else {
+      return;
+    }
+
+    if (mGameThread != null)
+      mGameThread.updateStateOnEvent(null);
+
+    /*
+     * Set the launcher bubble colors.
+     */
+    if ((newAction.launchBubbleColor  > -1) &&
+        (newAction.launchBubbleColor  <  8) &&
+        (newAction.nextBubbleColor    > -1) &&
+        (newAction.nextBubbleColor    <  8) &&
+        (newAction.newNextBubbleColor > -1) &&
+        (newAction.newNextBubbleColor <  8)) {
+      playerRef.mGameRef.setLaunchBubbleColors(newAction.launchBubbleColor,
+                                               newAction.nextBubbleColor,
+                                               newAction.newNextBubbleColor);
+    }
+
+    /*
+     * Set the launcher aim position.
+     */
+    playerRef.mGameRef.setPosition(newAction.aimPosition);
+
+    /*
+     * Process a compressor lower request.
+     */
+    if (newAction.compress) {
+      playerRef.mGameRef.lowerCompressor(true);
+    }
+
+    /*
+     * Process a bubble launch request.
+     */
+    if (newAction.launchBubble) {
+      playerRef.setAction(KeyEvent.KEYCODE_DPAD_UP, true);
+    }
+
+    /*
+     * Process a bubble swap request.
+     */
+    if (newAction.swapBubble) {
+      playerRef.setAction(KeyEvent.KEYCODE_DPAD_DOWN, false);
+    }
+
+    /*
+     * Process a pause/play button toggle request.
+     */
+    if (newAction.keyCode == (byte) KeyEvent.KEYCODE_P) {
+      if (mGameThread != null) {
+        mGameThread.toggleKeyPress(KeyEvent.KEYCODE_P, true, false);
+      }
+    }
+
+    /*
+     * Set the current value of the attack bar.
+     */
+    if (newAction.attackBarBubbles > -1) {
+      playerRef.mGameRef.malusBar.setAttackBubbles(newAction.attackBarBubbles,
+                                                   newAction.attackBubbles);
+    }
+  }
+
+  /**
+   * Set the game field for a remote player - as in a person playing
+   * via a client device over a network.
+   * @param newGameField - the object containing the remote field data.
+   */
+  private void setPlayerGameField(GameFieldData newField) {
+    if (newField == null) {
+      return;
+    }
+
+    VirtualInput playerRef;
+
+    if (newField.playerID == VirtualInput.PLAYER1) {
+      playerRef = mPlayer1;
+    }
+    else if (newField.playerID == VirtualInput.PLAYER2) {
+      playerRef = mPlayer2;
+    }
+    else {
+      return;
+    }
+
+    /*
+     * Set the bubble grid.  Note this must be done before lowering the
+     * compressor, as bubbles will be created using a non-compressed
+     * game field!
+     */
+    playerRef.mGameRef.setGrid(newField.gameField);
+
+    /*
+     * Lower the compressor and bubbles in play to the required number
+     * of compressor steps.
+     */
+    playerRef.mGameRef.setCompressorSteps(newField.compressorSteps);
+
+    /*
+     * Set the launcher bubble colors.
+     */
+    playerRef.mGameRef.setLaunchBubbleColors(newField.launchBubbleColor,
+                                             newField.nextBubbleColor,
+                                             playerRef.mGameRef.getNewNextColor());
+
+    /*
+     * Set the current value of the attack bar.
+     */
+    playerRef.mGameRef.malusBar.setAttackBubbles(newField.attackBarBubbles,
+                                                 null);
+  }
 
   class MultiplayerGameThread extends Thread {
 
     private static final int FRAME_DELAY = 40;
 
-    public static final int STATE_RUNNING = 1;
-    public static final int STATE_PAUSE   = 2;
-    public static final int STATE_ABOUT   = 4;
+    public static final double TRACKBALL_COEFFICIENT      = 5;
+    public static final double TOUCH_BUTTON_THRESHOLD     = 16;
+    public static final double TOUCH_FIRE_Y_THRESHOLD     = 380;
+    public static final double TOUCH_SWAP_X_THRESHOLD     = 14;
+    public static final double ATS_TOUCH_COEFFICIENT      = 0.2;
+    public static final double ATS_TOUCH_FIRE_Y_THRESHOLD = 350;
 
-    private static final double TRACKBALL_COEFFICIENT      = 5;
-    private static final double TOUCH_BUTTON_THRESHOLD     = 16;
-    private static final double TOUCH_FIRE_Y_THRESHOLD     = 380;
-    private static final double TOUCH_SWAP_X_THRESHOLD     = 14;
-    private static final double ATS_TOUCH_COEFFICIENT      = 0.2;
-    private static final double ATS_TOUCH_FIRE_Y_THRESHOLD = 350;
-
-    private boolean mImagesReady  = false;
-    private boolean mRun          = false;
-    private boolean mShowScores   = false;
-    private boolean mSurfaceOK    = false;
-    private boolean mLeft         = false;
-    private boolean mRight        = false;
-    private boolean mUp           = false;
-    private boolean mDown         = false;
-    private boolean mFire         = false;
-    private boolean mWasLeft      = false;
-    private boolean mWasRight     = false;
-    private boolean mWasFire      = false;
-    private boolean mWasUp        = false;
-    private boolean mWasDown      = false;
-    private double  mTrackballDX  = 0;
-    private boolean mTouchFire    = false;
-    private boolean mTouchSwap    = false;
-    private double  mTouchX;
-    private double  mTouchY;
-    private boolean mATSTouchFire = false;
-    private double  mATSTouchDX   = 0;
-    private double  mATSTouchLastX;
+    private boolean mImagesReady = false;
+    private boolean mRun         = false;
+    private boolean mShowNetwork = false;
+    private boolean mShowScores  = false;
+    private boolean mSurfaceOK   = false;
 
     private int    mDisplayDX;
     private int    mDisplayDY;
     private double mDisplayScale;
     private long   mLastTime;
-    private int    mMode;
-    private int    mModeWas;
     private int    mPlayer1DX;
     private int    mPlayer2DX;
+
+    private stateEnum mMode;
+    private stateEnum mModeWas;
 
     private Bitmap mBackgroundOrig;
     private Bitmap[] mBubblesOrig;
@@ -251,7 +792,7 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
     private SoundManager  mSoundManager;
     private SurfaceHolder mSurfaceHolder;
 
-    private final HighscoreManager mHighscoreManager;
+    private final HighscoreManager mHighScoreManager;
 
     Vector<BmpWrap> mImageList;
 
@@ -417,7 +958,10 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
         mSoundManager.cleanUp();
         mSoundManager = null;
         mLevelManager = null;
-        mHighscoreManager.close();
+
+        if (mHighScoreManager != null) {
+          mHighScoreManager.close();
+        }
       }
     }
 
@@ -440,16 +984,9 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
     /**
      * Process key presses.  This must be allowed to run regardless of
      * the game state to correctly handle initial game conditions.
-     * 
-     * @param keyCode
-     *        - the static KeyEvent key identifier.
-     * 
-     * @param msg
-     *        - the key action message.
-     * 
-     * @return
-     *        - true if the key action is processed, false if not.
-     * 
+     * @param keyCode - the static KeyEvent key identifier.
+     * @param msg - the key action message.
+     * @return - <code>true</code> if the key action is processed.
      * @see android.view.View#onKeyDown(int, android.view.KeyEvent)
      */
     boolean doKeyDown(int keyCode, KeyEvent msg) {
@@ -457,167 +994,105 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
         /*
          * Only update the game state if this is a fresh key press.
          */
-        if ((!mLeft && !mRight && !mFire && !mUp && !mDown) &&
-            ((keyCode == KeyEvent.KEYCODE_DPAD_LEFT) ||
-             (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) ||
-             (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) ||
-             (keyCode == KeyEvent.KEYCODE_DPAD_UP) ||
-             (keyCode == KeyEvent.KEYCODE_DPAD_DOWN)))
+        if (mLocalInput.checkNewActionKeyPress(keyCode))
           updateStateOnEvent(null);
 
-        if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
-          mLeft    = true;
-          mWasLeft = true;
-          return true;
-        }
-        else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
-          mRight    = true;
-          mWasRight = true;
-          return true;
-        }
-        else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
-          mFire    = true;
-          mWasFire = true;
-          return true;
-        }
-        else if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
-          mUp    = true;
-          mWasUp = true;
-          return true;
-        }
-        else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-          mDown    = true;
-          mWasDown = true;
-          return true;
-        }
-        return false;
+        /*
+         * Process the key press if it is a function key.
+         */
+        toggleKeyPress(keyCode, true, true);
+
+        /*
+         * Process the key press if it is a game input key.
+         */
+        return mLocalInput.setKeyDown(keyCode);
       }
     }
 
     /**
      * Process key releases.  This must be allowed to run regardless of
      * the game state in order to properly clear key presses.
-     * 
-     * @param keyCode
-     *        - the static KeyEvent key identifier.
-     * 
-     * @param msg
-     *        - the key action message.
-     * 
-     * @return true if the key action is processed, false if not.
-     * 
+     * @param keyCode - the static KeyEvent key identifier.
+     * @param msg - the key action message.
+     * @return - <code>true</code> if the key action is processed.
      * @see android.view.View#onKeyUp(int, android.view.KeyEvent)
      */
     boolean doKeyUp(int keyCode, KeyEvent msg) {
       synchronized (mSurfaceHolder) {
-        if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
-          mLeft = false;
-          return true;
-        }
-        else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
-          mRight = false;
-          return true;
-        }
-        else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
-          mFire = false;
-          return true;
-        }
-        else if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
-          mUp = false;
-          return true;
-        }
-        else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-          mDown = false;
-          return true;
-        }
-        return false;
+        return mLocalInput.setKeyUp(keyCode);
       }
     }
 
     /**
      * This method handles screen touch motion events.
-     * <p>
-     * This method will be called three times in succession for each
-     * touch, to process ACTION_DOWN, ACTION_UP, and ACTION_MOVE.
-     * 
-     * @param event
-     *        - the motion event
-     * @return True if the event was handled, false otherwise.
+     * <p>This method will be called three times in succession for each
+     * touch, to process <code>ACTION_DOWN</code>,
+     * <code>ACTION_UP</code>, and <code>ACTION_MOVE</code>.
+     * @param event - the motion event
+     * @return <code>true</code> if the event was handled..
      */
     boolean doTouchEvent(MotionEvent event) {
       synchronized (mSurfaceHolder) {
+        double x_offset;
         double x = xFromScr(event.getX());
         double y = yFromScr(event.getY());
 
+        if (mLocalInput.playerID == VirtualInput.PLAYER1)
+          x_offset = 0;
+        else
+          x_offset = -318;
+        /*
+         * Check for a pause button sprite press.  This will toggle the
+         * pause button sprite between pause and play.  If the game was
+         * previously paused by the pause button, ignore screen touches
+         * that aren't on the pause button sprite.
+         */
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
           if ((Math.abs(x - 183) <= TOUCH_BUTTON_THRESHOLD) &&
               (Math.abs(y - 460) <= TOUCH_BUTTON_THRESHOLD)) {
-            pauseKeyPressed = !pauseKeyPressed;
-            if (mFrozenGame1 != null)
-              mFrozenGame1.pauseButtonPressed(pauseKeyPressed);
+            toggleKeyPress(KeyEvent.KEYCODE_P, false, true);
           }
-          else if (pauseKeyPressed)
+          else if (toggleKeyState(KeyEvent.KEYCODE_P))
             return false;
         }
 
+        /*
+         * Update the game state (paused, running, etc.) if necessary.
+         */
         if(updateStateOnEvent(event))
           return true;
 
-        if ((mMode == STATE_RUNNING) && (pauseKeyPressed))
+        /*
+         * If the game is running and the pause button sprite was pressed,
+         * pause the game.
+         */
+        if ((mMode == stateEnum.RUNNING) &&
+            (toggleKeyState(KeyEvent.KEYCODE_P)))
           pause();
 
-        if (mMode == STATE_RUNNING) {
-          // Set the values used when Point To Shoot is on.
-          if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            if (y < TOUCH_FIRE_Y_THRESHOLD) {
-              mTouchFire = true;
-              mTouchX = x;
-              mTouchY = y;
-            }
-            else if (Math.abs(x - 318) <= TOUCH_SWAP_X_THRESHOLD)
-              mTouchSwap = true;
-          }
-
-          // Set the values used when Aim Then Shoot is on.
-          if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            if (y < ATS_TOUCH_FIRE_Y_THRESHOLD) {
-              mATSTouchFire = true;
-            }
-            mATSTouchLastX = x;
-          }
-          else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-            if (y >= ATS_TOUCH_FIRE_Y_THRESHOLD) {
-              mATSTouchDX = (x - mATSTouchLastX) * ATS_TOUCH_COEFFICIENT;
-            }
-            mATSTouchLastX = x;
-          }
-          return true;
-        }
-        return false;
+        /*
+         * Process the screen touch event.
+         */
+        return mLocalInput.setTouchEvent(event.getAction(), x + x_offset, y);
       }
     }
 
     /**
      * Process trackball motion events.
-     * <p>
-     * This method only processes trackball motion for the purpose of
+     * <p>This method only processes trackball motion for the purpose of
      * aiming the launcher.  The trackball has no effect on the game
      * state, much like moving a mouse cursor over a screen does not
      * perform any intrinsic actions in most applications.
-     *  
-     * @param event
-     *        - the motion event associated with the trackball.
-     * 
-     * @return This function returns true if the trackball motion was
-     *         processed, which notifies the caller that this method
-     *         handled the motion event and no other handling is
-     *         necessary.
+     * @param event - the motion event associated with the trackball.
+     * @return This function returns <code>true</code> if the trackball
+     * motion was processed, which notifies the caller that this method
+     * handled the motion event and no other handling is necessary.
      */
     boolean doTrackballEvent(MotionEvent event) {
       synchronized (mSurfaceHolder) {
-        if (mMode == STATE_RUNNING) {
+        if (mMode == stateEnum.RUNNING) {
           if (event.getAction() == MotionEvent.ACTION_MOVE) {
-            mTrackballDX += event.getX() * TRACKBALL_COEFFICIENT;
+            mLocalInput.setTrackBallDx(event.getX() * TRACKBALL_COEFFICIENT);
             return true;
           }
         }
@@ -690,17 +1165,18 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
 
     /**
      * Draw the high score screen for multiplayer game mode.
-     * <p>
-     * The objective of multiplayer game mode is endurance - fire as
+     * <p>The objective of multiplayer game mode is endurance - fire as
      * many bubbles as possible for as long as possible.  Thus the high
      * score will exhibit the most shots fired during the longest game.
-     * 
-     * @param canvas
-     *        - the drawing canvas to display the scores on.
-     * @param level
-     *        - the level difficulty index.
+     * @param canvas - the drawing canvas to display the scores on.
+     * @param level - the level difficulty index.
      */
     private void drawHighScoreScreen(Canvas canvas, int level) {
+      if (mHighScoreManager == null) {
+        mShowScores = false;
+        return;
+      }
+
       canvas.drawRGB(0, 0, 0);
       int x = 168;
       int y = 20;
@@ -714,12 +1190,12 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
         x -= GAMEFIELD_WIDTH/2;
 
       mFont.print("highscore for " +
-                  LevelManager.DifficultyStrings[mHighscoreManager.getLevel()],
+                  LevelManager.DifficultyStrings[mHighScoreManager.getLevel()],
                   x, y, canvas, mDisplayScale, mDisplayDX, mDisplayDY);
       y += 2 * ysp;
 
-      List<HighscoreDO> hlist = mHighscoreManager.getLowScore(level, 15);
-      long lastScoreId = mHighscoreManager.getLastScoreId();
+      List<HighscoreDO> hlist = mHighScoreManager.getLowScore(level, 15);
+      long lastScoreId = mHighScoreManager.getLastScoreId();
       int i = 1;
       for (HighscoreDO hdo : hlist) {
         String you = "";
@@ -743,6 +1219,110 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
           mDisplayScale, mDisplayDX, mDisplayDY);
         y += ysp;
       }
+    }
+
+    private void drawNetworkScreen(Canvas canvas) {
+      if (mNetworkManager == null) {
+        mShowNetwork = false;
+        return;
+      }
+
+      canvas.drawRGB(0, 0, 0);
+      int x = 168;
+      int y = 20;
+      int ysp = 26;
+      int orientation = getScreenOrientation();
+
+      if (orientation == SCREEN_ORIENTATION_REVERSE_PORTRAIT)
+        x += GAMEFIELD_WIDTH/2;
+      else if (orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
+        x -= GAMEFIELD_WIDTH/2;
+
+      NetworkStatus status = new NetworkStatus();
+      mNetworkManager.updateNetworkStatus(status);
+
+      if (status.isConnected) {
+        mFont.print("internet status: ]", x, y, canvas,
+                    mDisplayScale, mDisplayDX, mDisplayDY);
+        y += ysp;
+      }
+      else {
+        mFont.print("internet status: _", x, y, canvas,
+                    mDisplayScale, mDisplayDX, mDisplayDY);
+        y += ysp;
+      }
+
+      mFont.print("my address: " + status.localIpAddress, x, y, canvas,
+          mDisplayScale, mDisplayDX, mDisplayDY);
+      y += ysp;
+
+      mFont.print("connect to: " + status.remoteIpAddress, x, y, canvas,
+          mDisplayScale, mDisplayDX, mDisplayDY);
+      y += ysp;
+
+      if (status.reservedGameId) {
+        mFont.print("checking for games...|", x, y, canvas,
+                    mDisplayScale, mDisplayDX, mDisplayDY);
+        y += ysp;
+      }
+      else {
+        mFont.print("checking for games...", x, y, canvas,
+                    mDisplayScale, mDisplayDX, mDisplayDY);
+        return;
+      }
+
+      mFont.print("open game slot found!", x, y, canvas,
+                  mDisplayScale, mDisplayDX, mDisplayDY);
+      y += ysp;
+
+      if (status.playerJoined) {
+        mFont.print("waiting for player " + status.remotePlayerId + "...|",
+                    x, y, canvas, mDisplayScale, mDisplayDX, mDisplayDY);
+        y += ysp;
+      }
+      else {
+        mFont.print("waiting for player " + status.remotePlayerId + "...",
+                    x, y, canvas, mDisplayScale, mDisplayDX, mDisplayDY);
+        return;
+      }
+
+      if (status.localPlayerId == VirtualInput.PLAYER2) {
+        if (status.gotPrefsData || status.readyToPlay) {
+          mFont.print("getting preferences...|", x, y, canvas,
+                      mDisplayScale, mDisplayDX, mDisplayDY);
+          y += ysp;
+        }
+        else {
+          mFont.print("getting preferences...", x, y, canvas,
+                      mDisplayScale, mDisplayDX, mDisplayDY);
+          return;
+        }
+      }
+
+      if (status.gotFieldData || status.readyToPlay) {
+        mFont.print("getting data...|", x, y, canvas,
+                    mDisplayScale, mDisplayDX, mDisplayDY);
+        y += ysp;
+      }
+      else {
+        mFont.print("getting data...", x, y, canvas,
+                    mDisplayScale, mDisplayDX, mDisplayDY);
+        return;
+      }
+
+      if (status.readyToPlay) {
+        mFont.print("waiting for game start...|", x, y, canvas,
+                    mDisplayScale, mDisplayDX, mDisplayDY);
+        y += ysp;
+      }
+      else {
+        mFont.print("waiting for game start...", x, y, canvas,
+                    mDisplayScale, mDisplayDX, mDisplayDY);
+        return;
+      }
+
+      mFont.print("tap to begin playing!", x, y, canvas,
+                  mDisplayScale, mDisplayDX, mDisplayDY);
     }
 
     private void drawWinTotals(Canvas canvas) {
@@ -804,12 +1384,11 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
     }
 
     private int getScreenOrientation() {
-      //
-      // The method getOrientation() was deprecated in API level 8.
-      //
-      // For API level 8 or greater, use getRotation().
-      //
-      //
+      /*
+       * The method getOrientation() was deprecated in API level 8.
+       *
+       * For API level 8 or greater, use getRotation().
+       */
       int rotation = ((Activity) mContext).getWindowManager().
         getDefaultDisplay().getOrientation();
       DisplayMetrics dm = new DisplayMetrics();
@@ -817,23 +1396,21 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
       int width  = dm.widthPixels;
       int height = dm.heightPixels;
       int orientation;
-      //
-      // The orientation determination is based on the natural orienation
-      // mode of the device, which can be either portrait, landscape, or
-      // square.
-      //
-      // After the natural orientation is determined, convert the device
-      // rotation into a fully qualified orientation.
-      //
-      //
+      /*
+       * The orientation determination is based on the natural orienation
+       * mode of the device, which can be either portrait, landscape, or
+       * square.
+       *
+       * After the natural orientation is determined, convert the device
+       * rotation into a fully qualified orientation.
+       */
       if ((((rotation == Surface.ROTATION_0  ) ||
             (rotation == Surface.ROTATION_180)) && (height > width)) ||
           (((rotation == Surface.ROTATION_90 ) ||
             (rotation == Surface.ROTATION_270)) && (width  > height))) {
-        //
-        // Natural orientation is portrait.
-        //
-        //
+        /*
+         * Natural orientation is portrait.
+         */
         switch(rotation) {
           case Surface.ROTATION_0:
             orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
@@ -853,10 +1430,9 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
         }
       }
       else {
-        //
-        // Natural orientation is landscape or square.
-        //
-        //
+        /*
+         * Natural orientation is landscape or square.
+         */
         switch(rotation) {
           case Surface.ROTATION_0:
             orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
@@ -890,11 +1466,13 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
       //Log.i("frozen-bubble", "GameThread()");
       mSurfaceHolder = surfaceHolder;
       Resources res = mContext.getResources();
-      setState(STATE_PAUSE);
+      setState(stateEnum.PAUSED);
 
       BitmapFactory.Options options = new BitmapFactory.Options();
 
-      // The Options.inScaled field is only available starting at API 4.
+      /*
+       * The Options.inScaled field is only available starting at API 4.
+       */
       try {
         Field f = options.getClass().getField("inScaled");
         f.set(options, Boolean.FALSE);
@@ -1039,10 +1617,20 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
       mFont             = new BubbleFont(mFontImage);
       mLauncher         = res.getDrawable(R.drawable.launcher);
       mSoundManager     = new SoundManager(mContext);
-      mHighscoreManager = new HighscoreManager(getContext(),
-                                               HighscoreManager.
-                                               MULTIPLAYER_DATABASE_NAME);
-      mLevelManager     = new LevelManager(0, FrozenBubble.getDifficulty());
+
+      /*
+       * Only keep a high score database when the opponent is the CPU.
+       */
+      if (mRemoteInput.isCPU) {
+        mHighScoreManager = new HighscoreManager(getContext(),
+                                                 HighscoreManager.
+                                                 MULTIPLAYER_DATABASE_NAME);
+      }
+      else {
+        mHighScoreManager = null;
+      }
+
+      mLevelManager = new LevelManager(0, FrozenBubble.getDifficulty());
       newGame();
     }
 
@@ -1060,7 +1648,9 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
                                       mCompressorHead, mCompressor,
                                       malusBar2, mLauncher,
                                       mSoundManager, mLevelManager,
-                                      mHighscoreManager, 1);
+                                      mHighScoreManager, mNetworkManager,
+                                      mPlayer1);
+        mPlayer1.setGameRef(mFrozenGame1);
         mFrozenGame2 = new FrozenGame(mBackground, mBubbles, mBubblesBlind,
                                       mFrozenBubbles, mTargetedBubbles,
                                       mBubbleBlink, mGameWon, mGameLost,
@@ -1068,26 +1658,40 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
                                       null, null, mPenguins2,
                                       mCompressorHead, mCompressor,
                                       malusBar1, mLauncher,
-                                      mSoundManager, mLevelManager, null, 2);
-        mHighscoreManager.startLevel(mLevelManager.getLevelIndex());
+                                      mSoundManager, mLevelManager,
+                                      null, mNetworkManager,
+                                      mPlayer2);
+        mPlayer2.setGameRef(mFrozenGame2);
+        if (mHighScoreManager != null) {
+          mHighScoreManager.startLevel(mLevelManager.getLevelIndex());
+        }
+        if (mNetworkManager != null) {
+          mNetworkManager.newGame();
+          mShowNetwork = true;
+        }
       }
     }
 
     public void pause() {
       synchronized (mSurfaceHolder) {
-        if (mMode == STATE_RUNNING) {
-          setState(STATE_PAUSE);
+        if (mMode == stateEnum.RUNNING) {
+          setState(stateEnum.PAUSED);
 
           if (mGameListener != null)
-            mGameListener.onGameEvent(EVENT_GAME_PAUSED);
+            mGameListener.onGameEvent(eventEnum.GAME_PAUSED);
           if (mFrozenGame1 != null)
             mFrozenGame1.pause();
           if (mFrozenGame2 != null)
             mFrozenGame2.pause();
-          if (mHighscoreManager != null)
-            mHighscoreManager.pauseLevel();
+          if (mHighScoreManager != null)
+            mHighScoreManager.pauseLevel();
         }
       }
+    }
+
+    public void pauseButtonPressed(boolean pauseKeyPressed) {
+      if (mFrozenGame1 != null)
+        mFrozenGame1.pauseButtonPressed(pauseKeyPressed);
     }
 
     private void resizeBitmaps() {
@@ -1125,31 +1729,33 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
     }
 
     /**
-     * Restores game state from the indicated Bundle. Typically called when
-     * the Activity is being restored after having been previously
+     * Restores game state from the indicated Bundle. Typically called
+     * when the Activity is being restored after having been previously
      * destroyed.
-     * 
-     * @param savedState
-     *        - Bundle containing the game state.
+     * @param savedState - Bundle containing the game state.
      */
     public synchronized void restoreState(Bundle map) {
       synchronized (mSurfaceHolder) {
-        setState(STATE_PAUSE);
+        setState(stateEnum.PAUSED);
         numPlayer1GamesWon = map.getInt("numPlayer1GamesWon", 0);
         numPlayer2GamesWon = map.getInt("numPlayer2GamesWon", 0);
         mFrozenGame1     .restoreState(map, mImageList);
         mFrozenGame2     .restoreState(map, mImageList);
         mLevelManager    .restoreState(map);
-        mHighscoreManager.restoreState(map);
+        if (mHighScoreManager != null) {
+          mHighScoreManager.restoreState(map);
+        }
       }
     }
 
     public void resumeGame() {
       synchronized (mSurfaceHolder) {
-        if (mMode == STATE_RUNNING) {
+        if (mMode == stateEnum.RUNNING) {
           mFrozenGame1     .resume();
           mFrozenGame2     .resume();
-          mHighscoreManager.resumeLevel();
+          if (mHighScoreManager != null) {
+            mHighScoreManager.resumeLevel();
+          }
         }
       }
     }
@@ -1172,22 +1778,29 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
             if (c != null) {
               synchronized (mSurfaceHolder) {
                 if (mRun) {
-                  if (mMode == STATE_ABOUT) {
+                  monitorRemotePlayer();
+                  if (mMode == stateEnum.ABOUT) {
                     drawAboutScreen(c);
                   }
-                  else if (mMode == STATE_PAUSE) {
-                    if (mShowScores)
-                      drawHighScoreScreen(c, mHighscoreManager.getLevel());
+                  else if (mMode == stateEnum.PAUSED) {
+                    if (mNetworkManager != null) {
+                      if (mShowNetwork)
+                        drawNetworkScreen(c);
+                      else
+                        doDraw(c);
+                    }
+                    else if ((mHighScoreManager != null) && mShowScores)
+                      drawHighScoreScreen(c, mHighScoreManager.getLevel());
                     else
                       doDraw(c);
                   }
                   else {
-                    if (mMode == STATE_RUNNING) {
-                      if (mModeWas != STATE_RUNNING)  {
+                    if (mMode == stateEnum.RUNNING) {
+                      if (mModeWas != stateEnum.RUNNING)  {
                         if (mGameListener != null)
-                          mGameListener.onGameEvent(EVENT_GAME_RESUME);
+                          mGameListener.onGameEvent(eventEnum.GAME_RESUME);
 
-                        mModeWas = STATE_RUNNING;
+                        mModeWas = stateEnum.RUNNING;
                         resumeGame();
                       }
                       updateGameState();
@@ -1199,9 +1812,11 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
             }
           }
         } finally {
-          // do this in a finally so that if an exception is thrown
-          // during the above, we don't leave the Surface in an
-          // inconsistent state
+          /*
+           * Do this in a finally so that if an exception is thrown
+           * during the above, we don't leave the Surface in an
+           * inconsistent state.
+           */
           if (c != null)
             mSurfaceHolder.unlockCanvasAndPost(c);
         }
@@ -1211,7 +1826,6 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
     /**
      * Dump game state to the provided Bundle. Typically called when the
      * Activity is being suspended.
-     * 
      * @return Bundle with this view's state
      */
     public Bundle saveState(Bundle map) {
@@ -1223,7 +1837,9 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
           mFrozenGame1     .saveState(map);
           mFrozenGame2     .saveState(map);
           mLevelManager    .saveState(map);
-          mHighscoreManager.saveState(map);
+          if (mHighScoreManager != null) {
+            mHighScoreManager.saveState(map);
+          }
         }
       }
       return map;
@@ -1245,30 +1861,28 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
     }
 
     public void setPosition(double value) {
-      mFrozenGame1.setPosition(value);
+      mLocalInput.mGameRef.setPosition(value);
     }
 
     public void setRunning(boolean b) {
       mRun = b;
     }
 
-    public void setState(int mode) {
+    public void setState(stateEnum newMode) {
       synchronized (mSurfaceHolder) {
-        //
-        //   Only update the previous mode storage if the new mode is
-        //   different from the current mode, in case the same mode is
-        //   being set multiple times.
-        //
-        //   The transition from state to state must be preserved in
-        //   case a separate execution thread that checks for state
-        //   transitions does not get a chance to run between calls to
-        //   this method.
-        //
-        //
-        if (mode != mMode)
+        /*
+         * Only update the previous mode storage if the new mode is
+         * different from the current mode, in case the same mode is
+         * being set multiple times.
+         *
+         * The transition from state to state must be preserved in case
+         * a separate execution thread that checks for state transitions
+         * does not get a chance to run between calls to this method.
+         */
+        if (newMode != mMode)
           mModeWas = mMode;
 
-        mMode = mode;
+        mMode = newMode;
       }
     }
 
@@ -1293,17 +1907,26 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
         else {
           mDisplayScale = (1.0 * newWidth) / gameWidth;
           /*
+           * When rotate to shoot targeting mode is selected during a
+           * multiplayer game, then the screen orientation is forced to
+           * landscape.
+           *
            * In portrait mode during a multiplayer game, display just
            * one game field.  Depending on which portrait mode it is,
            * display player one or player two.  For normal portrait
            * orientation, show player one, and for reverse portrait,
            * show player two.
            */
-          int orientation = getScreenOrientation();
-          if (orientation == SCREEN_ORIENTATION_REVERSE_PORTRAIT)
-            mDisplayDX = (int)(-mDisplayScale * gameWidth);
-          else
+          if (FrozenBubble.getTargetMode() == FrozenBubble.ROTATE_TO_SHOOT) {
             mDisplayDX = 0;
+          }
+          else {
+            int orientation = getScreenOrientation();
+            if (orientation == SCREEN_ORIENTATION_REVERSE_PORTRAIT)
+              mDisplayDX = (int)(-mDisplayScale * gameWidth);
+            else
+              mDisplayDX = 0;
+          }
           mDisplayDY = (int)((newHeight - (mDisplayScale * gameHeight)) / 2);
         }
         mPlayer1DX = (int) (mDisplayDX - (mDisplayScale * ( gameWidth / 2 )));
@@ -1312,13 +1935,21 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
       }
     }
 
+    /**
+     * Create a CPU opponent object (if necessary) and start the thread.
+     */
     public void startOpponent() {
       if (mOpponent != null) {
         mOpponent.stopThread();
         mOpponent = null;
       }
-      mOpponent = new ComputerAI(mFrozenGame2);
-      mOpponent.start();
+      if (mRemoteInput.isCPU) {
+        if (mRemoteInput.playerID == VirtualInput.PLAYER2)
+          mOpponent = new ComputerAI(mFrozenGame2, mRemoteInput);
+        else
+          mOpponent = new ComputerAI(mFrozenGame1, mRemoteInput);
+        mOpponent.start();
+      }
     }
 
     public boolean surfaceOK() {
@@ -1328,22 +1959,67 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
     }
 
     /**
+     * Process function key presses.  Function keys toggle features on
+     * and off (e.g., game paused on/off, sound on/off, etc.).
+     * @param keyCode - the key code to process.
+     * @param updateNow - if true, apply state changes.
+     * @param transmit - if true and this is a network game, send the
+     * key code over the network.
+     */
+    public void toggleKeyPress(int keyCode,
+                               boolean updateNow,
+                               boolean transmit) {
+      if (keyCode == KeyEvent.KEYCODE_M)
+        muteKeyToggle = !muteKeyToggle;
+      else if (keyCode == KeyEvent.KEYCODE_P) {
+        if (transmit && (mNetworkManager != null)) {
+          mNetworkManager.sendLocalPlayerAction(mLocalInput.playerID,
+              false, false, false, keyCode, -1, -1, -1, -1, null,
+              mLocalInput.mGameRef.launchBubblePosition);
+        }
+        pauseKeyToggle = !pauseKeyToggle;
+        mGameThread.pauseButtonPressed(pauseKeyToggle);
+        if (updateNow) {
+          updateStateOnEvent(null);
+          /*
+           * If the game is running and the pause button was pressed,
+           * pause the game.
+           */
+          if (pauseKeyToggle && (mMode == stateEnum.RUNNING))
+            pause();
+        }
+      }
+    }
+
+    /**
+     * Obtain the current state of a feature toggle key.
+     * @param keyCode
+     * @return The state of the desired feature toggle key flag.
+     */
+    public boolean toggleKeyState(int keyCode) {
+      if (keyCode == KeyEvent.KEYCODE_M)
+        return muteKeyToggle;
+      else if (keyCode == KeyEvent.KEYCODE_P)
+        return pauseKeyToggle;
+
+      return false;
+    }
+
+    /**
      * updateStateOnEvent() - a common method to process motion events
      * to set the game state.  When the motion event has been fully
      * processed, this function will return true, otherwise if the
      * calling method should also process the motion event, this
      * function will return false.
-     * 
-     * @param event
-     *        - The MotionEvent to process for the purpose of updating
-     *        the game state.  If this parameter is null, then the
-     *        game state is forced to update if applicable based on
-     *        the current game state.
-     * 
-     * @return This function returns true to inform the calling function
-     *         that the game state has been updated and that no further
-     *         processing is necessary, and false to indicate that the
-     *         caller should continue processing the motion event.
+     * @param event - the MotionEvent to process for the purpose of
+     * updating the game state.  If this parameter is null, then the
+     * game state is forced to update if applicable based on the current
+     * game state.
+     * @return This function returns <code>true</code> to inform the
+     * calling function that the game state has been updated and that no
+     * further processing is necessary, and <code>false</code> to
+     * indicate that the caller should continue processing the motion
+     * event.
      */
     private boolean updateStateOnEvent(MotionEvent event) {
       boolean event_action_down = false;
@@ -1355,23 +2031,35 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
 
       if (event_action_down) {
         switch (mMode) {
-          case STATE_ABOUT:
-            setState(STATE_RUNNING);
+          case ABOUT:
+            setState(stateEnum.RUNNING);
             return true;
 
-          case STATE_PAUSE:
-            if (mShowScores) {
+          case PAUSED:
+            if (mNetworkManager != null) {
+              if (mShowNetwork) {
+                if (mNetworkManager.gameIsReadyForAction()) {
+                  mShowNetwork = false;
+                  setState(stateEnum.RUNNING);
+                  if (mGameListener != null) {
+                    mGameListener.onGameEvent(eventEnum.LEVEL_START);
+                  }
+                }
+                return true;
+              }
+            }
+            else if (mShowScores) {
               mShowScores = false;
-              setState(STATE_RUNNING);
+              setState(stateEnum.RUNNING);
               if (mGameListener != null) {
-                mGameListener.onGameEvent(EVENT_LEVEL_START);
+                mGameListener.onGameEvent(eventEnum.LEVEL_START);
               }
               return true;
             }
-            setState(STATE_RUNNING);
+            setState(stateEnum.RUNNING);
             break;
 
-          case STATE_RUNNING:
+          case RUNNING:
           default:
             break;
         }
@@ -1381,90 +2069,126 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
 
     private void updateGameState() {
       if ((mFrozenGame1 == null) || (mFrozenGame2 == null) ||
-          (mOpponent == null) || (mHighscoreManager == null))
+          ((mOpponent == null) && mRemoteInput.isCPU)) {
         return;
+      }
 
-      int game1_state = mFrozenGame1.play(mLeft || mWasLeft,
-                                          mRight || mWasRight,
-                                          mFire || mUp || mWasFire || mWasUp,
-                                          mDown || mWasDown || mTouchSwap,
-                                          mTrackballDX,
-                                          mTouchFire, mTouchX, mTouchY,
-                                          mATSTouchFire, mATSTouchDX);
-      mFrozenGame2.play(mOpponent.getAction() == KeyEvent.KEYCODE_DPAD_LEFT,
-                        mOpponent.getAction() == KeyEvent.KEYCODE_DPAD_RIGHT,
-                        mOpponent.getAction() == KeyEvent.KEYCODE_DPAD_UP,
-                        mOpponent.getAction() == KeyEvent.KEYCODE_DPAD_DOWN,
-                        0, false, 0, 0, false, 0);
-      mOpponent.clearAction();
+      gameEnum game1State = mFrozenGame1.play(mPlayer1.actionLeft(),
+                                              mPlayer1.actionRight(),
+                                              mPlayer1.actionUp(),
+                                              mPlayer1.actionDown(),
+                                              mPlayer1.getTrackBallDx(),
+                                              mPlayer1.actionTouchFire(),
+                                              mPlayer1.getTouchX(),
+                                              mPlayer1.getTouchY(),
+                                              mPlayer1.actionTouchFireATS(),
+                                              mPlayer1.getTouchDxATS());
 
+      gameEnum game2State = mFrozenGame2.play(mPlayer2.actionLeft(),
+                                              mPlayer2.actionRight(),
+                                              mPlayer2.actionUp(),
+                                              mPlayer2.actionDown(),
+                                              mPlayer2.getTrackBallDx(),
+                                              mPlayer2.actionTouchFire(),
+                                              mPlayer2.getTouchX(),
+                                              mPlayer2.getTouchY(),
+                                              mPlayer2.actionTouchFireATS(),
+                                              mPlayer2.getTouchDxATS());
+
+      /*
+       * If playing a network game, update the bubble grid checksums.
+       */
+      if (mNetworkManager != null) {
+        mNetworkManager.setLocalChecksum(mLocalInput.mGameRef.gridChecksum);
+        mNetworkManager.setRemoteChecksum(mRemoteInput.mGameRef.gridChecksum);
+      }
+
+      /*
+       * If playing a CPU opponent, notify the computer that the current
+       * action has been processed and we are ready for a new action.
+       */
+      if (mOpponent != null) {
+        mOpponent.clearAction();
+      }
+
+      /*
+       * Obtain the number of attack bubbles to add to each player's
+       * attack bar that are being sent by their respective opponents.
+       */
       malusBar1.addBubbles(mFrozenGame1.getSendToOpponent());
       malusBar2.addBubbles(mFrozenGame2.getSendToOpponent());
 
-      int game1_result = mFrozenGame1.getGameResult();
-      int game2_result = mFrozenGame2.getGameResult();
+      gameEnum game1Result = mFrozenGame1.getGameResult();
+      gameEnum game2Result = mFrozenGame2.getGameResult();
 
       /*
-       * When one player wins or loses, the other player is designated the an
-       * automatic loss or win, respectively.
+       * When one player wins or loses, the other player is
+       * automatically designated the loser or winner, respectively.
        */
-      if (game1_result != FrozenGame.GAME_PLAYING) {
-        if ((game1_result == FrozenGame.GAME_WON) ||
-            (game1_result == FrozenGame.GAME_NEXT_WON))
-          mFrozenGame2.setGameResult(FrozenGame.GAME_LOST);
-        else
-          mFrozenGame2.setGameResult(FrozenGame.GAME_WON);
-      }
-      else if (game2_result != FrozenGame.GAME_PLAYING) {
-        if ((game2_result == FrozenGame.GAME_WON) ||
-            (game2_result == FrozenGame.GAME_NEXT_WON)) {
-          mHighscoreManager.lostLevel();
-          mFrozenGame1.setGameResult(FrozenGame.GAME_LOST);
+      if (game1Result != gameEnum.PLAYING) {
+        if ((game1Result == gameEnum.WON) ||
+            (game1Result == gameEnum.NEXT_WON)) {
+          mFrozenGame2.setGameResult(gameEnum.LOST);
         }
         else {
-          mHighscoreManager.endLevel(mFrozenGame1.nbBubbles);
-          mFrozenGame1.setGameResult(FrozenGame.GAME_WON);
+          mFrozenGame2.setGameResult(gameEnum.WON);
+        }
+      }
+      else if (game2Result != gameEnum.PLAYING) {
+        if ((game2Result == gameEnum.WON) ||
+            (game2Result == gameEnum.NEXT_WON)) {
+          if (mHighScoreManager != null) {
+            mHighScoreManager.lostLevel();
+          }
+          mFrozenGame1.setGameResult(gameEnum.LOST);
+        }
+        else {
+          if (mHighScoreManager != null) {
+            mHighScoreManager.endLevel(mFrozenGame1.nbBubbles);
+          }
+          mFrozenGame1.setGameResult(gameEnum.WON);
         }
       }
 
       /*
-       * Only start a new game when player 1 provides input, because the
-       * CPU is prone to sneaking a launch attempt in after the game is
-       * decided.
+       * Only start a new game when player 1 provides input when the
+       * opponent is the CPU, because the CPU is prone to sneaking a
+       * launch attempt in after the game is decided.
+       *
+       * Otherwise, the first player to provide input initiates the
+       * new game.
        */
-      if ((game1_state == FrozenGame.GAME_NEXT_LOST) ||
-          (game1_state == FrozenGame.GAME_NEXT_WON )) {
-        if (game1_state == FrozenGame.GAME_NEXT_WON )
+      if (((game1State == gameEnum.NEXT_LOST) ||
+          (game1State == gameEnum.NEXT_WON)) ||
+          (!mRemoteInput.isCPU &&
+           ((game2State == gameEnum.NEXT_LOST) ||
+            (game2State == gameEnum.NEXT_WON)))){
+        if ((game1State == gameEnum.NEXT_WON) ||
+            (game2State == gameEnum.NEXT_LOST)) {
           numPlayer1GamesWon++;
-        else
+        }
+        else {
           numPlayer2GamesWon++;
+        }
 
-        mShowScores = true;
+        if (mNetworkManager == null) {
+          mShowScores = true;
+        }
+
         pause();
         newGame();
-        startOpponent();
-      }
 
-      mWasLeft      = false;
-      mWasRight     = false;
-      mWasFire      = false;
-      mWasUp        = false;
-      mWasDown      = false;
-      mTrackballDX  = 0;
-      mTouchFire    = false;
-      mTouchSwap    = false;
-      mATSTouchFire = false;
-      mATSTouchDX   = 0;
+        if (mRemoteInput.isCPU) {
+          startOpponent();
+        }
+      }
     }
 
     /**
      * Use the player 1 offset to calculate the horizontal offset to
      * apply a raw horizontal position to the playfield.
-     * 
-     * @param x
-     *        - the raw horizontal position.
-     * 
-     * @return the adjusted horizontal position.
+     * @param x - the raw horizontal position.
+     * @return The adjusted horizontal position.
      */
     private double xFromScr(float x) {
       return (x - mPlayer1DX) / mDisplayScale;
@@ -1475,27 +2199,110 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
     }
   }
 
-  public MultiplayerGameView(Context context, int numPlayers) {
-    super(context);
-    //Log.i("frozen-bubble", "GameView constructor");
+  /**
+   * <code>MultiplayerGameView</code> class constructor.
+   * @param context - the application context.
+   * @param attrs - the compiled XML attributes for the superclass.
+   */
+  public MultiplayerGameView(Context context, AttributeSet attrs) {
+    super(context, attrs);
+    //Log.i("frozen-bubble", "MultiplayerGameView constructor");
+    init(context, (int) VirtualInput.PLAYER1, FrozenBubble.LOCALE_LOCAL);
+  }
 
+  /**
+   * <code>MultiplayerGameView</code> class constructor.
+   * @param context - the application context.
+   * @param myPlayerId - the local player ID (1 or 2).
+   * @param gameLocale - the game topology, which can be either local,
+   * or distributed over various network types.
+   */
+  public MultiplayerGameView(Context context, int myPlayerId, int gameLocale) {
+    super(context);
+    //Log.i("frozen-bubble", "MultiplayerGameView constructor");
+    init(context, myPlayerId, gameLocale);
+  }
+
+  /**
+   * <code>MultiplayerGameView</code> object initialization.
+   * @param context - the application context.
+   * @param myPlayerId - the local player ID (1 or 2).
+   * @param gameLocale - the game topology, which can be either local,
+   * or distributed over various network types.
+   */
+  private void init(Context context, int myPlayerId, int gameLocale) {
     mContext = context;
     SurfaceHolder holder = getHolder();
     holder.addCallback(this);
-
     mOpponent = null;
-    // TODO: save and restore the number of games won.
+
     numPlayer1GamesWon = 0;
     numPlayer2GamesWon = 0;
 
-    modeKeyPressed  = false;
-    pauseKeyPressed = false;
-    soundKeyPressed = false;
+    /*
+     * If this game is being played purely locally, then the opponent is
+     * CPU controlled.  Otherwise the opponent is a remote player.
+     *
+     * TODO: add the ability to support multiple local players via
+     * multi-touch, and the ability to specify any player as CPU
+     * controlled.
+     */
+    boolean isCPU;
+    boolean isRemote;
 
-    mGameThread = new MultiplayerGameThread(holder);
+    if (gameLocale == FrozenBubble.LOCALE_LOCAL) {
+      isCPU    = true;
+      isRemote = false;
+    }
+    else {
+      isCPU    = false;
+      isRemote = true;
+    }
+
+    if (myPlayerId == VirtualInput.PLAYER1) {
+      mPlayer1 = new PlayerInput(VirtualInput.PLAYER1, false, false);
+      mPlayer2 = new PlayerInput(VirtualInput.PLAYER2, isCPU, isRemote);
+      mLocalInput = mPlayer1;
+      mRemoteInput = mPlayer2;
+    }
+    else {
+      mPlayer1 = new PlayerInput(VirtualInput.PLAYER1, isCPU, isRemote);
+      mPlayer2 = new PlayerInput(VirtualInput.PLAYER2, false, false);
+      mLocalInput = mPlayer2;
+      mRemoteInput = mPlayer1;
+    }
+
+    /*
+     * Create a network game manager if this is a network game.
+     */
+    mNetworkManager = null;
+    if ((gameLocale == FrozenBubble.LOCALE_LAN) ||
+        (gameLocale == FrozenBubble.LOCALE_INTERNET)) {
+      connectEnum connectType;
+      if (gameLocale == FrozenBubble.LOCALE_LAN) {
+        connectType = connectEnum.UDP_MULTICAST;
+      }
+      else {
+        connectType = connectEnum.UDP_UNICAST;
+      }
+      mNetworkManager = new NetworkGameManager(context,
+                                               connectType,
+                                               mLocalInput,
+                                               mRemoteInput);
+      remoteInterface = mNetworkManager.getRemoteInterface();
+    }
+
+    /*
+     * Give this view focus-ability for improved compatibility with
+     * various input devices.
+     */
     setFocusable(true);
     setFocusableInTouchMode(true);
 
+    /*
+     * Create and start the game thread.
+     */
+    mGameThread = new MultiplayerGameThread(holder);
     mGameThread.setRunning(true);
     mGameThread.start();
   }
@@ -1506,13 +2313,13 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
 
   @Override
   public boolean onKeyDown(int keyCode, KeyEvent msg) {
-    //Log.i("frozen-bubble", "GameView.onKeyDown()");
+    //Log.i("frozen-bubble", "MultiplayerGameView.onKeyDown()");
     return mGameThread.doKeyDown(keyCode, msg);
   }
 
   @Override
   public boolean onKeyUp(int keyCode, KeyEvent msg) {
-    //Log.i("frozen-bubble", "GameView.onKeyUp()");
+    //Log.i("frozen-bubble", "MultiplayerGameView.onKeyUp()");
     return mGameThread.doKeyUp(keyCode, msg);
   }
 
@@ -1530,34 +2337,54 @@ class MultiplayerGameView extends SurfaceView implements SurfaceHolder.Callback 
 
   @Override
   public void onWindowFocusChanged(boolean hasWindowFocus) {
-    //Log.i("frozen-bubble", "GameView.onWindowFocusChanged()");
+    //Log.i("frozen-bubble", "MultiplayerGameView.onWindowFocusChanged()");
     if (!hasWindowFocus) {
+      if (mNetworkManager != null) {
+        mNetworkManager.pause();
+      }
       if (mGameThread != null)
         mGameThread.pause();
+    }
+    else {
+      if (mNetworkManager != null) {
+        mNetworkManager.unPause();
+      }
     }
   }
 
   public void surfaceChanged(SurfaceHolder holder, int format, int width,
-                              int height) {
-    //Log.i("frozen-bubble", "GameView.surfaceChanged");
+                             int height) {
+    //Log.i("frozen-bubble", "MultiplayerGameView.surfaceChanged");
     mGameThread.setSurfaceSize(width, height);
   }
 
   public void surfaceCreated(SurfaceHolder holder) {
-    //Log.i("frozen-bubble", "GameView.surfaceCreated()");
+    //Log.i("frozen-bubble", "MultiplayerGameView.surfaceCreated()");
     mGameThread.setSurfaceOK(true);
   }
 
   public void surfaceDestroyed(SurfaceHolder holder) {
-    //Log.i("frozen-bubble", "GameView.surfaceDestroyed()");
+    //Log.i("frozen-bubble", "MultiplayerGameView.surfaceDestroyed()");
     mGameThread.setSurfaceOK(false);
   }
 
   public void cleanUp() {
-    //Log.i("frozen-bubble", "GameView.cleanUp()");
-    mOpponent.stopThread();
+    //Log.i("frozen-bubble", "MultiplayerGameView.cleanUp()");
+    cleanUpNetworkManager();
+
+    mPlayer1.init();
+    mPlayer2.init();
+
+    if (mOpponent != null)
+      mOpponent.stopThread();
     mOpponent = null;
+
     mGameThread.cleanUp();
-    mContext = null;
+  }
+
+  private void cleanUpNetworkManager() {
+    if (mNetworkManager != null)
+      mNetworkManager.cleanUp();
+    mNetworkManager = null;
   }
 }

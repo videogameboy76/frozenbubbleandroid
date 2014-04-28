@@ -20,7 +20,7 @@
   <string name="play_level_music">奏乐</string>
   <string name="play_sound_effects">播放声音效果</string>
   <string name="title_activity_frozen_bubble">冰冻泡泡</string>
-  <string name="title_activity_splash_screen">冰冻泡泡</string>
+  <string name="title_activity_home_screen">冰冻泡泡</string>
   <string name="scrolling_credits">"Original Development\n"
     "------------------------\n"
     "\nGuillaume Cottenceau - Design and Programming\n"

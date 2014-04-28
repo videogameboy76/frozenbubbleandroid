@@ -81,13 +81,10 @@ public class ModPlayer {
 
   /**
    * Load a new song.
-   * 
-   * @param songId
-   *        - The song resource ID.
-   * 
-   * @param startPlaying
-   *        - If true, the song starts playing immediately.  Otherwise
-   *        it is paused and must be unpaused to start playing.
+   * @param songId - The song resource ID.
+   * @param startPlaying - If <code>true</code>, the song starts playing
+   * immediately.  Otherwise it is paused and must be unpaused to start
+   * playing.
    */
   public void loadNewSong(int songId, boolean startPlaying) {
     if (resplayer != null) {
@@ -102,16 +99,11 @@ public class ModPlayer {
 
   /**
    * Create a new music player.
-   * 
-   * @param context
-   *        - The application context.
-   * 
-   * @param songId
-   *        - The song resource ID.
-   * 
-   * @param startPaused
-   *        - If false, the song starts playing immediately.  Otherwise
-   *        it is paused and must be unpaused to start playing.
+   * @param context - The application context.
+   * @param songId - The song resource ID.
+   * @param startPaused - If <code>false</code>, the song starts playing
+   * immediately.  Otherwise it is paused and must be unpaused to start
+   * playing.
    */
   private void newMusicPlayer(Context context,
                               int songId,

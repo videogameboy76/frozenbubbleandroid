@@ -208,7 +208,7 @@ public class BubbleSprite extends Sprite {
       (sprite.getSpriteArea().top - this.realY) *
       (sprite.getSpriteArea().top - this.realY);
 
-    return (value < minDistance);
+    return value < minDistance;
   }
 
   public boolean checked() {
@@ -477,8 +477,7 @@ public class BubbleSprite extends Sprite {
 
       if (checkJump.size() >= 3) {
         released = true;
-        frozen.setSendToOpponent(frozen.getSendToOpponent() +
-                                 checkJump.size() - 3);
+        frozen.addAttackBubbles(checkJump.size() - 3);
 
         for (int i=0 ; i<checkJump.size() ; i++) {
           BubbleSprite current = (BubbleSprite)checkJump.elementAt(i);
@@ -572,13 +571,10 @@ public class BubbleSprite extends Sprite {
 
   /**
    * Adds a bubble to the fixed grid.
-   * 
-   * @param grid
-   *        - the array of fixed bubbles.
-   * @param position
-   *        - the position in the grid to check for occupancy.
+   * @param grid - the array of fixed bubbles.
+   * @param position - the position in the grid to check for occupancy.
    * @return true if the bubble becomes registered in the grid (false if
-   *         another bubble already occupies the same position).
+   * another bubble already occupies the same position).
    */
   public boolean register(BubbleSprite[][] grid, Point position) {
     boolean register = grid[position.x][position.y] == null;

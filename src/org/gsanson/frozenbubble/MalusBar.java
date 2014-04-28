@@ -61,36 +61,30 @@ import android.os.Bundle;
 
 public class MalusBar extends Sprite {
 
-  /** X-pos for tomatoes */
+  /* X-pos for tomatoes */
   int minX;
-  /** Max Y-pos for bar */
+  /* Max Y-pos for bar */
   int maxY;
-  /** Number of waiting bubbles */
+  /* Number of waiting bubbles */
   int nbMalus;
-  /** Time to release bubbles */
+  /* Time to release bubbles */
   public int releaseTime;
-
-  /** Banana Image */
+  /* Banana Image */
   private BmpWrap banana;
-  /** Tomato Image */
+  /* Tomato Image */
   private BmpWrap tomato;
+  /* Attack bubble array */
+  public byte[] attackBubbles = { -1, -1, -1, -1, -1,
+                                  -1, -1, -1, -1, -1,
+                                  -1, -1, -1, -1, -1 };
 
   /**
    * Manages a malus bar (bananas & tomatoes).
-   * 
-   * @param coordX
-   *        - X-coord of game facade.
-   * @param coordY
-   *        - Y-coord of game facade.
-   * 
-   * @param leftSide
-   *        - if on left side (false => right side).
-   * 
-   * @param tomato
-   *        - image resource for a tomato.
-   * 
-   * @param banana
-   *        - image resource for a banana.
+   * @param coordX - X-coord of game facade.
+   * @param coordY - Y-coord of game facade.
+   * @param leftSide - if on left side (false => right side).
+   * @param tomato - image resource for a tomato.
+   * @param banana - image resource for a banana.
    */
   public MalusBar(int coordX, int coordY, BmpWrap banana, BmpWrap tomato) {
     super(new Rect(coordX, coordY, coordX + 33, coordY + 354));
@@ -119,17 +113,39 @@ public class MalusBar extends Sprite {
   }
 
   public void addBubbles(int toAdd) {
-    if (toAdd > 0)
+    if ((toAdd > 0) && (nbMalus == 0))
       releaseTime = 0;
     nbMalus += toAdd;
   }
 
-  public int getBubbles() {
+  /**
+   * Clear the attack bubbles stored in the attack bubble array.
+   */
+  public void clearAttackBubbles() {
+    for (int i = 0; i < 15; i++)
+      this.attackBubbles[i] = -1;
+  }
+
+  public int getAttackBarBubbles() {
     return nbMalus;
   }
 
   public int getTypeId() {
     return Sprite.TYPE_IMAGE;
+  }
+
+  /**
+   * The number of attack bubbles will be decremented by the supplied
+   * number of bubbles, which is the number of attack bubbles that were
+   * previously launched.
+   * @param remove - the number of attack bubbles to remove from the
+   * total number of attack bubbles.
+   */
+  public void removeAttackBubbles(int remove) {
+    nbMalus -= remove;
+
+    if (nbMalus < 0)
+      nbMalus = 0;
   }
 
   public int removeLine() {
@@ -146,5 +162,28 @@ public class MalusBar extends Sprite {
   public void saveState(Bundle map, int id) {
     map.putInt(String.format("%d-nbMalus", id), nbMalus);
     map.putInt(String.format("%d-releaseTime", id), releaseTime);
+  }
+
+  /**
+   * Set the value of an attack bubble color in the attack bubble array.
+   * @param bubbleIndex - the update index in the attack bubble array.
+   * @param bubbleColor - the attack bubble color.
+   */
+  public void setAttackBubble(int bubbleIndex, int bubbleColor) {
+    this.attackBubbles[bubbleIndex] = (byte) bubbleColor;
+  }
+
+  /** 
+   * Set the total number of attack bubbles stored in the attack bar,
+   * as well as the array of current attack bubbles.
+   * @param numBubbles - the total number of attack bubbles.
+   * @param attackBubbles - the array of attack bubbles.
+   */
+  public void setAttackBubbles(int numBubbles, byte[] attackBubbles) {
+    nbMalus = numBubbles;
+
+    if (attackBubbles != null)
+      for (int i = 0; i < 15; i++)
+        this.attackBubbles[i] = attackBubbles[i];
   }
 }

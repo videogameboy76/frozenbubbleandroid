@@ -122,15 +122,6 @@ public class PenguinSprite extends Sprite {
                nextPosition);
   }
 
-  public static Rect getPenguinRect(int player) {
-    if (player == 1)
-      return new Rect(361, 436, 361 + PenguinSprite.PENGUIN_WIDTH - 2,
-                      436 + PenguinSprite.PENGUIN_HEIGHT - 2);
-    else
-      return new Rect(221, 436, 221 + PenguinSprite.PENGUIN_WIDTH - 2,
-                      436 + PenguinSprite.PENGUIN_HEIGHT - 2);
-  }
-
   public int getTypeId() {
     return Sprite.TYPE_PENGUIN;
   }

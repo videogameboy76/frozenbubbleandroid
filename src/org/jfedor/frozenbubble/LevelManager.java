@@ -91,15 +91,11 @@ public class LevelManager {
 
   /**
    * Constructor used to provide randomly generated levels.
-   * 
-   * @param seed
-   *        - the random bubble generation seed.
-   * 
-   * @param difficulty
-   *        - the number of different bubble colors to generate.  Higher
-   *        numbers make the level more difficult to play.  Use the
-   *        static difficulty values defined in this class to set the
-   *        level difficulty (e.g., EASY, HARD, etc.).
+   * @param seed - the random bubble generation seed.
+   * @param difficulty - the number of different bubble colors to
+   * generate.  Higher numbers make the level more difficult to play.
+   * Use the static difficulty values defined in this class to set the
+   * level difficulty, e.g. <code>EASY</code>, <code>HARD</code>, etc.
    */
   public LevelManager(long seed, int difficulty) {
     this.randomMode = true;
@@ -116,12 +112,8 @@ public class LevelManager {
 
   /**
    * Constructor used to parse levels provided via a formatted array.
-   * 
-   * @param levels
-   *        - the byte array containing the level information.
-   * 
-   * @param startingLevel
-   *        - the current level starting index.
+   * @param levels - the byte array containing the level information.
+   * @param startingLevel - the current level starting index.
    */
   public LevelManager(byte[] levels, int startingLevel) {
     randomMode = false;

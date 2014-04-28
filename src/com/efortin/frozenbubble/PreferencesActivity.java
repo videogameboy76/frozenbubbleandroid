@@ -65,44 +65,45 @@ import android.preference.PreferenceManager;
 import android.view.KeyEvent;
 
 public class PreferencesActivity extends PreferenceActivity{
-  private boolean adsOn      = true;
-  private int     collision  = BubbleSprite.MIN_PIX;
-  private boolean compressor = false;
-  private int     difficulty = LevelManager.MODERATE;
-  private boolean dontRushMe = false;
-  private boolean fullscreen = true;
-  private boolean colorMode  = false;
-  private int     gameMode   = FrozenBubble.GAME_NORMAL;
-  private boolean musicOn    = true;
-  private boolean soundOn    = true;
-  private int     targetMode = FrozenBubble.POINT_TO_SHOOT;
 
-  private void getFrozenBubblePrefs() {
-    SharedPreferences mConfig = getSharedPreferences(FrozenBubble.PREFS_NAME,
-                                                     Context.MODE_PRIVATE);
-    adsOn      = mConfig.getBoolean("adsOn",      true                       );
-    collision  = mConfig.getInt    ("collision",  BubbleSprite.MIN_PIX       );
-    compressor = mConfig.getBoolean("compressor", false                      );
-    difficulty = mConfig.getInt    ("difficulty", LevelManager.MODERATE      );
-    dontRushMe = mConfig.getBoolean("dontRushMe", false                      );
-    fullscreen = mConfig.getBoolean("fullscreen", true                       );
-    gameMode   = mConfig.getInt    ("gameMode",   FrozenBubble.GAME_NORMAL   );
-    musicOn    = mConfig.getBoolean("musicOn",    true                       );
-    soundOn    = mConfig.getBoolean("soundOn",    true                       );
-    targetMode = mConfig.getInt    ("targetMode", FrozenBubble.POINT_TO_SHOOT);
+  private Preferences mPrefs;
 
-    if (gameMode == FrozenBubble.GAME_NORMAL)
-      colorMode = false;
+  private void cleanUp() {
+    mPrefs = null;
+  }
+
+  public static void getFrozenBubblePrefs(Preferences prefs, SharedPreferences sp) {
+    prefs.adsOn      = sp.getBoolean("adsOn",      true                       );
+    prefs.collision  = sp.getInt    ("collision",  BubbleSprite.MIN_PIX       );
+    prefs.compressor = sp.getBoolean("compressor", false                      );
+    prefs.difficulty = sp.getInt    ("difficulty", LevelManager.MODERATE      );
+    prefs.dontRushMe = sp.getBoolean("dontRushMe", false                      );
+    prefs.fullscreen = sp.getBoolean("fullscreen", true                       );
+    prefs.gameMode   = sp.getInt    ("gameMode",   FrozenBubble.GAME_NORMAL   );
+    prefs.musicOn    = sp.getBoolean("musicOn",    true                       );
+    prefs.soundOn    = sp.getBoolean("soundOn",    true                       );
+    prefs.targetMode = sp.getInt    ("targetMode", FrozenBubble.POINT_TO_SHOOT);
+
+    if (prefs.gameMode == FrozenBubble.GAME_NORMAL)
+      prefs.colorMode = false;
     else
-      colorMode = true;
+      prefs.colorMode = true;
   }
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
      super.onCreate(savedInstanceState);
 
+     mPrefs = new Preferences();
      setDefaultPreferences();
      addPreferencesFromResource(R.layout.activity_preferences_screen);
+  }
+
+  @Override
+  protected void onDestroy() {
+    super.onDestroy();
+
+    cleanUp();
   }
 
   @Override
@@ -115,73 +116,90 @@ public class PreferencesActivity extends PreferenceActivity{
   }
 
   private void savePreferences() {
-    SharedPreferences prefs =
+    SharedPreferences dsp = 
         PreferenceManager.getDefaultSharedPreferences(this);
-    adsOn      = prefs.getBoolean("ads_option", true);
-    collision  = prefs.getInt("collision_option", BubbleSprite.MIN_PIX);
-    compressor = prefs.getBoolean("compressor_option", false);
-    difficulty = prefs.getInt("difficulty_option", LevelManager.MODERATE);
-    dontRushMe = !prefs.getBoolean("rush_me_option", true);
-    fullscreen = prefs.getBoolean("fullscreen_option", true);
-    colorMode  = prefs.getBoolean("colorblind_option", false);
-    musicOn    = prefs.getBoolean("play_music_option", true);
-    soundOn    = prefs.getBoolean("sound_effects_option", true);
-    targetMode = Integer.valueOf(prefs.getString("targeting_option",
+    mPrefs.adsOn      = dsp.getBoolean("ads_option", true);
+    mPrefs.collision  = dsp.getInt("collision_option", BubbleSprite.MIN_PIX);
+    mPrefs.compressor = dsp.getBoolean("compressor_option", false);
+    mPrefs.difficulty = dsp.getInt("difficulty_option", LevelManager.MODERATE);
+    mPrefs.dontRushMe = !dsp.getBoolean("rush_me_option", true);
+    mPrefs.fullscreen = dsp.getBoolean("fullscreen_option", true);
+    mPrefs.colorMode  = dsp.getBoolean("colorblind_option", false);
+    mPrefs.musicOn    = dsp.getBoolean("play_music_option", true);
+    mPrefs.soundOn    = dsp.getBoolean("sound_effects_option", true);
+    mPrefs.targetMode = Integer.valueOf(dsp.getString("targeting_option",
         Integer.toString(FrozenBubble.POINT_TO_SHOOT)));
 
-    if (!colorMode)
-      gameMode = FrozenBubble.GAME_NORMAL;
+    if (!mPrefs.colorMode)
+      mPrefs.gameMode = FrozenBubble.GAME_NORMAL;
     else
-      gameMode = FrozenBubble.GAME_COLORBLIND;
+      mPrefs.gameMode = FrozenBubble.GAME_COLORBLIND;
 
-    setFrozenBubblePrefs();
+    setFrozenBubblePrefs(mPrefs);
+
+    SharedPreferences sp = getSharedPreferences(FrozenBubble.PREFS_NAME,
+        Context.MODE_PRIVATE);
+
+    setFrozenBubblePrefs(mPrefs, sp);
   }
 
   private void setDefaultPreferences() {
-    getFrozenBubblePrefs();
+    SharedPreferences sp = getSharedPreferences(FrozenBubble.PREFS_NAME,
+                                                Context.MODE_PRIVATE);
+    getFrozenBubblePrefs(mPrefs, sp);
 
-    SharedPreferences prefs =
+    SharedPreferences spEditor =
         PreferenceManager.getDefaultSharedPreferences(this);
-    SharedPreferences.Editor editor = prefs.edit();
-
-    editor.putBoolean("ads_option", adsOn);
-    editor.putInt("collision_option", collision);
-    editor.putBoolean("compressor_option", compressor);
-    editor.putInt("difficulty_option", difficulty);
-    editor.putBoolean("rush_me_option", !dontRushMe);
-    editor.putBoolean("fullscreen_option", fullscreen);
-    editor.putBoolean("colorblind_option", colorMode);
-    editor.putBoolean("play_music_option", musicOn);
-    editor.putBoolean("sound_effects_option", soundOn);
-    editor.putString("targeting_option", Integer.toString(targetMode));
+    SharedPreferences.Editor editor = spEditor.edit();
+    editor.putBoolean("ads_option", mPrefs.adsOn);
+    editor.putInt("collision_option", mPrefs.collision);
+    editor.putBoolean("compressor_option", mPrefs.compressor);
+    editor.putInt("difficulty_option", mPrefs.difficulty);
+    editor.putBoolean("rush_me_option", !mPrefs.dontRushMe);
+    editor.putBoolean("fullscreen_option", mPrefs.fullscreen);
+    editor.putBoolean("colorblind_option", mPrefs.colorMode);
+    editor.putBoolean("play_music_option", mPrefs.musicOn);
+    editor.putBoolean("sound_effects_option", mPrefs.soundOn);
+    editor.putString("targeting_option", Integer.toString(mPrefs.targetMode));
     editor.commit();
   }
 
-  private void setFrozenBubblePrefs() {
-    FrozenBubble.setAdsOn(adsOn);
-    FrozenBubble.setCollision(collision);
-    FrozenBubble.setCompressor(compressor);
-    FrozenBubble.setDifficulty(difficulty);
-    FrozenBubble.setDontRushMe(dontRushMe);
-    FrozenBubble.setFullscreen(fullscreen);
-    FrozenBubble.setMode(gameMode);
-    FrozenBubble.setMusicOn(musicOn);
-    FrozenBubble.setSoundOn(soundOn);
-    FrozenBubble.setTargetMode(targetMode);
+  /**
+   * Update the game preferences to the desired values.
+   * @param prefs - the desired game preferences.
+   */
+  public static void setFrozenBubblePrefs(Preferences prefs) {
+    FrozenBubble.setAdsOn(prefs.adsOn);
+    FrozenBubble.setCollision(prefs.collision);
+    FrozenBubble.setCompressor(prefs.compressor);
+    FrozenBubble.setDifficulty(prefs.difficulty);
+    FrozenBubble.setDontRushMe(prefs.dontRushMe);
+    FrozenBubble.setFullscreen(prefs.fullscreen);
+    FrozenBubble.setMode(prefs.gameMode);
+    FrozenBubble.setMusicOn(prefs.musicOn);
+    FrozenBubble.setSoundOn(prefs.soundOn);
+    FrozenBubble.setTargetMode(prefs.targetMode);
+  }
 
-    SharedPreferences sp = getSharedPreferences(FrozenBubble.PREFS_NAME,
-                                                Context.MODE_PRIVATE);
+  /**
+   * Save the desired game preference values to nonvolatile memory.
+   * @param prefs - the desired game preferences.
+   * @param sp - the <code>SharedPreferences</code> object reference to
+   * create a preference editor for the purpose of saving the
+   * preferences to nonvolatile memory.
+   */
+  public static void setFrozenBubblePrefs(Preferences prefs, SharedPreferences sp) {
     SharedPreferences.Editor editor = sp.edit();
-    editor.putBoolean("adsOn", adsOn);
-    editor.putInt("collision", collision);
-    editor.putBoolean("compressor", compressor);
-    editor.putInt("difficulty", difficulty);
-    editor.putBoolean("dontRushMe", dontRushMe);
-    editor.putBoolean("fullscreen", fullscreen);
-    editor.putInt("gameMode", gameMode);
-    editor.putBoolean("musicOn", musicOn);
-    editor.putBoolean("soundOn", soundOn);
-    editor.putInt("targetMode", targetMode);
+    editor.putBoolean("adsOn", prefs.adsOn);
+    editor.putInt("collision", prefs.collision);
+    editor.putBoolean("compressor", prefs.compressor);
+    editor.putInt("difficulty", prefs.difficulty);
+    editor.putBoolean("dontRushMe", prefs.dontRushMe);
+    editor.putBoolean("fullscreen", prefs.fullscreen);
+    editor.putInt("gameMode", prefs.gameMode);
+    editor.putBoolean("musicOn", prefs.musicOn);
+    editor.putBoolean("soundOn", prefs.soundOn);
+    editor.putInt("targetMode", prefs.targetMode);
     editor.commit();
   }
 }

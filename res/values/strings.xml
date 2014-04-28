@@ -20,7 +20,7 @@
   <string name="play_level_music">Play Level Music</string>
   <string name="play_sound_effects">Play Sound Effects</string>
   <string name="title_activity_frozen_bubble">Frozen Bubble</string>
-  <string name="title_activity_splash_screen">Frozen Bubble</string>
+  <string name="title_activity_home_screen">Frozen Bubble</string>
   <string name="scrolling_credits">"Original Development\n"
     "------------------------\n"
     "\nGuillaume Cottenceau - Design and Programming\n"
