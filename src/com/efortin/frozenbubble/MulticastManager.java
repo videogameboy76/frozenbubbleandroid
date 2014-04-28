@@ -191,10 +191,11 @@ public class MulticastManager {
    * context for the purpose of obtaining WiFi service access.
    * @param address - the internet address of this multicast session.
    * @param port - the port number to use for the multicast socket.
+   * @throws UnknownHostException the address is invalid.
+   * @throws IOException socket creation failed.
    */
-  public MulticastManager(Context context,
-                          byte[]address,
-                          int port) throws UnknownHostException {
+  public MulticastManager(Context context, byte[]address, int port) throws
+      UnknownHostException, IOException {
     mContext = context.getApplicationContext();
     mPort = port;
     filter = FILTER_OFF;
@@ -202,8 +203,12 @@ public class MulticastManager {
     mLock = null;
     mThread = null;
     txList = null;
-    if (configureMulticast(address, port) == null) {
-      throw new UnknownHostException();
+    try {
+      configureMulticast(address, port);
+    } catch(UnknownHostException uhe) {
+      throw uhe;
+    } catch(IOException ioe) {
+      throw ioe;
     }
     txList = new ArrayList<byte[]>();
     WifiManager wm =
@@ -236,10 +241,11 @@ public class MulticastManager {
    * context for the purpose of obtaining WiFi service access.
    * @param hostName - the host name of the UDP unicast peer.
    * @param port - the port number to use for the UDP socket.
+   * @throws UnknownHostException the host name is invalid.
+   * @throws IOException socket creation failed.
    */
-  public MulticastManager(Context context,
-                          String hostName,
-                          int port) throws UnknownHostException {
+  public MulticastManager(Context context, String hostName, int port) throws
+      UnknownHostException, IOException {
     mContext = context.getApplicationContext();
     mPort = port;
     filter = FILTER_OFF;
@@ -247,8 +253,12 @@ public class MulticastManager {
     mLock = null;
     mThread = null;
     txList = null;
-    if (configureMulticast(hostName, port) == null) {
-      throw new UnknownHostException();
+    try {
+      configureMulticast(hostName, port);
+    } catch(UnknownHostException uhe) {
+      throw uhe;
+    } catch(IOException ioe) {
+      throw ioe;
     }
     txList = new ArrayList<byte[]>();
     mThread = new Thread(new MulticastThread(), "mThread");
@@ -281,8 +291,11 @@ public class MulticastManager {
    * <p>This must be called before <code>start()</code>ing the thread.
    * @param address - the internet address of this multicast session.
    * @param port - the port number to use for the multicast socket.
+   * @throws UnknownHostException the address is invalid.
+   * @throws IOException socket creation failed.
    */
-  private MulticastSocket configureMulticast(byte[]address, int port) {
+  private void configureMulticast(byte[]address, int port) throws
+      UnknownHostException, IOException {
     try {
       mAddress = InetAddress.getByAddress(address);
       mSocket = new MulticastSocket(port);
@@ -291,13 +304,16 @@ public class MulticastManager {
       mSocket.setLoopbackMode(true);
       mSocket.joinGroup(mAddress);
     } catch (UnknownHostException uhe) {
+      mAddress = null;
       mSocket = null;
       uhe.printStackTrace();
+      throw uhe;
     } catch (IOException ioe) {
+      mAddress = null;
       mSocket = null;
       ioe.printStackTrace();
+      throw ioe;
     }
-    return mSocket;
   }
 
   /**
@@ -305,8 +321,11 @@ public class MulticastManager {
    * <p>This must be called before <code>start()</code>ing the thread.
    * @param hostName - the host name of the UDP unicast peer.
    * @param port - the port number to use for the UDP socket.
+   * @throws UnknownHostException the host name is invalid.
+   * @throws IOException socket creation failed.
    */
-  private MulticastSocket configureMulticast(String hostName, int port) {
+  private void configureMulticast(String hostName, int port) throws
+      UnknownHostException, IOException{
     try {
       mAddress = InetAddress.getByName(hostName);
       mSocket = new MulticastSocket(port);
@@ -314,13 +333,16 @@ public class MulticastManager {
       mSocket.setBroadcast(false);
       mSocket.setLoopbackMode(true);
     } catch (UnknownHostException uhe) {
+      mAddress = null;
       mSocket = null;
       uhe.printStackTrace();
+      throw uhe;
     } catch (IOException ioe) {
+      mAddress = null;
       mSocket = null;
       ioe.printStackTrace();
+      throw ioe;
     }
-    return mSocket;
   }
 
   /**
