@@ -60,8 +60,9 @@ import android.content.Context;
 import android.os.Bundle;
 
 /**
+ * A class to manage the highscore table for each level.
  * @author Michel Racic (http://www.2030.tk)
- * <br>  A class to manage the highscore table for each level.
+ *
  */
 public class HighscoreManager {
 
@@ -87,8 +88,9 @@ public class HighscoreManager {
   }
 
   /**
-   * @param nbBubbles
-   *        - The number of bubbles launched by the player.
+   * Take snapshots of the game statistics and store them in a database
+   * object.
+   * @param nbBubbles - The number of bubbles launched by the player.
    */
   public void endLevel(int nbBubbles) {
     long endTime  = System.currentTimeMillis();
@@ -146,8 +148,7 @@ public class HighscoreManager {
 
   /**
    * Accumulate the play time between pause/resume cycles.
-   * <p>
-   * <code>pausedTime</code> is an accumulation of the play time
+   * <p><code>pausedTime</code> is an accumulation of the play time
    * between pause/resume cycles.
    */
   public void pauseLevel() {

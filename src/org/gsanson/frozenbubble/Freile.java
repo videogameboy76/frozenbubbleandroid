@@ -83,14 +83,24 @@ public class Freile implements Opponent, Runnable {
    {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
    {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
 
-  //**********************************************************
+  //********************************************************************
   // Listener interface for various opponent events
-  //**********************************************************
-  // Event types.
-  public static final int EVENT_DONE_COMPUTING = 1;
-  // Listener user set.
+  //********************************************************************
+
+  /*
+   * Event types enumeration.
+   */
+  public static enum eventEnum {
+    DONE_COMPUTING;
+  }
+
+  /**
+   * Opponent event listener user set.
+   * @author Glenn Sanson
+   *
+   */
   public interface OpponentListener {
-    public abstract void onOpponentEvent(int event);
+    public abstract void onOpponentEvent(eventEnum event);
   }
 
   OpponentListener mOpponentListener;
@@ -99,23 +109,23 @@ public class Freile implements Opponent, Runnable {
     mOpponentListener = ol;
   }
 
-  /** Reference to the managed game grid */
+  /* Reference to the managed game grid */
   private BubbleSprite[][] grid;
-  /** Current color */
+  /* Current color */
   private int color;
-  /** Next color */
+  /* Next color */
   private int nextColor;
-  /** Current compressor level */
+  /* Current compressor level */
   private int compressor;
-  /** Swap launch bubble with next bubble? */
+  /* Swap launch bubble with next bubble? */
   private boolean colorSwap;
-  /** Calculating new position */
+  /* Calculating new position */
   private boolean computing;
-  /** Thread running flag */
+  /* Thread running flag */
   private boolean running;
-  /** Best direction */
+  /* Best direction */
   private double bestDirection;  
-  /** Best ball destination */
+  /* Best ball destination */
   private int[] bestDestination;
 
   public Freile(BubbleSprite[][] grid) {
@@ -128,7 +138,6 @@ public class Freile implements Opponent, Runnable {
 
   /**
    * Checks if work is still in progress.
-   * 
    * @return true if the calculation is not yet finished
    */
   public boolean isComputing() {
@@ -136,7 +145,9 @@ public class Freile implements Opponent, Runnable {
   }
 
   public double getExactDirection(double currentDirection) {
-    // currentDirection is not used there
+    /*
+     * currentDirection is not used here.
+     */
     return bestDirection;
   }
 
@@ -189,7 +200,7 @@ public class Freile implements Opponent, Runnable {
       if (computing) {
         computing = false;
         if (mOpponentListener != null)
-          mOpponentListener.onOpponentEvent(EVENT_DONE_COMPUTING);
+          mOpponentListener.onOpponentEvent(eventEnum.DONE_COMPUTING);
       }
 
       while (running && !computing) {
@@ -204,10 +215,14 @@ public class Freile implements Opponent, Runnable {
       }
 
       if (running) {
-        // Compute grid options
+        /*
+         * Compute grid options.
+         */
         int[][] gridOptions = new int[8][13];
   
-        // Check for best option
+        /*
+         * Check for best option.
+         */
         int bestOption = -1;
         bestDirection = 0.;
         colorSwap = false;
@@ -325,7 +340,9 @@ public class Freile implements Opponent, Runnable {
         speedX = -speedX;
       }
 
-      // Check top collision
+      /*
+       * Check top collision.
+       */
       if (posY < 0.) {
         int valX = (int) posX;
 
@@ -336,7 +353,9 @@ public class Freile implements Opponent, Runnable {
         }
         position[1] = 0;
       } else {
-        // Check other collision          
+        /*
+         * Check other collision.
+         */
         position = CollisionHelper.collide((int) posX, (int) posY, grid);
       }
     }
@@ -346,8 +365,8 @@ public class Freile implements Opponent, Runnable {
 
   /**
    * Stop the thread <code>run()</code> execution.
-   * <p>
-   * Interrupt the thread when it is suspended via <code>wait()</code>.
+   * <p>Interrupt the thread when it is suspended via
+   * <code>wait()</code>.
    */
   public void stopThread() {
     running = false;

@@ -58,6 +58,29 @@ import android.graphics.Canvas;
 import android.os.Bundle;
 
 public abstract class GameScreen {
+
+  public static enum eventEnum {
+    GAME_WON,
+    GAME_LOST,
+    GAME_PAUSED,
+    GAME_RESUME,
+    LEVEL_START;
+  }
+
+  public static enum gameEnum {
+    PLAYING,
+    LOST,
+    WON,
+    NEXT_LOST,
+    NEXT_WON;
+  }
+
+  public static enum stateEnum {
+    RUNNING,
+    PAUSED,
+    ABOUT;
+  }
+
   private Vector<Sprite> sprites;
 
   public final void saveSprites(Bundle map, Vector<Sprite> savedSprites,
@@ -120,10 +143,10 @@ public abstract class GameScreen {
     }
   }
 
-  public abstract int play(boolean key_left, boolean key_right,
-                           boolean key_fire, boolean key_swap,
-                           double trackball_dx,
-                           boolean touch_fire,
-                           double touch_x, double touch_y,
-                           boolean ats_touch_fire, double ats_touch_dx);
+  public abstract gameEnum play(boolean key_left, boolean key_right,
+                                boolean key_fire, boolean key_swap,
+                                double trackball_dx,
+                                boolean touch_fire,
+                                double touch_x, double touch_y,
+                                boolean ats_touch_fire, double ats_touch_dx);
 }

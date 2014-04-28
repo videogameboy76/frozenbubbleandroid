@@ -158,15 +158,12 @@ public class ScrollingCredits extends Activity implements Runnable {
    * Set the window layout according to the settings in the specified
    * layout XML file.  Then apply the full screen option according to
    * the player preference setting.
-   * 
    * <p>Note that the title bar is not desired for the scrolling
    * credits, and requesting that the title bar be removed <b>must</b>
    * be applied before setting the view content by applying the XML
    * layout or it will generate an exception.
-   * 
-   * @param layoutResID
-   *        - The resource ID of the XML layout to use for the window
-   *        layout settings.
+   * @param layoutResID - The resource ID of the XML layout to use for
+   * the window layout settings.
    */
   private void setWindowLayout(int layoutResID) {
     final int flagFs   = WindowManager.LayoutParams.FLAG_FULLSCREEN;
@@ -208,18 +205,16 @@ public class ScrollingCredits extends Activity implements Runnable {
 
   public void end() {
     credits.abort();
-    //
-    // Since the default game activity creates its own player,
-    // destroy the current player.
-    //
-    //
+    /*
+     * Since the default game activity creates its own player,
+     * destroy the current player.
+     */
     cleanUp();
-    //
-    // Create an intent to launch the game activity.  Since it was
-    // running in the background while this activity was running, it
-    // may have been stopped by the system.
-    //
-    //
+    /*
+     * Create an intent to launch the game activity.  Since it was
+     * running in the background while this activity was running, it
+     * may have been stopped by the system.
+     */
     Intent intent = new Intent(this, FrozenBubble.class);
     startActivity(intent);
     finish();
@@ -239,7 +234,9 @@ public class ScrollingCredits extends Activity implements Runnable {
 
   @Override
   public void run() {
-    // Check if we need to display the end of game victory image.
+    /*
+     * Check if we need to display the end of game victory image.
+     */
     if (!credits.isScrolling() && !victoryScreenShown) {
       victoryScreenShown = true;
       // Make the credits text transparent.

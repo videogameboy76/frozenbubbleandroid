@@ -61,31 +61,27 @@ import android.content.Context;
 /**
  * Convenience class extending PlayerThread, handling all the file
  * operations, accepting Android resource IDs for MOD/XM song files.
- * 
- * <p>   <b>Typical call order:</b>
- * <br>  <code>// get player instance (in topmost activity, etc.)
- * <br>  mrp = MODResourcePlayer();
- * <br>  // load MOD/XM data into player
- * <br>  mrp.LoadMODResource(R.raw.coolsong);
- * <br>  mrp.start();  // start thread (playing song)</code>
- * <br>
- * <b>   Then when changing songs (new game level or transition to
- *       another sub-activity, etc.):</b> 
- * <br>  <code>mrp.PausePlay();
- * <br>  mrp.LoadMODResource(R.raw.newcoolsong);
- * <br>  mrp.UnPausePlay();
- * <br>  // repeat...</code>
- * 
- * @version   1.0
- * 
- * @author    P.A. Casey (crow) Peculiar-Games.com
+ * <p><b>Typical call order:</b>
+ * <br><code>// get player instance (in topmost activity, etc.)
+ * <br>mrp = MODResourcePlayer();
+ * <br>// load MOD/XM data into player
+ * <br>mrp.LoadMODResource(R.raw.coolsong);
+ * <br>mrp.start();  // start thread (playing song)</code>
+ * <br><b>Then when changing songs (new game level or transition to
+ * another sub-activity, etc.):</b> 
+ * <br><code>mrp.PausePlay();
+ * <br>mrp.LoadMODResource(R.raw.newcoolsong);
+ * <br>mrp.UnPausePlay();
+ * <br>// repeat...</code>
+ * @version 1.0
+ * @author P.A. Casey (crow) Peculiar-Games.com
+ *
  */
 public class MODResourcePlayer extends PlayerThread {
-  //
-  // Application context, for accessing the resources - specifically the
-  // the R.raw.<filename> resources which are MOD music files.
-  //
-  //
+  /*
+   * Application context, for accessing the resources - specifically the
+   * the R.raw.<filename> resources which are MOD music files.
+   */
   private Context mContext;
 
   /**
@@ -93,17 +89,14 @@ public class MODResourcePlayer extends PlayerThread {
    * resource files (typically the songs are stored in the res/raw
    * project directory and conform to Android build process rules,
    * lower-case names, etc.)
-   * 
-   * <p>   <b>Note about extensions:</b>
-   * <br>  Developers using Eclipse as an IDE should note that it allows
-   *       the .xm file extension but may be fussy about other tracker
-   *       format extensions.
-   * 
-   * <p>   The <code>context</code> argument is the application context
-   *       which allows MODResourcePlayer to load resources directly.
-   * 
-   * @param context
-   *        - Application context that is creating this instance.
+   * <p><b>Note about extensions:</b>
+   * <br>Developers using Eclipse as an IDE should note that it allows
+   * the .xm file extension but may be fussy about other tracker format
+   * extensions.
+   * <p>The <code>context</code> argument is the application context
+   * which allows MODResourcePlayer to load resources directly.
+   * @param context - Application context that is creating this
+   * instance.
    */
   public MODResourcePlayer(Context context) {
     // Get super class (PlayerThread) with default rate.
@@ -115,34 +108,28 @@ public class MODResourcePlayer extends PlayerThread {
 
   /**
    * Load a MOD/XM/etc. song file from an Android resource.
-   * 
-   * <p>   <b>Note about extensions:</b>
-   * <br>  Developers using Eclipse as an IDE should note that it allows
-   *       the .xm file extension but may be fussy about other tracker
-   *       format extensions.
-   * 
-   * <p>   The <code>modresource</code> argument is the resource id for
-   *       the MOD/XM song file, e.g. R.raw.coolsong
-   * 
-   * @param modresource
-   *        - Android resource id for a MOD/XM/etc. (tracker format)
-   *        song file.
+   * <p><b>Note about extensions:</b>
+   * <br>Developers using Eclipse as an IDE should note that it allows
+   * the .xm file extension but may be fussy about other tracker format
+   * extensions.
+   * <p>The <code>modresource</code> argument is the resource id for the
+   * MOD/XM song file, e.g. R.raw.coolsong
+   * @param modresource - Android resource id for a MOD/XM/etc. (tracker
+   * format) song file.
    */
   public boolean LoadMODResource(int modresource) {
     byte[] modData = null;
     int currfilesize = 0;
     InputStream mModfileInStream;
 
-    //
-    // Unload any mod file we have currently loaded.
-    //
-    //
+    /*
+     * Unload any mod file we have currently loaded.
+     */
     UnLoadMod();
 
-    //
-    // Get an input stream for the MOD file resource.
-    //
-    //
+    /*
+     * Get an input stream for the MOD file resource.
+     */
     mModfileInStream = mContext.getResources().openRawResource(modresource);
     try {
       currfilesize = mModfileInStream.available();
@@ -150,10 +137,9 @@ public class MODResourcePlayer extends PlayerThread {
       return false;
     }
 
-    //
-    // Allocate a buffer that can hold the current MOD file data.
-    //
-    //
+    /*
+     * Allocate a buffer that can hold the current MOD file data.
+     */
     modData = new byte[currfilesize];
 
     try {
@@ -163,10 +149,9 @@ public class MODResourcePlayer extends PlayerThread {
       e.printStackTrace();
     }
 
-    //
-    // Load the song into the player.
-    //
-    //
+    /*
+     * Load the song into the player.
+     */
     LoadMODData(modData);
     return true;
   }
@@ -174,21 +159,24 @@ public class MODResourcePlayer extends PlayerThread {
   /**
    * Stop playing the song, close down the player and
    * <code>join()</code> the player thread.
-   * 
-   * <p>   Typically called in the application's (Activity's)
-   *       <code>onPause()</code> method.
+   * <p>Typically called in the application's (Activity's)
+   * <code>onPause()</code> method.
    */
   public void StopAndClose() {
     PausePlay();
-    boolean retry = true;
-    // Now close and join() the MOD player thread.
     StopThread();
+    /*
+     * Now close and join() the MOD player thread.
+     */
+    boolean retry = true;
     while (retry) {
       try {
         join();
         retry = false;
       } catch (InterruptedException e) {
-        // Keep trying to close the player thread.
+        /*
+         * Keep trying to close the player thread.
+         */
       }
     }
     CloseLIBMODPLUG();

@@ -67,6 +67,7 @@ import android.hardware.SensorManager;
  * <br>  http://www.gnu.org/licenses/gpl-3.0.html
  *
  * @author Antoine Vianey
+ *
  */
 public class AccelerometerManager {
   private static Sensor sensor;

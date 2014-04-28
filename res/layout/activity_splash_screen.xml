@@ -3,10 +3,10 @@
   android:layout_width="fill_parent"
   android:layout_height="fill_parent"
   android:background="@color/black"
-  tools:context=".SplashScreen" >
+  tools:context=".HomeScreen" >
 
   <ImageView
-    android:contentDescription="@string/title_activity_splash_screen"
+    android:contentDescription="@string/title_activity_home_screen"
     android:src="@drawable/splash"
     android:id="@+id/splash"
     android:layout_width="fill_parent"

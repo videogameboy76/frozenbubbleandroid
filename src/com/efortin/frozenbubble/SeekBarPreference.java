@@ -180,7 +180,7 @@ public class SeekBarPreference extends Preference
   }
 
   /**
-   * Update a SeekBarPreference view with our current state
+   * Update a SeekBarPreference view with our current state.
    * @param view
    */
   protected void updateView(View view) {

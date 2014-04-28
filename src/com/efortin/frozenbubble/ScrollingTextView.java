@@ -207,8 +207,8 @@ public class ScrollingTextView extends TextView implements Runnable {
   }
 
   public boolean isScrolling() {
-    return ((scrollCount != 0) || !scroller.isFinished() ||
-             scrollingPaused   || !started);
+    return (scrollCount != 0) || !scroller.isFinished() || scrollingPaused ||
+           !started;
   }
 
   public void setPaused(boolean paused) {

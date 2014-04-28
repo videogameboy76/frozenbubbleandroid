@@ -58,6 +58,7 @@ package com.efortin.frozenbubble;
  * http://www.screaming-penguin.com/node/7742
  *
  * @author Michel Racic (http://www.2030.tk)
+ *
  */
 import java.util.ArrayList;
 import java.util.List;

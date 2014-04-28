@@ -55,6 +55,7 @@ package com.efortin.frozenbubble;
 
 /**
  * @author Michel Racic (http://www.2030.tk)
+ *
  */
 public class HighscoreDO {
   private int id;
