@@ -67,9 +67,13 @@ import android.view.KeyEvent;
 public class PreferencesActivity extends PreferenceActivity{
 
   private Preferences mPrefs;
+  private SeekBarPreference collisionSlider;
+  private SeekBarPreference difficultySlider;
 
   private void cleanUp() {
     mPrefs = null;
+    collisionSlider = null;
+    difficultySlider = null;
   }
 
   public static void getFrozenBubblePrefs(Preferences prefs, SharedPreferences sp) {
@@ -97,6 +101,8 @@ public class PreferencesActivity extends PreferenceActivity{
      mPrefs = new Preferences();
      setDefaultPreferences();
      addPreferencesFromResource(R.layout.activity_preferences_screen);
+     collisionSlider = (SeekBarPreference) findPreference("collision_option");
+     difficultySlider = (SeekBarPreference) findPreference("difficulty_option");
   }
 
   @Override
@@ -108,11 +114,18 @@ public class PreferencesActivity extends PreferenceActivity{
 
   @Override
   public boolean onKeyDown(int keyCode, KeyEvent msg) {
+    boolean result = false;
+
     if (keyCode == KeyEvent.KEYCODE_BACK) {
       savePreferences();
       finish();
     }
-    return super.onKeyDown(keyCode, msg);
+    else {
+      result = collisionSlider.onKey(keyCode, msg);
+      result |= difficultySlider.onKey(keyCode, msg);
+    }
+
+    return result || super.onKeyDown(keyCode, msg);
   }
 
   private void savePreferences() {
