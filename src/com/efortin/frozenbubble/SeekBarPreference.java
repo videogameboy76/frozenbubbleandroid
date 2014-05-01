@@ -59,6 +59,7 @@ import android.content.res.TypedArray;
 import android.preference.Preference;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -98,33 +99,6 @@ public class SeekBarPreference extends Preference
     initPreference(context, attrs);
   }
 
-  private void initPreference(Context context, AttributeSet attrs) {
-    setValuesFromXml(attrs);
-    mSeekBar = new SeekBar(context, attrs);
-    mSeekBar.setMax(mMaxValue - mMinValue);
-    mSeekBar.setOnSeekBarChangeListener(this);
-  }
-
-  private void setValuesFromXml(AttributeSet attrs) {
-    mMaxValue = attrs.getAttributeIntValue(ANDROIDNS, "max", 100);
-    mMinValue = attrs.getAttributeIntValue(FROZENBUBBLENS, "min", 0);
-
-    mUnitsLeft = getAttributeStringValue(attrs, FROZENBUBBLENS,
-        "unitsLeft", "");
-    String units = getAttributeStringValue(attrs, FROZENBUBBLENS, "units", "");
-    mUnitsRight = getAttributeStringValue(attrs, FROZENBUBBLENS,
-        "unitsRight", units);
-
-    try {
-      String newInterval = attrs.getAttributeValue(FROZENBUBBLENS, "interval");
-      if(newInterval != null)
-        mInterval = Integer.parseInt(newInterval);
-    }
-    catch(Exception e) {
-      Log.e(TAG, "Invalid interval value", e);
-    }
-  }
-
   private String getAttributeStringValue(AttributeSet attrs, String namespace,
                                          String name, String defaultValue) {
     String value = attrs.getAttributeValue(namespace, name);
@@ -134,22 +108,14 @@ public class SeekBarPreference extends Preference
     return value;
   }
 
-  @Override
-  protected View onCreateView(ViewGroup parent){
-      RelativeLayout layout = null;
-
-      try {
-        LayoutInflater mInflater = (LayoutInflater)getContext().
-            getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        layout = (RelativeLayout)mInflater.
-            inflate(R.layout.seek_bar_preference, parent, false);
-      }
-      catch(Exception e)
-      {
-        Log.e(TAG, "Error creating seek bar preference", e);
-      }
-
-      return layout;
+  private void initPreference(Context context, AttributeSet attrs) {
+    setValuesFromXml(attrs);
+    mSeekBar = new SeekBar(context, attrs);
+    mSeekBar.setMax(mMaxValue - mMinValue);
+    mSeekBar.setOnSeekBarChangeListener(this);
+    mSeekBar.setFocusable(true);
+    mSeekBar.setFocusableInTouchMode(true);
+    this.setSelectable(true);
   }
 
   @Override
@@ -179,30 +145,48 @@ public class SeekBarPreference extends Preference
       updateView(view);
   }
 
-  /**
-   * Update a SeekBarPreference view with our current state.
-   * @param view
-   */
-  protected void updateView(View view) {
-    try {
-      RelativeLayout layout = (RelativeLayout)view;
+  @Override
+  protected View onCreateView(ViewGroup parent){
+      RelativeLayout layout = null;
 
-      mStatusText = (TextView)layout.findViewById(R.id.seekBarPrefValue);
-      mStatusText.setText(String.valueOf(mCurrentValue));
-      mStatusText.setMinimumWidth(30);
+      try {
+        LayoutInflater mInflater = (LayoutInflater)getContext().
+            getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        layout = (RelativeLayout)mInflater.
+            inflate(R.layout.seek_bar_preference, parent, false);
+      }
+      catch(Exception e)
+      {
+        Log.e(TAG, "Error creating seek bar preference", e);
+      }
 
-      mSeekBar.setProgress(mCurrentValue - mMinValue);
+      return layout;
+  }
 
-      TextView unitsRight =
-          (TextView)layout.findViewById(R.id.seekBarPrefUnitsRight);
-      unitsRight.setText(mUnitsRight);
+  @Override 
+  protected Object onGetDefaultValue(TypedArray ta, int index) {
+    int defaultValue = ta.getInt(index, DEFAULT_VALUE);
+    return defaultValue;
+  }
 
-      TextView unitsLeft =
-          (TextView)layout.findViewById(R.id.seekBarPrefUnitsLeft);
-      unitsLeft.setText(mUnitsLeft);
-    } catch(Exception e) {
-        Log.e(TAG, "Error updating seek bar preference", e);
+  public boolean onKey(int keyCode, KeyEvent event) {
+    if (mSeekBar.isSelected() && (event.getAction() == KeyEvent.ACTION_DOWN)) {
+      switch (keyCode) {
+        case KeyEvent.KEYCODE_DPAD_LEFT:
+        if (mCurrentValue > mMinValue) {
+          mSeekBar.setProgress((mCurrentValue - mMinValue) - mInterval);
+          return true;
+        }
+        break;
+        case KeyEvent.KEYCODE_DPAD_RIGHT:
+        if (mCurrentValue < mMaxValue) {
+          mSeekBar.setProgress((mCurrentValue - mMinValue) + mInterval);
+          return true;
+        }
+        break;
+      }
     }
+    return false;
   }
 
   @Override
@@ -230,20 +214,6 @@ public class SeekBarPreference extends Preference
   }
 
   @Override
-  public void onStartTrackingTouch(SeekBar seekBar) {}
-
-  @Override
-  public void onStopTrackingTouch(SeekBar seekBar) {
-      notifyChanged();
-  }
-
-  @Override 
-  protected Object onGetDefaultValue(TypedArray ta, int index) {
-    int defaultValue = ta.getInt(index, DEFAULT_VALUE);
-    return defaultValue;
-  }
-
-  @Override
   protected void onSetInitialValue(boolean restoreValue, Object defaultValue) {
     if(restoreValue) {
       mCurrentValue = getPersistedInt(mCurrentValue);
@@ -262,7 +232,61 @@ public class SeekBarPreference extends Preference
     }
   }
 
+  @Override
+  public void onStartTrackingTouch(SeekBar seekBar) {}
+
+  @Override
+  public void onStopTrackingTouch(SeekBar seekBar) {
+      notifyChanged();
+  }
+
   public void setDefaultValue(int newValue) {
     mCurrentValue = newValue;
+  }
+
+  private void setValuesFromXml(AttributeSet attrs) {
+    mMaxValue = attrs.getAttributeIntValue(ANDROIDNS, "max", 100);
+    mMinValue = attrs.getAttributeIntValue(FROZENBUBBLENS, "min", 0);
+
+    mUnitsLeft = getAttributeStringValue(attrs, FROZENBUBBLENS,
+        "unitsLeft", "");
+    String units = getAttributeStringValue(attrs, FROZENBUBBLENS, "units", "");
+    mUnitsRight = getAttributeStringValue(attrs, FROZENBUBBLENS,
+        "unitsRight", units);
+
+    try {
+      String newInterval = attrs.getAttributeValue(FROZENBUBBLENS, "interval");
+      if(newInterval != null)
+        mInterval = Integer.parseInt(newInterval);
+    }
+    catch(Exception e) {
+      Log.e(TAG, "Invalid interval value", e);
+    }
+  }
+
+  /**
+   * Update a SeekBarPreference view with our current state.
+   * @param view
+   */
+  protected void updateView(View view) {
+    try {
+      RelativeLayout layout = (RelativeLayout)view;
+
+      mStatusText = (TextView)layout.findViewById(R.id.seekBarPrefValue);
+      mStatusText.setText(String.valueOf(mCurrentValue));
+      mStatusText.setMinimumWidth(30);
+
+      mSeekBar.setProgress(mCurrentValue - mMinValue);
+
+      TextView unitsRight =
+          (TextView)layout.findViewById(R.id.seekBarPrefUnitsRight);
+      unitsRight.setText(mUnitsRight);
+
+      TextView unitsLeft =
+          (TextView)layout.findViewById(R.id.seekBarPrefUnitsLeft);
+      unitsLeft.setText(mUnitsLeft);
+    } catch(Exception e) {
+        Log.e(TAG, "Error updating seek bar preference", e);
+    }
   }
 }
