@@ -763,10 +763,13 @@ public class PlayerThread extends Thread {
      * track, but seem to get an uninitialized audio track here
      * occasionally, generating an IllegalStateException.
      */
-    try {
+    if (mMytrack != null) try {
       if (mMytrack.getState() == AudioTrack.STATE_INITIALIZED)
         mMytrack.stop();
-    } catch (IllegalStateException ise) {
+    } catch (NullPointerException npe) {
+      npe.printStackTrace();
+    }
+      catch (IllegalStateException ise) {
       ise.printStackTrace();
     }
 
