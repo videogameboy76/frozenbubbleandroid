@@ -846,7 +846,6 @@ public class FrozenBubble extends Activity
     targetMode = mConfig.getInt    ("targetMode", POINT_TO_SHOOT       );
 
     BubbleSprite.setCollisionThreshold(collision);
-    setTargetMode(targetMode);
     setTargetModeOrientation();
   }
 
