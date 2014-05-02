@@ -649,30 +649,34 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
         updateStateOnEvent(null);
 
       synchronized(mSurfaceHolder) {
-        if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
-          mLeft    = true;
-          mWasLeft = true;
-          handled  = true;
-        }
-        else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
-          mRight    = true;
-          mWasRight = true;
-          handled   = true;
-        }
-        else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
-          mFire    = true;
-          mWasFire = true;
-          handled  = true;
-        }
-        else if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
-          mUp     = true;
-          mWasUp  = true;
-          handled = true;
-        }
-        else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-          mDown    = true;
-          mWasDown = true;
-          handled  = true;
+        switch(keyCode) {
+          case KeyEvent.KEYCODE_DPAD_LEFT:
+            mLeft    = true;
+            mWasLeft = true;
+            handled  = true;
+            break;
+          case KeyEvent.KEYCODE_DPAD_RIGHT:
+            mRight    = true;
+            mWasRight = true;
+            handled   = true;
+            break;
+          case KeyEvent.KEYCODE_DPAD_CENTER:
+            mFire    = true;
+            mWasFire = true;
+            handled  = true;
+            break;
+          case KeyEvent.KEYCODE_DPAD_UP:
+            mUp     = true;
+            mWasUp  = true;
+            handled = true;
+            break;
+          case KeyEvent.KEYCODE_DPAD_DOWN:
+            mDown    = true;
+            mWasDown = true;
+            handled  = true;
+            break;
+          default:
+            break;              
         }
       }
       return handled;
@@ -689,25 +693,29 @@ class GameView extends SurfaceView implements SurfaceHolder.Callback {
     boolean doKeyUp(int keyCode, KeyEvent msg) {
       boolean handled = false;
       synchronized(mSurfaceHolder) {
-        if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
-          mLeft   = false;
-          handled = true;
-        }
-        else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
-          mRight  = false;
-          handled = true;
-        }
-        else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
-          mFire   = false;
-          handled = true;
-        }
-        else if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
-          mUp     = false;
-          handled = true;
-        }
-        else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-          mDown   = false;
-          handled = true;
+        switch(keyCode) {
+          case KeyEvent.KEYCODE_DPAD_LEFT:
+            mLeft   = false;
+            handled = true;
+            break;
+          case KeyEvent.KEYCODE_DPAD_RIGHT:
+            mRight  = false;
+            handled = true;
+            break;
+          case KeyEvent.KEYCODE_DPAD_CENTER:
+            mFire   = false;
+            handled = true;
+            break;
+          case KeyEvent.KEYCODE_DPAD_UP:
+            mUp     = false;
+            handled = true;
+            break;
+          case KeyEvent.KEYCODE_DPAD_DOWN:
+            mDown   = false;
+            handled = true;
+            break;
+          default:
+            break;              
         }
       }
       return handled;
