@@ -429,32 +429,37 @@ public class MultiplayerGameView extends SurfaceView
      * @return True if the key press was processed, false if not.
      */
     public boolean setKeyDown(int keyCode) {
-      if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
-        mLeft    = true;
-        mWasLeft = true;
-        return true;
+      boolean handled = false;
+      switch(keyCode) {
+        case KeyEvent.KEYCODE_DPAD_LEFT:
+          mLeft    = true;
+          mWasLeft = true;
+          handled  = true;
+          break;
+        case KeyEvent.KEYCODE_DPAD_RIGHT:
+          mRight    = true;
+          mWasRight = true;
+          handled   = true;
+          break;
+        case KeyEvent.KEYCODE_DPAD_CENTER:
+          mCenter    = true;
+          mWasCenter = true;
+          handled    = true;
+          break;
+        case KeyEvent.KEYCODE_DPAD_UP:
+          mUp     = true;
+          mWasUp  = true;
+          handled = true;
+          break;
+        case KeyEvent.KEYCODE_DPAD_DOWN:
+          mDown    = true;
+          mWasDown = true;
+          handled  = true;
+          break;
+        default:
+          break;              
       }
-      else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
-        mRight    = true;
-        mWasRight = true;
-        return true;
-      }
-      else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
-        mCenter    = true;
-        mWasCenter = true;
-        return true;
-      }
-      else if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
-        mUp    = true;
-        mWasUp = true;
-        return true;
-      }
-      else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-        mDown    = true;
-        mWasDown = true;
-        return true;
-      }
-      return false;
+      return handled;
     }
 
     /**
@@ -463,30 +468,36 @@ public class MultiplayerGameView extends SurfaceView
      * @return True if the key release was processed, false if not.
      */
     public boolean setKeyUp(int keyCode) {
-      if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
-        mLeft = false;
-        return true;
+      boolean handled = false;
+      switch(keyCode) {
+        case KeyEvent.KEYCODE_DPAD_LEFT:
+          mLeft   = false;
+          handled = true;
+          break;
+        case KeyEvent.KEYCODE_DPAD_RIGHT:
+          mRight  = false;
+          handled = true;
+          break;
+        case KeyEvent.KEYCODE_DPAD_CENTER:
+          mCenter = false;
+          handled = true;
+          break;
+        case KeyEvent.KEYCODE_DPAD_UP:
+          mUp     = false;
+          handled = true;
+          break;
+        case KeyEvent.KEYCODE_DPAD_DOWN:
+          mDown   = false;
+          handled = true;
+          break;
+        default:
+          break;              
       }
-      else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
-        mRight = false;
-        return true;
-      }
-      else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
-        mCenter = false;
-        return true;
-      }
-      else if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
-        mUp = false;
-        return true;
-      }
-      else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-        mDown = false;
-        return true;
-      }
-      return false;
+      return handled;
     }
 
     public boolean setTouchEvent(int event, double x, double y) {
+      boolean handled = false;
       if (mGameThread.mMode == stateEnum.RUNNING) {
         // Set the values used when Point To Shoot is on.
         if (event == MotionEvent.ACTION_DOWN) {
@@ -514,9 +525,9 @@ public class MultiplayerGameView extends SurfaceView
           }
           mTouchLastX = x;
         }
-        return true;
+        handled = true;
       }
-      return false;
+      return handled;
     }
 
     /**
