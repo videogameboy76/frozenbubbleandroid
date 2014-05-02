@@ -587,81 +587,9 @@ public class MultiplayerGameView extends SurfaceView
    * via a client device over a network.
    * @param newAction - the object containing the remote input info.
    */
-  private synchronized void setPlayerAction(PlayerAction newAction) {
-    if (newAction == null) {
-      return;
-    }
-
-    VirtualInput playerRef;
-
-    if (newAction.playerID == VirtualInput.PLAYER1) {
-      playerRef = mPlayer1;
-    }
-    else if (newAction.playerID == VirtualInput.PLAYER2) {
-      playerRef = mPlayer2;
-    }
-    else {
-      return;
-    }
-
-    if (mGameThread != null)
-      mGameThread.updateStateOnEvent(null);
-
-    /*
-     * Set the launcher bubble colors.
-     */
-    if ((newAction.launchBubbleColor  > -1) &&
-        (newAction.launchBubbleColor  <  8) &&
-        (newAction.nextBubbleColor    > -1) &&
-        (newAction.nextBubbleColor    <  8) &&
-        (newAction.newNextBubbleColor > -1) &&
-        (newAction.newNextBubbleColor <  8)) {
-      playerRef.mGameRef.setLaunchBubbleColors(newAction.launchBubbleColor,
-                                               newAction.nextBubbleColor,
-                                               newAction.newNextBubbleColor);
-    }
-
-    /*
-     * Set the launcher aim position.
-     */
-    playerRef.mGameRef.setPosition(newAction.aimPosition);
-
-    /*
-     * Process a compressor lower request.
-     */
-    if (newAction.compress) {
-      playerRef.mGameRef.lowerCompressor(true);
-    }
-
-    /*
-     * Process a bubble launch request.
-     */
-    if (newAction.launchBubble) {
-      playerRef.setAction(KeyEvent.KEYCODE_DPAD_UP, true);
-    }
-
-    /*
-     * Process a bubble swap request.
-     */
-    if (newAction.swapBubble) {
-      playerRef.setAction(KeyEvent.KEYCODE_DPAD_DOWN, false);
-    }
-
-    /*
-     * Process a pause/play button toggle request.
-     */
-    if (newAction.keyCode == (byte) KeyEvent.KEYCODE_P) {
-      if (mGameThread != null) {
-        mGameThread.toggleKeyPress(KeyEvent.KEYCODE_P, true, false);
-      }
-    }
-
-    /*
-     * Set the current value of the attack bar.
-     */
-    if (newAction.attackBarBubbles > -1) {
-      playerRef.mGameRef.malusBar.setAttackBubbles(newAction.attackBarBubbles,
-                                                   newAction.attackBubbles);
+  private void setPlayerAction(PlayerAction newAction) {
+    if ((newAction != null) && (mGameThread != null)) {
+      mGameThread.setPlayerAction(newAction);
     }
   }
 
@@ -797,7 +725,7 @@ public class MultiplayerGameView extends SurfaceView
     Vector<BmpWrap> mImageList;
 
     public void cleanUp() {
-      synchronized (mSurfaceHolder) {
+      synchronized(mSurfaceHolder) {
         // I don't really understand why all this is necessary.
         // I used to get a crash (an out-of-memory error) once every six or
         // seven times I started the game.  I googled the error and someone
@@ -990,21 +918,21 @@ public class MultiplayerGameView extends SurfaceView
      * @see android.view.View#onKeyDown(int, android.view.KeyEvent)
      */
     boolean doKeyDown(int keyCode, KeyEvent msg) {
-      synchronized (mSurfaceHolder) {
-        /*
-         * Only update the game state if this is a fresh key press.
-         */
-        if (mLocalInput.checkNewActionKeyPress(keyCode))
-          updateStateOnEvent(null);
+      /*
+       * Only update the game state if this is a fresh key press.
+       */
+      if (mLocalInput.checkNewActionKeyPress(keyCode))
+        updateStateOnEvent(null);
 
-        /*
-         * Process the key press if it is a function key.
-         */
-        toggleKeyPress(keyCode, true, true);
+      /*
+       * Process the key press if it is a function key.
+       */
+      toggleKeyPress(keyCode, true, true);
 
-        /*
-         * Process the key press if it is a game input key.
-         */
+      /*
+       * Process the key press if it is a game input key.
+       */
+      synchronized(mSurfaceHolder) {
         return mLocalInput.setKeyDown(keyCode);
       }
     }
@@ -1018,7 +946,7 @@ public class MultiplayerGameView extends SurfaceView
      * @see android.view.View#onKeyUp(int, android.view.KeyEvent)
      */
     boolean doKeyUp(int keyCode, KeyEvent msg) {
-      synchronized (mSurfaceHolder) {
+      synchronized(mSurfaceHolder) {
         return mLocalInput.setKeyUp(keyCode);
       }
     }
@@ -1032,47 +960,47 @@ public class MultiplayerGameView extends SurfaceView
      * @return <code>true</code> if the event was handled..
      */
     boolean doTouchEvent(MotionEvent event) {
-      synchronized (mSurfaceHolder) {
-        double x_offset;
-        double x = xFromScr(event.getX());
-        double y = yFromScr(event.getY());
+      double x_offset;
+      double x = xFromScr(event.getX());
+      double y = yFromScr(event.getY());
 
-        if (mLocalInput.playerID == VirtualInput.PLAYER1)
-          x_offset = 0;
-        else
-          x_offset = -318;
-        /*
-         * Check for a pause button sprite press.  This will toggle the
-         * pause button sprite between pause and play.  If the game was
-         * previously paused by the pause button, ignore screen touches
-         * that aren't on the pause button sprite.
-         */
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-          if ((Math.abs(x - 183) <= TOUCH_BUTTON_THRESHOLD) &&
-              (Math.abs(y - 460) <= TOUCH_BUTTON_THRESHOLD)) {
-            toggleKeyPress(KeyEvent.KEYCODE_P, false, true);
-          }
-          else if (toggleKeyState(KeyEvent.KEYCODE_P))
-            return false;
+      if (mLocalInput.playerID == VirtualInput.PLAYER1)
+        x_offset = 0;
+      else
+        x_offset = -318;
+      /*
+       * Check for a pause button sprite press.  This will toggle the
+       * pause button sprite between pause and play.  If the game was
+       * previously paused by the pause button, ignore screen touches
+       * that aren't on the pause button sprite.
+       */
+      if (event.getAction() == MotionEvent.ACTION_DOWN) {
+        if ((Math.abs(x - 183) <= TOUCH_BUTTON_THRESHOLD) &&
+            (Math.abs(y - 460) <= TOUCH_BUTTON_THRESHOLD)) {
+          toggleKeyPress(KeyEvent.KEYCODE_P, false, true);
         }
+        else if (toggleKeyState(KeyEvent.KEYCODE_P))
+          return false;
+      }
 
-        /*
-         * Update the game state (paused, running, etc.) if necessary.
-         */
-        if(updateStateOnEvent(event))
-          return true;
+      /*
+       * Update the game state (paused, running, etc.) if necessary.
+       */
+      if(updateStateOnEvent(event))
+        return true;
 
-        /*
-         * If the game is running and the pause button sprite was pressed,
-         * pause the game.
-         */
-        if ((mMode == stateEnum.RUNNING) &&
-            (toggleKeyState(KeyEvent.KEYCODE_P)))
-          pause();
+      /*
+       * If the game is running and the pause button sprite was pressed,
+       * pause the game.
+       */
+      if ((mMode == stateEnum.RUNNING) &&
+          (toggleKeyState(KeyEvent.KEYCODE_P)))
+        pause();
 
-        /*
-         * Process the screen touch event.
-         */
+      /*
+       * Process the screen touch event.
+       */
+      synchronized(mSurfaceHolder) {
         return mLocalInput.setTouchEvent(event.getAction(), x + x_offset, y);
       }
     }
@@ -1089,15 +1017,16 @@ public class MultiplayerGameView extends SurfaceView
      * handled the motion event and no other handling is necessary.
      */
     boolean doTrackballEvent(MotionEvent event) {
-      synchronized (mSurfaceHolder) {
-        if (mMode == stateEnum.RUNNING) {
-          if (event.getAction() == MotionEvent.ACTION_MOVE) {
+      boolean handled = false;
+      if (mMode == stateEnum.RUNNING) {
+        if (event.getAction() == MotionEvent.ACTION_MOVE) {
+          synchronized(mSurfaceHolder) {
             mLocalInput.setTrackBallDx(event.getX() * TRACKBALL_COEFFICIENT);
-            return true;
           }
+          handled = true;
         }
-        return false;
       }
+      return handled;
     }
 
     private void drawAboutScreen(Canvas canvas) {
@@ -1378,9 +1307,7 @@ public class MultiplayerGameView extends SurfaceView
     }
 
     public int getCurrentLevelIndex() {
-      synchronized (mSurfaceHolder) {
-        return mLevelManager.getLevelIndex();
-      }
+      return mLevelManager.getLevelIndex();
     }
 
     private int getScreenOrientation() {
@@ -1635,7 +1562,7 @@ public class MultiplayerGameView extends SurfaceView
     }
 
     public void newGame() {
-      synchronized (mSurfaceHolder) {
+      synchronized(mSurfaceHolder) {
         malusBar1 = new MalusBar(MultiplayerGameView.GAMEFIELD_WIDTH - 164, 40,
                                  mBanana, mTomato);
         malusBar2 = new MalusBar(MultiplayerGameView.GAMEFIELD_WIDTH + 134, 40,
@@ -1673,7 +1600,7 @@ public class MultiplayerGameView extends SurfaceView
     }
 
     public void pause() {
-      synchronized (mSurfaceHolder) {
+      synchronized(mSurfaceHolder) {
         if (mMode == stateEnum.RUNNING) {
           setState(stateEnum.PAUSED);
 
@@ -1734,14 +1661,14 @@ public class MultiplayerGameView extends SurfaceView
      * destroyed.
      * @param savedState - Bundle containing the game state.
      */
-    public synchronized void restoreState(Bundle map) {
-      synchronized (mSurfaceHolder) {
+    public void restoreState(Bundle map) {
+      synchronized(mSurfaceHolder) {
         setState(stateEnum.PAUSED);
         numPlayer1GamesWon = map.getInt("numPlayer1GamesWon", 0);
         numPlayer2GamesWon = map.getInt("numPlayer2GamesWon", 0);
-        mFrozenGame1     .restoreState(map, mImageList);
-        mFrozenGame2     .restoreState(map, mImageList);
-        mLevelManager    .restoreState(map);
+        mFrozenGame1 .restoreState(map, mImageList);
+        mFrozenGame2 .restoreState(map, mImageList);
+        mLevelManager.restoreState(map);
         if (mHighScoreManager != null) {
           mHighScoreManager.restoreState(map);
         }
@@ -1749,10 +1676,10 @@ public class MultiplayerGameView extends SurfaceView
     }
 
     public void resumeGame() {
-      synchronized (mSurfaceHolder) {
+      synchronized(mSurfaceHolder) {
         if (mMode == stateEnum.RUNNING) {
-          mFrozenGame1     .resume();
-          mFrozenGame2     .resume();
+          mFrozenGame1.resume();
+          mFrozenGame2.resume();
           if (mHighScoreManager != null) {
             mHighScoreManager.resumeLevel();
           }
@@ -1776,7 +1703,7 @@ public class MultiplayerGameView extends SurfaceView
           if (surfaceOK()) {
             c = mSurfaceHolder.lockCanvas(null);
             if (c != null) {
-              synchronized (mSurfaceHolder) {
+              synchronized(mSurfaceHolder) {
                 if (mRun) {
                   monitorRemotePlayer();
                   if (mMode == stateEnum.ABOUT) {
@@ -1829,7 +1756,7 @@ public class MultiplayerGameView extends SurfaceView
      * @return Bundle with this view's state
      */
     public Bundle saveState(Bundle map) {
-      synchronized (mSurfaceHolder) {
+      synchronized(mSurfaceHolder) {
         if (map != null) {
           map.putInt("numPlayers", 2);
           map.putInt("numPlayer1GamesWon", numPlayer1GamesWon);
@@ -1860,6 +1787,86 @@ public class MultiplayerGameView extends SurfaceView
       image.bmp = Bitmap.createScaledBitmap(bmp, dstWidth, dstHeight, true);
     }
 
+    /**
+     * Set the player action for a remote player - as in a person playing
+     * via a client device over a network.
+     * @param action - the object containing the remote input info.
+     */
+    public void setPlayerAction(PlayerAction action) {
+      VirtualInput playerRef;
+
+      if (action.playerID == VirtualInput.PLAYER1) {
+        playerRef = mPlayer1;
+      }
+      else if (action.playerID == VirtualInput.PLAYER2) {
+        playerRef = mPlayer2;
+      }
+      else {
+        return;
+      }
+
+      updateStateOnEvent(null);
+
+      synchronized(mSurfaceHolder) {
+        /*
+         * Set the launcher bubble colors.
+         */
+        if ((action.launchBubbleColor  > -1) &&
+            (action.launchBubbleColor  <  8) &&
+            (action.nextBubbleColor    > -1) &&
+            (action.nextBubbleColor    <  8) &&
+            (action.newNextBubbleColor > -1) &&
+            (action.newNextBubbleColor <  8)) {
+          playerRef.mGameRef.setLaunchBubbleColors(action.launchBubbleColor,
+                                                   action.nextBubbleColor,
+                                                   action.newNextBubbleColor);
+        }
+  
+        /*
+         * Set the launcher aim position.
+         */
+        playerRef.mGameRef.setPosition(action.aimPosition);
+  
+        /*
+         * Process a compressor lower request.
+         */
+        if (action.compress) {
+          playerRef.mGameRef.lowerCompressor(true);
+        }
+  
+        /*
+         * Process a bubble launch request.
+         */
+        if (action.launchBubble) {
+          playerRef.setAction(KeyEvent.KEYCODE_DPAD_UP, true);
+        }
+  
+        /*
+         * Process a bubble swap request.
+         */
+        if (action.swapBubble) {
+          playerRef.setAction(KeyEvent.KEYCODE_DPAD_DOWN, false);
+        }
+  
+        /*
+         * Process a pause/play button toggle request.
+         */
+        if (action.keyCode == (byte) KeyEvent.KEYCODE_P) {
+          if (mGameThread != null) {
+            mGameThread.toggleKeyPress(KeyEvent.KEYCODE_P, true, false);
+          }
+        }
+  
+        /*
+         * Set the current value of the attack bar.
+         */
+        if (action.attackBarBubbles > -1) {
+          playerRef.mGameRef.malusBar.setAttackBubbles(action.attackBarBubbles,
+                                                       action.attackBubbles);
+        }
+      }
+    }
+
     public void setPosition(double value) {
       mLocalInput.mGameRef.setPosition(value);
     }
@@ -1869,7 +1876,7 @@ public class MultiplayerGameView extends SurfaceView
     }
 
     public void setState(stateEnum newMode) {
-      synchronized (mSurfaceHolder) {
+      synchronized(mSurfaceHolder) {
         /*
          * Only update the previous mode storage if the new mode is
          * different from the current mode, in case the same mode is
@@ -1887,7 +1894,7 @@ public class MultiplayerGameView extends SurfaceView
     }
 
     public void setSurfaceOK(boolean ok) {
-      synchronized (mSurfaceHolder) {
+      synchronized(mSurfaceHolder) {
         mSurfaceOK = ok;
       }
     }
@@ -1898,7 +1905,7 @@ public class MultiplayerGameView extends SurfaceView
       float gameHeight   = GAMEFIELD_HEIGHT;
       float gameWidth    = GAMEFIELD_WIDTH;
       float extGameWidth = EXTENDED_GAMEFIELD_WIDTH;
-      synchronized (mSurfaceHolder) {
+      synchronized(mSurfaceHolder) {
         if ((newWidth / newHeight) >= (gameWidth / gameHeight)) {
           mDisplayScale = (1.0 * newHeight) / gameHeight;
           mDisplayDX = (int)((newWidth - (mDisplayScale * extGameWidth)) / 2);
@@ -1953,7 +1960,7 @@ public class MultiplayerGameView extends SurfaceView
     }
 
     public boolean surfaceOK() {
-      synchronized (mSurfaceHolder) {
+      synchronized(mSurfaceHolder) {
         return mSurfaceOK;
       }
     }
