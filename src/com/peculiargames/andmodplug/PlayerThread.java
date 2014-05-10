@@ -570,20 +570,31 @@ public class PlayerThread extends Thread {
           }
         }
 
-        synchronized(this) {
-          int posNow = getCurrentPos();
+        synchronized(sRDlock) {
+          if (mRunning && mPlaying && mLoad_ok) try {
+            int posNow = getCurrentPos();
 
-          if ((posNow >= posWas) && (posNow < getMaxPos()))
-            songFinished = false;
+            if ((posNow >= posWas) && (posNow < getMaxPos()))
+              songFinished = false;
 
-          if (!songFinished && ((posNow < posWas) || (posNow >= getMaxPos()))) {
-            if (mPlayerListener != null)
-              mPlayerListener.onPlayerEvent(eventEnum.SONG_COMPLETED);
+            if (!songFinished &&
+                ((posNow < posWas) || (posNow >= getMaxPos()))) {
+              if (mPlayerListener != null)
+                mPlayerListener.onPlayerEvent(eventEnum.SONG_COMPLETED);
 
-            songFinished = true;
+              songFinished = true;
+            }
+
+            posWas = posNow;
+          } catch (Exception e) {
+            e.getCause().printStackTrace();
+            if (!songFinished) {
+              if (mPlayerListener != null)
+                  mPlayerListener.onPlayerEvent(eventEnum.SONG_COMPLETED);
+  
+              songFinished = true;
+            }
           }
-
-          posWas = posNow;
         }
       }
 
@@ -942,6 +953,7 @@ public class PlayerThread extends Thread {
      * run() above).
      */
     synchronized(sRDlock) {
+      mLoad_ok = false;
       ModPlug_JUnload();
     }
   }

@@ -213,6 +213,10 @@ public class FrozenGame extends GameScreen {
                                           playButton_arg);
       this.addSprite(pauseButtonSprite);
     }
+    else {
+      pauseButtonSprite = null;
+      playButtonSprite  = null;
+    }
 
     penguin = new PenguinSprite(getPenguinRect(player), penguins_arg, random);
     this.addSprite(penguin);
@@ -428,7 +432,7 @@ public class FrozenGame extends GameScreen {
       }
     }
 
-    while (bubblePlay[frozenifyX][frozenifyY] == null && frozenifyY >=0) {
+    while ((bubblePlay[frozenifyX][frozenifyY] == null) && (frozenifyY >= 0)) {
       frozenifyX--;
       if (frozenifyX < 0) {
         frozenifyX = 7;
@@ -573,6 +577,15 @@ public class FrozenGame extends GameScreen {
       movingBubble.move();
       if (movingBubble.fixed()) {
         if (!checkLost()) {
+          /*
+           * If there are no bubbles in the bubble manager, then the
+           * player has won the game.  The bubble manager counts bubbles
+           * that are fixed in position on the bubble grid.  Thus if
+           * there are attack bubbles in motion when the bubble manager
+           * is cleared, then the attack bubbles will be added to the
+           * bubble manager when they stick to the bubble grid after the
+           * player has already won the game.  This may need to change.
+           */
           if (bubbleManager.countBubbles() == 0) {
             penguin.updateState(PenguinSprite.STATE_GAME_WON);
             this.addSprite(new ImageSprite(new Rect(152, 190,
@@ -618,14 +631,22 @@ public class FrozenGame extends GameScreen {
 
   public void pauseButtonPressed(boolean paused) {
     if (paused) {
-      this.removeSprite(pauseButtonSprite);
-      this.removeSprite(playButtonSprite);
-      this.addSprite(playButtonSprite);
+      if (pauseButtonSprite != null) {
+        this.removeSprite(pauseButtonSprite);
+      }
+      if (playButtonSprite != null) {
+        this.removeSprite(playButtonSprite);
+        this.addSprite(playButtonSprite);
+      }
     }
     else {
-      this.removeSprite(pauseButtonSprite);
-      this.removeSprite(playButtonSprite);
-      this.addSprite(pauseButtonSprite);
+      if (playButtonSprite != null) {
+        this.removeSprite(playButtonSprite);
+      }
+      if (pauseButtonSprite != null) {
+        this.removeSprite(pauseButtonSprite);
+        this.addSprite(pauseButtonSprite);
+      }
     }
   }
 
@@ -715,9 +736,9 @@ public class FrozenGame extends GameScreen {
 
         /*
          * If the game is over because of bubble overflow, wait until
-         * all the bubbles are fixed in place to freeze them.
+         * all the bubbles have stopped moving to freeze them.
          */
-        if (frozenify && (goingUp.size() == 0)) {
+        if (frozenify && (goingUp.size() == 0) && (movingBubble == null)) {
           frozenify();
         }
       }

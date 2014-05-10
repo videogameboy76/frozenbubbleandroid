@@ -140,7 +140,13 @@ public class MODResourcePlayer extends PlayerThread {
     /*
      * Allocate a buffer that can hold the current MOD file data.
      */
-    modData = new byte[currfilesize];
+    try {
+      modData = new byte[currfilesize];
+    } catch (OutOfMemoryError oome) {
+      // Auto-generated catch block.
+      oome.printStackTrace();
+      return false;
+    }
 
     try {
       setModSize(mModfileInStream.read(modData,0, currfilesize));
