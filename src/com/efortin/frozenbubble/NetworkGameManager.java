@@ -60,7 +60,7 @@ import java.util.ArrayList;
 import org.jfedor.frozenbubble.BubbleSprite;
 import org.jfedor.frozenbubble.FrozenBubble;
 import org.jfedor.frozenbubble.FrozenGame;
-import org.jfedor.frozenbubble.MultiplayerGameView.NetGameInterface;
+import org.jfedor.frozenbubble.GameView.NetGameInterface;
 
 import android.content.Context;
 import android.content.SharedPreferences;
