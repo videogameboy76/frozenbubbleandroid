@@ -200,6 +200,7 @@ public class PlayerThread extends Thread {
   private int     mRate;
   private int     posWas;
   private boolean songFinished;
+  private boolean songFinishedWas;
 
   /*
    * Track if player has started (after loading a new mod).
@@ -313,10 +314,11 @@ public class PlayerThread extends Thread {
       /*
        * Get info (name and number of tracks) for the loaded MOD file.
        */
-      mModname     = ModPlug_JGetName();
-      mNumChannels = ModPlug_JNumChannels();
-      posWas       = 0;
-      songFinished = false;
+      mModname        = ModPlug_JGetName();
+      mNumChannels    = ModPlug_JNumChannels();
+      posWas          = 0;
+      songFinished    = false;
+      songFinishedWas = false;
     }
   }
 
@@ -346,6 +348,24 @@ public class PlayerThread extends Thread {
       return;
 
     mPlayerValid = true;
+  }
+
+  /**
+   * Determine when a song has played to completion.  This method also
+   * detects when a looping track has started over from the beginning.
+   */
+  private void CheckSongCompleted() {
+    int posNow = getCurrentPos();
+
+    if ((posNow >= posWas) && (posNow < getMaxPos())) {
+      songFinished = false;
+    }
+
+    if (!songFinished && ((posNow < posWas) || (posNow >= getMaxPos()))) {
+      songFinished = true;
+    }
+
+    posWas = posNow;
   }
 
   /**
@@ -458,10 +478,11 @@ public class PlayerThread extends Thread {
     mLoad_ok = ModPlug_JLoad(modData, modData.length);
 
     if (mLoad_ok) {
-      mModname     = ModPlug_JGetName();
-      mNumChannels = ModPlug_JNumChannels();
-      posWas       = 0;
-      songFinished = false;
+      mModname        = ModPlug_JGetName();
+      mNumChannels    = ModPlug_JNumChannels();
+      posWas          = 0;
+      songFinished    = false;
+      songFinishedWas = false;
     }
 
     /*
@@ -537,10 +558,16 @@ public class PlayerThread extends Thread {
          * Pre-load another packet.
          */
         synchronized(sRDlock) {
-          ModPlug_JGetSoundData(mBuffer, BUFFERSIZE);
+          if (mRunning && mPlaying && mLoad_ok) try {
+            ModPlug_JGetSoundData(mBuffer, BUFFERSIZE);
+  
+            if (ModPlug_CheckPatternChange())
+              pattern_change = true;
 
-          if (ModPlug_CheckPatternChange())
-            pattern_change = true;
+            CheckSongCompleted();
+          } catch (Exception e) {
+            e.getCause().printStackTrace();
+          }
         }
 
         /*
@@ -559,49 +586,25 @@ public class PlayerThread extends Thread {
               mPlayerListener.onPlayerEvent(eventEnum.PLAYER_STARTED);
             }
           }
-        }
 
-        synchronized(this) {
           if (pattern_change) {
             pattern_change = false;
-
             if (mPlayerListener != null)
               mPlayerListener.onPlayerEvent(eventEnum.PATTERN_CHANGE);
           }
-        }
 
-        synchronized(sRDlock) {
-          if (mRunning && mPlaying && mLoad_ok) try {
-            int posNow = getCurrentPos();
-
-            if ((posNow >= posWas) && (posNow < getMaxPos()))
-              songFinished = false;
-
-            if (!songFinished &&
-                ((posNow < posWas) || (posNow >= getMaxPos()))) {
-              if (mPlayerListener != null)
-                mPlayerListener.onPlayerEvent(eventEnum.SONG_COMPLETED);
-
-              songFinished = true;
-            }
-
-            posWas = posNow;
-          } catch (Exception e) {
-            e.getCause().printStackTrace();
-            if (!songFinished) {
-              if (mPlayerListener != null)
-                  mPlayerListener.onPlayerEvent(eventEnum.SONG_COMPLETED);
-  
-              songFinished = true;
-            }
+          if (songFinished && !songFinishedWas) {
+            if (mPlayerListener != null)
+              mPlayerListener.onPlayerEvent(eventEnum.SONG_COMPLETED);
           }
+          songFinishedWas = songFinished;
         }
       }
 
       /*
        * Wait until notify() is called.
        */
-      synchronized (this) {
+      synchronized(this) {
         if (mWaitFlag) {
           try {
             wait();
