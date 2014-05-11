@@ -129,24 +129,24 @@ public class PlayerThread extends Thread {
 
   /*
    * Constant for <code>setPatternLoopRange()</code> calls - change to
-   * new pattern range immediately
+   * new pattern range immediately.
    */
   public final static int PATTERN_CHANGE_IMMEDIATE = 1;
 
   /*
    * Constant for <code>setPatternLoopRange()</code> calls - change to
-   * new pattern range after currently playing pattern finishes
+   * new pattern range after currently playing pattern finishes.
    */
   public final static int PATTERN_CHANGE_AFTER_CURRENT = 2;
 
   /*
    * Constant for <code>setPatternLoopRange()</code> calls - change to
-   * new pattern range after current range of patterns finishes playing
+   * new pattern range after current range of patterns finishes playing.
    */
   public final static int PATTERN_CHANGE_AFTER_GROUP = 3;
 
   /*
-   * Constant for <code>setLoopCount()</code> calls - loop song forever
+   * Constant for <code>setLoopCount()</code> calls - loop song forever.
    */
   public final static int LOOP_SONG_FOREVER = -1;
 
@@ -231,8 +231,9 @@ public class PlayerThread extends Thread {
       mOwner = newowner;
       return true;
     }
-    else
+    else {
       return false;
+    }
   }
 
   public boolean GiveUpOwnership(Object currowner) {
@@ -240,8 +241,9 @@ public class PlayerThread extends Thread {
       mOwner = null;
       return true;
     }
-    else
+    else {
       return false;
+    }
   }
 
   public Object GetOwner() {
@@ -253,7 +255,7 @@ public class PlayerThread extends Thread {
   //********************************************************************
 
   /*
-   *  Event types enumeration.
+   * Event types enumeration.
    */
   public static enum eventEnum {
     PLAYER_STARTED,
@@ -306,20 +308,10 @@ public class PlayerThread extends Thread {
     this(desiredrate);
 
     /*
-     * Load the mod file (data) into libmodplug.
+     * Load the module file (data) into libmodplug and initialize module
+     * information variables.
      */
-    mLoad_ok = ModPlug_JLoad(modData, modData.length);
-
-    if (mLoad_ok) {
-      /*
-       * Get info (name and number of tracks) for the loaded MOD file.
-       */
-      mModname        = ModPlug_JGetName();
-      mNumChannels    = ModPlug_JNumChannels();
-      posWas          = 0;
-      songFinished    = false;
-      songFinishedWas = false;
-    }
+    LoadModuleInfo(modData);
   }
 
   /**
@@ -337,15 +329,20 @@ public class PlayerThread extends Thread {
    * default rate) for system audio data playback.
    */
   public PlayerThread(int desiredrate) {
-    // no Activity owns this player yet
+    /*
+     * No Activity owns this player yet.
+     */
     mMytrack       = null;
     mOwner         = null;
     mStart_paused  = false;
     sPlayerStarted = false;
 
-    // try to get the audio track
-    if (!GetAndroidAudioTrack(desiredrate))
+    /*
+     * Try to get the audio track.
+     */
+    if (!GetAndroidAudioTrack(desiredrate)) {
       return;
+    }
 
     mPlayerValid = true;
   }
@@ -422,10 +419,12 @@ public class PlayerThread extends Thread {
       ModPlug_Init(desiredrate);
     }
 
-    if (desiredrate == 0)
+    if (desiredrate == 0) {
       mRate = try_rates[rateindex];
-    else
+    }
+    else {
       mRate = desiredrate;
+    }
 
     if (mMytrack == null) {
       mPlayerValid = false;
@@ -475,15 +474,12 @@ public class PlayerThread extends Thread {
    */
   public void LoadMODData(byte[] modData) {
     UnLoadMod();
-    mLoad_ok = ModPlug_JLoad(modData, modData.length);
 
-    if (mLoad_ok) {
-      mModname        = ModPlug_JGetName();
-      mNumChannels    = ModPlug_JNumChannels();
-      posWas          = 0;
-      songFinished    = false;
-      songFinishedWas = false;
-    }
+    /*
+     * Load the module file (data) into libmodplug and initialize module
+     * information variables.
+     */
+    LoadModuleInfo(modData);
 
     /*
      * Re-init this flag so that an event will be passed to the
@@ -492,6 +488,23 @@ public class PlayerThread extends Thread {
      */
     synchronized(this) {
       sPlayerStarted = false;
+    }
+  }
+
+  /**
+   * Load the module file (data) into libmodplug.
+   * <p>If the module loads successfully, initialize module info (name
+   * and number of tracks, track playback location, etc.).
+   */
+  private void LoadModuleInfo(byte[] modData) {
+    mLoad_ok = ModPlug_JLoad(modData, modData.length);
+
+    if (mLoad_ok) {
+      mModname        = ModPlug_JGetName();
+      mNumChannels    = ModPlug_JNumChannels();
+      posWas          = 0;
+      songFinished    = false;
+      songFinishedWas = false;
     }
   }
 
@@ -505,7 +518,9 @@ public class PlayerThread extends Thread {
    * <p>Check if the player thread is still valid.
    */
   public boolean PlayerValid() {
-    // return whether this player is valid
+    /*
+     * Return whether this player is valid.
+     */
     synchronized(sPVlock) {
       return mPlayerValid;
     }
@@ -539,18 +554,22 @@ public class PlayerThread extends Thread {
      */
     short[] mBuffer = new short[BUFFERSIZE];
 
-    if (mStart_paused)
+    if (mStart_paused) {
       mPlaying = false;
-    else
+    }
+    else {
       mPlaying = true;
+    }
 
     /*
      * Main play loop.
      */
-    if (mMytrack != null)
+    if (mMytrack != null) {
       mMytrack.play();
-    else
+    }
+    else {
       mRunning = false;
+    }
 
     while (mRunning) {
       while (mPlaying) {
@@ -558,15 +577,14 @@ public class PlayerThread extends Thread {
          * Pre-load another packet.
          */
         synchronized(sRDlock) {
-          if (mRunning && mPlaying && mLoad_ok) try {
+          if (mRunning && mPlaying && mLoad_ok) {
             ModPlug_JGetSoundData(mBuffer, BUFFERSIZE);
   
-            if (ModPlug_CheckPatternChange())
+            if (ModPlug_CheckPatternChange()) {
               pattern_change = true;
+            }
 
             CheckSongCompleted();
-          } catch (Exception e) {
-            e.getCause().printStackTrace();
           }
         }
 
@@ -589,13 +607,15 @@ public class PlayerThread extends Thread {
 
           if (pattern_change) {
             pattern_change = false;
-            if (mPlayerListener != null)
+            if (mPlayerListener != null) {
               mPlayerListener.onPlayerEvent(eventEnum.PATTERN_CHANGE);
+            }
           }
 
           if (songFinished && !songFinishedWas) {
-            if (mPlayerListener != null)
+            if (mPlayerListener != null) {
               mPlayerListener.onPlayerEvent(eventEnum.SONG_COMPLETED);
+            }
           }
           songFinishedWas = songFinished;
         }
@@ -685,8 +705,9 @@ public class PlayerThread extends Thread {
        * track, but seem to get an uninitialized audio track here
        * occasionally, generating an IllegalStateException.
        */
-      if (mMytrack.getState() == AudioTrack.STATE_INITIALIZED)
+      if (mMytrack.getState() == AudioTrack.STATE_INITIALIZED) {
         mMytrack.stop();
+      }
       mWaitFlag = true;
 
       synchronized(this) {
@@ -778,8 +799,9 @@ public class PlayerThread extends Thread {
      * occasionally, generating an IllegalStateException.
      */
     if (mMytrack != null) try {
-      if (mMytrack.getState() == AudioTrack.STATE_INITIALIZED)
+      if (mMytrack.getState() == AudioTrack.STATE_INITIALIZED) {
         mMytrack.stop();
+      }
     } catch (NullPointerException npe) {
       npe.printStackTrace();
     }
@@ -802,7 +824,9 @@ public class PlayerThread extends Thread {
   public void CloseLIBMODPLUG() {
     ModPlug_JUnload();
     ModPlug_CloseDown();
-    // Release the audio track resources.
+    /*
+     * Release the audio track resources.
+     */
     if (mMytrack != null)
     {
       mMytrack.release();
