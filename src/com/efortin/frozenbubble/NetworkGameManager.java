@@ -1354,7 +1354,18 @@ public class NetworkGameManager extends Thread
         if ((msgId == MSG_ID_PREFS) && (length == (PREFS_BYTES + 3))) {
           if ((playerId == VirtualInput.PLAYER1) && localStatus.prefsRequest) {
             copyPrefsFromBuffer(remotePrefs, buffer, 3);
-            PreferencesActivity.setFrozenBubblePrefs(remotePrefs);
+            /*
+             * In a network game, do not override any of the local game
+             * options that can be configuring during game play.  Only 
+             * set the bubble collision sensitivity and the compressor
+             * on/off option as specified by player 1, as these options
+             * are inaccessible during game play, and are absolutely
+             * necessary for distributed game behavior synchronization.
+             * All the other options are purely cosmetic, or may cause
+             * confusion if they are changed without notification.
+             */
+            FrozenBubble.setCollision(remotePrefs.collision);
+            FrozenBubble.setCompressor(remotePrefs.compressor);
             /*
              * If all new game data synchronization requests have been
              * fulfilled, then the network game is ready to begin.
