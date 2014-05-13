@@ -100,8 +100,6 @@ public class FrozenGame extends GameScreen {
   double launchBubblePosition;
 
   PenguinSprite penguin;
-
-  byte newSteps;
   Compressor compressor;
 
   ImageSprite nextBubble;
@@ -119,7 +117,6 @@ public class FrozenGame extends GameScreen {
   Vector<Sprite> jumping;
 
   BubbleSprite[][] bubblePlay;
-  byte[][] newGrid;
 
   BmpWrap gameWon, gameLost;
 
@@ -224,7 +221,6 @@ public class FrozenGame extends GameScreen {
     penguin = new PenguinSprite(getPenguinRect(player), penguins_arg, random);
     this.addSprite(penguin);
 
-    newSteps     = -1;
     compressor   = new Compressor(compressorHead_arg, compressor_arg);
     hurrySprite  = new ImageSprite(new Rect(203, 265, 203 + 240, 265 + 90),
                                    hurry_arg);
@@ -240,7 +236,6 @@ public class FrozenGame extends GameScreen {
 
     bubblePlay    = new BubbleSprite[8][13];
     bubbleManager = new BubbleManager(bubbles);
-    newGrid       = null;
 
     /*
      * Load the current level to the bubble play grid.
@@ -537,18 +532,6 @@ public class FrozenGame extends GameScreen {
     frozenifyX = 7;
     frozenifyY = 12;
     frozenify  = true;
-  }
-
-  /**
-   * Lower the bubbles in play and drop the compressor the required
-   * number of steps.
-   * @param playSound - <code>true</code> to play the compression sound.
-   */
-  private void lowerCompressorSteps(boolean playSound) {
-    for (int index = 0; index < newSteps; index++) {
-      lowerCompressor(playSound);
-    }
-    newSteps = -1;
   }
 
   /**
@@ -911,7 +894,6 @@ public class FrozenGame extends GameScreen {
     /*
      * Perform game synchronization tasks.
      */
-    synchronizeNetworkGame();
     synchronizeBubbleManager();
 
     /*
@@ -1265,14 +1247,6 @@ public class FrozenGame extends GameScreen {
   }
 
   /**
-   * Lower the compressor to the specified number of steps.
-   * @param newSteps - the number of compressor steps to lower to.
-   */
-  public void setCompressorSteps(byte newSteps) {
-    this.newSteps = newSteps;
-  }
-
-  /**
    * Set the game result associated with this player.
    * @param result - GAME_WON if this player won the game, GAME_LOST if
    * this player lost the game.
@@ -1298,7 +1272,14 @@ public class FrozenGame extends GameScreen {
     }
   }
 
-  private void setGrid() {
+  /**
+   * Perform bubble grid and compressor synchronization.
+   * <p>To prevent the appearance of glitches, the game field should not
+   * be synchronized while bubbles are in motion.
+   * @param newGrid - the new bubble grid to apply to the game field.
+   * @param newSteps - the number of compressor steps to lower to.
+   */
+  public void setGrid(byte[][] newGrid, byte newSteps) {
     if (newGrid != null) {
       compressor.init();
       falling.clear();
@@ -1320,18 +1301,10 @@ public class FrozenGame extends GameScreen {
           }
         }
       }
-      newGrid = null;
     }
-  }
-
-  public void setGrid(byte[][] newGrid) {
-    this.newGrid = new byte[8][13];
-    for (int i = 0; i < 8; i++) {
-      for (int j = 0; j < 13; j++) {
-        this.newGrid[i][j] = newGrid[i][j];
-      }
+    for (int index = 0; index < newSteps; index++) {
+      lowerCompressor(false);
     }
-    synchronizeNetworkGame();
   }
 
   public void setLaunchBubbleColors(int current, int next, int newNext) {
@@ -1432,24 +1405,6 @@ public class FrozenGame extends GameScreen {
       for (int i = 0; i < jumping.size(); i++) {
         this.addSprite(jumping.elementAt(i));
       }
-    }
-  }
-
-  /**
-   * If this is a network game, process bubble grid and compressor
-   * synchronization tasks.
-   * <p>To prevent the appearance of glitches, do not synchronize the
-   * game field while a launched bubble is in motion.  Since this method
-   * is called in every loop of the <code>play()</code> function, all
-   * synchronization tasks will be automatically serviced eventually.
-   * <p>Note that during game initialization, there is never a launch
-   * bubble in motion, so a call to this method at that time will always
-   * immediately perform any necessary synchronization tasks.
-   */
-  private void synchronizeNetworkGame() {
-    if ((movingBubble == null) && (networkManager != null)) {
-      setGrid();
-      lowerCompressorSteps(newSteps == 1);
     }
   }
 
