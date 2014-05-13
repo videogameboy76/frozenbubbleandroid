@@ -908,6 +908,10 @@ public class FrozenGame extends GameScreen {
       checkLost();
     }
 
+    /*
+     * If this is a network game, process bubble grid and compressor
+     * synchronization tasks.
+     */
     if ((movingBubble == null) && (networkManager != null)) {
       setGrid();
       lowerCompressorSteps(newSteps == 1);
