@@ -448,6 +448,7 @@ public class FrozenBubble extends Activity
 
   public synchronized static void setCollision(int newCollision) {
     collision = newCollision;
+    BubbleSprite.setCollisionThreshold(collision);
   }
 
   public synchronized static boolean getCompressor() {
@@ -839,6 +840,9 @@ public class FrozenBubble extends Activity
     allowUnpause = true;
   }
 
+  /**
+   * Load the game options from the saved shared preferences.
+   */
   private void restoreGamePrefs() {
     SharedPreferences mConfig = getSharedPreferences(PREFS_NAME,
                                                      Context.MODE_PRIVATE);
@@ -853,6 +857,10 @@ public class FrozenBubble extends Activity
     soundOn    = mConfig.getBoolean("soundOn",    true                 );
     targetMode = mConfig.getInt    ("targetMode", POINT_TO_SHOOT       );
 
+    /*
+     * Some game options require additional handling to fully implement
+     * changes to game play.
+     */
     BubbleSprite.setCollisionThreshold(collision);
     setTargetModeOrientation();
   }
