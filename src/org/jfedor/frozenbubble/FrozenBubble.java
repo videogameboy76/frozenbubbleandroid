@@ -822,8 +822,8 @@ public class FrozenBubble extends Activity
     /*
      * Ascertain which song to play.
      */
-    if (mGameView != null)
-      modNow = mGameView.getThread().getCurrentLevelIndex() % MODlist.length;
+    if (mGameThread != null)
+      modNow = mGameThread.getCurrentLevelIndex() % MODlist.length;
     else
     {
       Random rand = new Random();
@@ -869,7 +869,7 @@ public class FrozenBubble extends Activity
    * Save critically important game information.
    */
   public void saveState() {
-    if ((mGameView != null) && (numPlayers == 1)) {
+    if ((mGameThread != null) && (numPlayers == 1)) {
       /*
        * Allow level editor functionalities.
        */
