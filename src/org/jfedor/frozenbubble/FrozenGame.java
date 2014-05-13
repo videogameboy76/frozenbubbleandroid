@@ -365,14 +365,16 @@ public class FrozenGame extends GameScreen {
           lost = true;
         }
       }
-  
+
+      int steps = compressor.getSteps();
+
       for (int i = 0; i < 8; i++) {
-        if (bubblePlay[i][12 - compressor.steps] != null) {
+        if (bubblePlay[i][12 - steps] != null) {
           lost = true;
           break;
         }
       }
-  
+
       if (lost) {
         penguin.updateState(PenguinSprite.STATE_GAME_LOST);
         if (highscoreManager != null)
@@ -459,7 +461,7 @@ public class FrozenGame extends GameScreen {
   }
 
   public int getCompressorSteps() {
-    return compressor.steps;
+    return compressor.getSteps();
   }
 
   public int getCurrentColor() {
@@ -1305,6 +1307,11 @@ public class FrozenGame extends GameScreen {
           this.addSprite(bubblePlay[i][j]);
         }
       }
+    }
+    int steps = compressor.getSteps();
+    compressor.init();
+    for (int index = 0; index < steps; index++) {
+      lowerCompressor(false);
     }
   }
 

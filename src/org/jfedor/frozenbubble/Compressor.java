@@ -58,14 +58,13 @@ import android.os.Bundle;
 public class Compressor {
   private BmpWrap compressorHead;
   private BmpWrap compressor;
-  double moveDown;
-  int steps;
+  private double moveDown;
+  private int steps;
 
   public Compressor(BmpWrap compressorHead, BmpWrap compressor) {
     this.compressorHead = compressorHead;
     this.compressor = compressor;
-    this.moveDown = 0.;
-    this.steps = 0;
+    init();
   }
 
   public double getMoveDown() {
@@ -74,6 +73,11 @@ public class Compressor {
 
   public int getSteps() {
     return steps;
+  }
+
+  public void init() {
+    moveDown = 0.;
+    steps = 0;
   }
 
   public void moveDown() {
