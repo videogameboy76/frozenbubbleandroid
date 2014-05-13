@@ -909,14 +909,9 @@ public class FrozenGame extends GameScreen {
     }
 
     /*
-     * If this is a network game, process bubble grid and compressor
-     * synchronization tasks.
+     * Perform game synchronization tasks.
      */
-    if ((movingBubble == null) && (networkManager != null)) {
-      setGrid();
-      lowerCompressorSteps(newSteps == 1);
-    }
-
+    synchronizeNetworkGame();
     synchronizeBubbleManager();
 
     /*
@@ -1336,6 +1331,7 @@ public class FrozenGame extends GameScreen {
         this.newGrid[i][j] = newGrid[i][j];
       }
     }
+    synchronizeNetworkGame();
   }
 
   public void setLaunchBubbleColors(int current, int next, int newNext) {
@@ -1436,6 +1432,17 @@ public class FrozenGame extends GameScreen {
       for (int i = 0; i < jumping.size(); i++) {
         this.addSprite(jumping.elementAt(i));
       }
+    }
+  }
+
+  /**
+   * If this is a network game, process bubble grid and compressor
+   * synchronization tasks.
+   */
+  private void synchronizeNetworkGame() {
+    if ((movingBubble == null) && (networkManager != null)) {
+      setGrid();
+      lowerCompressorSteps(newSteps == 1);
     }
   }
 
