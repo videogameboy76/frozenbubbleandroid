@@ -2110,7 +2110,7 @@ public class GameView extends SurfaceView
          * Process a compressor lower request.
          */
         if (newAction.compress) {
-          playerRef.mGameRef.lowerCompressor(true);
+          playerRef.mGameRef.setCompressorSteps((byte)1);
         }
 
         /*
@@ -2871,17 +2871,15 @@ public class GameView extends SurfaceView
     }
 
     /*
-     * Set the bubble grid.  Note this must be done before lowering the
-     * compressor, as bubbles will be created using a non-compressed
-     * game field!
-     */
-    playerRef.mGameRef.setGrid(newField.gameField);
-
-    /*
      * Lower the compressor and bubbles in play to the required number
      * of compressor steps.
      */
     playerRef.mGameRef.setCompressorSteps(newField.compressorSteps);
+
+    /*
+     * Set the bubble grid.
+     */
+    playerRef.mGameRef.setGrid(newField.gameField);
 
     /*
      * Set the launcher bubble colors.

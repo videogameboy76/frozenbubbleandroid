@@ -100,6 +100,8 @@ public class FrozenGame extends GameScreen {
   double launchBubblePosition;
 
   PenguinSprite penguin;
+
+  byte newSteps;
   Compressor compressor;
 
   ImageSprite nextBubble;
@@ -117,6 +119,7 @@ public class FrozenGame extends GameScreen {
   Vector<Sprite> jumping;
 
   BubbleSprite[][] bubblePlay;
+  byte[][] newGrid;
 
   BmpWrap gameWon, gameLost;
 
@@ -221,6 +224,7 @@ public class FrozenGame extends GameScreen {
     penguin = new PenguinSprite(getPenguinRect(player), penguins_arg, random);
     this.addSprite(penguin);
 
+    newSteps     = -1;
     compressor   = new Compressor(compressorHead_arg, compressor_arg);
     hurrySprite  = new ImageSprite(new Rect(203, 265, 203 + 240, 265 + 90),
                                    hurry_arg);
@@ -236,6 +240,7 @@ public class FrozenGame extends GameScreen {
 
     bubblePlay    = new BubbleSprite[8][13];
     bubbleManager = new BubbleManager(bubbles);
+    newGrid       = null;
 
     /*
      * Load the current level to the bubble play grid.
@@ -532,6 +537,18 @@ public class FrozenGame extends GameScreen {
     frozenifyX = 7;
     frozenifyY = 12;
     frozenify  = true;
+  }
+
+  /**
+   * Lower the bubbles in play and drop the compressor the required
+   * number of steps.
+   * @param playSound - <code>true</code> to play the compression sound.
+   */
+  private void lowerCompressorSteps(boolean playSound) {
+    for (int index = 0; index < newSteps; index++) {
+      lowerCompressor(playSound);
+    }
+    newSteps = -1;
   }
 
   /**
@@ -891,6 +908,11 @@ public class FrozenGame extends GameScreen {
       checkLost();
     }
 
+    if ((movingBubble == null) && (networkManager != null)) {
+      setGrid();
+      lowerCompressorSteps(newSteps == 1);
+    }
+
     synchronizeBubbleManager();
 
     /*
@@ -1245,21 +1267,10 @@ public class FrozenGame extends GameScreen {
 
   /**
    * Lower the compressor to the specified number of steps.
-   * @param steps - the number of compressor steps to lower to.
+   * @param newSteps - the number of compressor steps to lower to.
    */
-  public void setCompressorSteps(byte steps) {
-    byte stepsNow = (byte) compressor.getSteps();
-
-    if ((steps < 0) || (steps > 13)) {
-      return;
-    }
-
-    if (steps > stepsNow) {
-      stepsNow = (byte) (steps - stepsNow);
-      while (stepsNow-- > 0) {
-        lowerCompressor(false);
-      }
-    }
+  public void setCompressorSteps(byte newSteps) {
+    this.newSteps = newSteps;
   }
 
   /**
@@ -1288,30 +1299,38 @@ public class FrozenGame extends GameScreen {
     }
   }
 
-  public void setGrid(byte[][] newGrid) {
-    bubbleManager.initialize();
-    removeAllBubbleSprites();
-    falling.clear();
-    goingUp.clear();
-    jumping.clear();
-    for (int i = 0; i < 8; i++) {
-      for (int j = 0; j < 13; j++) {
-        bubblePlay[i][j] = null;
-        if (newGrid[i][j] != -1) {
-          bubblePlay[i][j] = new BubbleSprite(
-              new Rect(190+i*32-(j%2)*16, 44+j*28, 32, 32),
-              newGrid[i][j],
-              bubbles[newGrid[i][j]], bubblesBlind[newGrid[i][j]],
-              frozenBubbles[newGrid[i][j]], bubbleBlink, bubbleManager,
-              soundManager, this);
-          this.addSprite(bubblePlay[i][j]);
+  private void setGrid() {
+    if (newGrid != null) {
+      bubbleManager.initialize();
+      removeAllBubbleSprites();
+      falling.clear();
+      goingUp.clear();
+      jumping.clear();
+      for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 13; j++) {
+          bubblePlay[i][j] = null;
+          if (newGrid[i][j] != -1) {
+            bubblePlay[i][j] = new BubbleSprite(
+                new Rect(190+i*32-(j%2)*16, 44+j*28, 32, 32),
+                newGrid[i][j],
+                bubbles[newGrid[i][j]], bubblesBlind[newGrid[i][j]],
+                frozenBubbles[newGrid[i][j]], bubbleBlink, bubbleManager,
+                soundManager, this);
+            this.addSprite(bubblePlay[i][j]);
+          }
         }
       }
+      newGrid = null;
+      compressor.init();
     }
-    int steps = compressor.getSteps();
-    compressor.init();
-    for (int index = 0; index < steps; index++) {
-      lowerCompressor(false);
+  }
+
+  public void setGrid(byte[][] newGrid) {
+    this.newGrid = new byte[8][13];
+    for (int i = 0; i < 8; i++) {
+      for (int j = 0; j < 13; j++) {
+        this.newGrid[i][j] = newGrid[i][j];
+      }
     }
   }
 
