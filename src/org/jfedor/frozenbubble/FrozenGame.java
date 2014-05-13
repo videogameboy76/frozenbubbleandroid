@@ -1300,11 +1300,12 @@ public class FrozenGame extends GameScreen {
 
   private void setGrid() {
     if (newGrid != null) {
-      bubbleManager.initialize();
-      removeAllBubbleSprites();
+      compressor.init();
       falling.clear();
       goingUp.clear();
       jumping.clear();
+      bubbleManager.initialize();
+      removeAllBubbleSprites();
       for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 13; j++) {
           bubblePlay[i][j] = null;
@@ -1320,7 +1321,6 @@ public class FrozenGame extends GameScreen {
         }
       }
       newGrid = null;
-      compressor.init();
     }
   }
 
@@ -1438,6 +1438,13 @@ public class FrozenGame extends GameScreen {
   /**
    * If this is a network game, process bubble grid and compressor
    * synchronization tasks.
+   * <p>To prevent the appearance of glitches, do not synchronize the
+   * game field while a launched bubble is in motion.  Since this method
+   * is called in every loop of the <code>play()</code> function, all
+   * synchronization tasks will be automatically serviced eventually.
+   * <p>Note that during game initialization, there is never a launch
+   * bubble in motion, so a call to this method at that time will always
+   * immediately perform any necessary synchronization tasks.
    */
   private void synchronizeNetworkGame() {
     if ((movingBubble == null) && (networkManager != null)) {
