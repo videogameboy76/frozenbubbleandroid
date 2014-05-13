@@ -628,11 +628,12 @@ public class HomeScreen extends Activity {
 
   @Override
   public boolean onKeyDown(int keyCode, KeyEvent event) {
+    boolean handled = false;
     if (keyCode == KeyEvent.KEYCODE_BACK) {
       backKeyPress();
-      return true;
+      handled = true;
     }
-    return super.onKeyDown(keyCode, event);
+    return handled || super.onKeyDown(keyCode, event);
   }
 
   /*
