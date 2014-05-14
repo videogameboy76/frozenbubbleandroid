@@ -241,8 +241,8 @@ public class GameView extends SurfaceView
      */
     public abstract void checkRemoteChecksum();
     public abstract void cleanUp();
-    public abstract boolean getGameIsFinished();
     public abstract boolean gameIsReadyForAction();
+    public abstract boolean getGameIsFinished();
     public abstract short getLatestRemoteActionId();
     public abstract boolean getRemoteAction();
     public abstract PlayerAction getRemoteActionPreview();
