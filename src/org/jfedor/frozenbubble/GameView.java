@@ -241,6 +241,7 @@ public class GameView extends SurfaceView
      */
     public abstract void checkRemoteChecksum();
     public abstract void cleanUp();
+    public abstract boolean getGameIsFinished();
     public abstract boolean gameIsReadyForAction();
     public abstract short getLatestRemoteActionId();
     public abstract boolean getRemoteAction();
@@ -259,6 +260,7 @@ public class GameView extends SurfaceView
                                                int attackBarBubbles,
                                                byte attackBubbles[],
                                                double aimPosition);
+    public abstract void setGameIsFinished();
     public abstract void setLocalChecksum(short checksum);
     public abstract void setRemoteChecksum(short checksum);
     public abstract void unPause();
@@ -2449,6 +2451,9 @@ public class GameView extends SurfaceView
         gameEnum game2Result = mFrozenGame2.getGameResult();
 
         if (game1Result != gameEnum.PLAYING) {
+          if (mNetworkManager != null) {
+            mNetworkManager.setGameIsFinished();
+          }
           if ((game1Result == gameEnum.WON) ||
               (game1Result == gameEnum.NEXT_WON)) {
             mFrozenGame2.setGameResult(gameEnum.LOST);
@@ -2458,6 +2463,9 @@ public class GameView extends SurfaceView
           }
         }
         else if (game2Result != gameEnum.PLAYING) {
+          if (mNetworkManager != null) {
+            mNetworkManager.setGameIsFinished();
+          }
           if ((game2Result == gameEnum.WON) ||
               (game2Result == gameEnum.NEXT_WON)) {
             if (mHighScoreManager != null) {
@@ -2474,18 +2482,29 @@ public class GameView extends SurfaceView
         }
 
         /*
-         * Only start a new game when player 1 provides input when the
-         * opponent is the CPU, because the CPU is prone to sneaking a
-         * launch attempt in after the game is decided.
+         * When playing a network game, only start a new game when the
+         * current game is finished, which is indicated when both
+         * players have either won or lost.
+         *
+         * If the opponent in a multiplayer game is the CPU, only start
+         * a new game when player 1 provides input, because otherwise
+         * the CPU is prone to sneaking a launch attempt in after the
+         * game has already been decided.
          *
          * Otherwise, the first player to provide input initiates the
          * new game.
          */
-        if (((game1State == gameEnum.NEXT_LOST) ||
-            (game1State == gameEnum.NEXT_WON)) ||
-            (!mRemoteInput.isCPU &&
-             ((game2State == gameEnum.NEXT_LOST) ||
-              (game2State == gameEnum.NEXT_WON)))) {
+        boolean gameFinished = false;
+        if (mNetworkManager != null) {
+          gameFinished = mNetworkManager.getGameIsFinished();
+        }
+
+        if (((mNetworkManager == null) || gameFinished) &&
+            (((game1State == gameEnum.NEXT_LOST) ||
+              (game1State == gameEnum.NEXT_WON)) ||
+             (!mRemoteInput.isCPU &&
+              ((game2State == gameEnum.NEXT_LOST) ||
+               (game2State == gameEnum.NEXT_WON))))) {
           if ((game1State == gameEnum.NEXT_WON) ||
               (game2State == gameEnum.NEXT_LOST)) {
             numPlayer1GamesWon++;
