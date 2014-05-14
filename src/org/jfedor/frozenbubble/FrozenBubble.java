@@ -820,10 +820,13 @@ public class FrozenBubble extends Activity
   {
     int modNow;
     /*
-     * Ascertain which song to play.
+     * Ascertain which song to play.  For a single player game, the song
+     * is based on the current level.  For a two player game, or if the
+     * game thread has been destroyed, the song is selected at random.
      */
-    if (mGameThread != null)
+    if ((mGameThread != null) && (numPlayers == 1)) {
       modNow = mGameThread.getCurrentLevelIndex() % MODlist.length;
+    }
     else
     {
       Random rand = new Random();
@@ -832,11 +835,13 @@ public class FrozenBubble extends Activity
     /*
      * Determine whether to create a music player or load the song.
      */
-    if (myModPlayer == null)
+    if (myModPlayer == null) {
       myModPlayer = new ModPlayer(this, MODlist[modNow],
                                   getMusicOn(), !startPlaying);
-    else
+    }
+    else {
       myModPlayer.loadNewSong(MODlist[modNow], startPlaying);
+    }
     allowUnpause = true;
   }
 
