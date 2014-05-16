@@ -552,7 +552,14 @@ public class PlayerThread extends Thread {
      * greater than the minbuffer size the audio system reports in the
      * contructors...
      */
-    short[] mBuffer = new short[BUFFERSIZE];
+    short[] mBuffer;
+    try {
+      mBuffer = new short[BUFFERSIZE];
+    } catch (OutOfMemoryError oome) {
+      // Auto-generated catch block.
+      oome.printStackTrace();
+      mBuffer = null;
+    }
 
     if (mStart_paused) {
       mPlaying = false;
@@ -564,7 +571,7 @@ public class PlayerThread extends Thread {
     /*
      * Main play loop.
      */
-    if (mMytrack != null) {
+    if ((mMytrack != null) && (mBuffer != null)) {
       mMytrack.play();
     }
     else {

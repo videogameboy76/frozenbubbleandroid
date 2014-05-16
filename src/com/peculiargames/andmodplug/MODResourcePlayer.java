@@ -116,8 +116,10 @@ public class MODResourcePlayer extends PlayerThread {
    * MOD/XM song file, e.g. R.raw.coolsong
    * @param modresource - Android resource id for a MOD/XM/etc. (tracker
    * format) song file.
+   * @param gc - if <code>true</code>, perform garbage collection prior
+   * to loading the file.
    */
-  public boolean LoadMODResource(int modresource) {
+  public boolean LoadMODResource(int modresource, boolean gc) {
     byte[] modData = null;
     int currfilesize = 0;
     InputStream mModfileInStream;
@@ -141,6 +143,18 @@ public class MODResourcePlayer extends PlayerThread {
      * Allocate a buffer that can hold the current MOD file data.
      */
     try {
+      /*
+       * This is a very critical and often very large memory allocation.
+       * Force the system to perform garbage collection to free up
+       * memory for the allocation.
+       *
+       * This is not recommended practice, as it can affect system
+       * performance.  This should only be called when the user is not
+       * interacting with the system.
+       */
+      if (gc) {
+        System.gc();
+      }
       modData = new byte[currfilesize];
     } catch (OutOfMemoryError oome) {
       // Auto-generated catch block.

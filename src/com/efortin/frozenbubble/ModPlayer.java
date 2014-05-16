@@ -91,7 +91,7 @@ public class ModPlayer {
       // Pause the current song.
       resplayer.PausePlay();
       // Load the current MOD into the player.
-      resplayer.LoadMODResource(songId);
+      resplayer.LoadMODResource(songId, true);
       if (startPlaying)
         resplayer.UnPausePlay();
     }
@@ -112,7 +112,7 @@ public class ModPlayer {
     // Create a new music player.
     resplayer = new MODResourcePlayer(context);
     // Load the mod file.
-    resplayer.LoadMODResource(songId);
+    resplayer.LoadMODResource(songId, false);
     // Loop the song forever.
     resplayer.setLoopCount(PlayerThread.LOOP_SONG_FOREVER);
     // Turn the music on or off.
