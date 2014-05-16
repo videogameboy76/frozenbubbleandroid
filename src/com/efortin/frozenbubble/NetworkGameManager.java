@@ -796,15 +796,6 @@ public class NetworkGameManager extends Thread
           }
           remoteActionList.add(newAction);
         }
-        /*
-         * If this action is the most current, then we can postpone the
-         * cyclic status message.  This is because we just received the
-         * data that the status message is supposed to prompt the remote
-         * player to send. 
-         */
-        if (newAction.localActionID == localStatus.remoteActionID) {
-          setStatusTimeout(STATUS_TIMEOUT);
-        }
       }
     }
   }
@@ -1082,6 +1073,15 @@ public class NetworkGameManager extends Thread
           }
           remoteInterface.gotAction = true;
           localStatus.remoteActionID++;
+          /*
+           * The local player status was updated.  Set the status
+           * timeout to expire immediately and wake up the network
+           * manager thread.
+           */
+          setStatusTimeout(0L);
+          synchronized(this) {
+            notify();
+          }
           break;
         }
       }
@@ -1476,6 +1476,13 @@ public class NetworkGameManager extends Thread
         if (session != null) {
           session.setFilter(myGameID);
         }
+        /*
+         * The transport layer message format has been updated, so send
+         * an immediate status message to notify peers that we have
+         * reserved a game ID.  This function is called directly from
+         * the network manager thread, so there is no need to notify the
+         * thread to wake up.
+         */
         setStatusTimeout(0L);
         break;
       }
@@ -1587,6 +1594,15 @@ public class NetworkGameManager extends Thread
     tempAction.aimPosition = aimPosition;
     addAction(tempAction);
     transmitAction(tempAction);
+    /*
+     * The most current action IDs are being transmitted with this
+     * action.  Postpone the player status message as it will be mostly
+     * redundant with the information in this message, albeit the
+     * delayed game field checksums may potentially lead to a more
+     * significant game synchronization discrepancy if one is currently
+     * present.
+     */
+    setStatusTimeout(STATUS_TIMEOUT);
   }
 
   /**
