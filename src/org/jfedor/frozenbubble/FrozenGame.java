@@ -671,7 +671,7 @@ public class FrozenGame extends GameScreen {
       attackBarBubbles = malusBar.getAttackBarBubbles();
     }
 
-    if ((ats && ats_touch_fire) || (!ats && touch_fire)) {
+    if ((ats && ats_touch_fire) || ((!ats || isRemote) && touch_fire)) {
       key_fire = true;
     }
 

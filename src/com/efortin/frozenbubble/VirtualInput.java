@@ -133,10 +133,17 @@ public abstract class VirtualInput {
    * Process virtual key presses.  This method only sets the
    * historical keypress flags, which must be cleared by ancestors
    * that inherit this class.
-   * @param keyCode
+   * <p>The <code>touch</code> flag is a special case that denotes that
+   * this is purely a launch request, regardless of the keypress.
+   * @param keyCode - the virtual keypress to simulate.
+   * @param touchFire - <code>true</code> to set the flag to simulate a
+   * launch request.
    */
-  public final void setAction(int keyCode, boolean touch) {
-    if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
+  public final void setAction(int keyCode, boolean touchFire) {
+    if (touchFire) {
+      mTouchFire = true;
+    }
+    else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
       mWasCenter = true;
     }
     else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
@@ -149,12 +156,7 @@ public abstract class VirtualInput {
       mWasRight = true;
     }
     else if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
-      if (touch) {
-        mTouchFire = true;
-      }
-      else {
-        mWasUp = true;
-      }
+      mWasUp = true;
     }
   }
 
