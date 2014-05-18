@@ -229,7 +229,7 @@ public class HomeScreen extends Activity {
         return false;
       }
     });
-    start1pGameButton.setText("1 Player");
+    start1pGameButton.setText("Puzzle");
     start1pGameButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
     start1pGameButton.setWidth((int) (start1pGameButton.getTextSize() * 9));
     start1pGameButton.setTypeface(null, Typeface.BOLD);
