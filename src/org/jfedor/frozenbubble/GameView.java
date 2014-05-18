@@ -991,6 +991,7 @@ public class GameView extends SurfaceView
                                     mCompressorHead, mCompressor, mLauncher,
                                     mSoundManager, mLevelManager,
                                     mHighScoreManager);
+      mPlayer1.setGameRef(mFrozenGame1);
       mFrozenGame2 = null;
       mNetworkManager = null;
       mHighScoreManager.startLevel(mLevelManager.getLevelIndex());
@@ -1799,6 +1800,8 @@ public class GameView extends SurfaceView
           mLevelManager.goToFirstLevel();
         }
 
+        mPlayer1.setGameRef(null);
+        mFrozenGame1 = null;
         mFrozenGame1 = new FrozenGame(mBackground, mBubbles, mBubblesBlind,
                                       mFrozenBubbles, mTargetedBubbles,
                                       mBubbleBlink, mGameWon, mGameLost,
@@ -1812,6 +1815,8 @@ public class GameView extends SurfaceView
         mPlayer1.setGameRef(mFrozenGame1);
 
         if (numPlayers > 1) {
+          mPlayer2.setGameRef(null);
+          mFrozenGame2 = null;
           mFrozenGame2 = new FrozenGame(mBackground, mBubbles, mBubblesBlind,
                                         mFrozenBubbles, mTargetedBubbles,
                                         mBubbleBlink, mGameWon, mGameLost,
@@ -1837,6 +1842,8 @@ public class GameView extends SurfaceView
     }
 
     private void nextLevel() {
+      mPlayer1.setGameRef(null);
+      mFrozenGame1 = null;
       mFrozenGame1 = new FrozenGame(mBackground, mBubbles, mBubblesBlind,
                                     mFrozenBubbles, mTargetedBubbles,
                                     mBubbleBlink, mGameWon, mGameLost,
@@ -1844,6 +1851,7 @@ public class GameView extends SurfaceView
                                     mCompressorHead, mCompressor, mLauncher,
                                     mSoundManager, mLevelManager,
                                     mHighScoreManager);
+      mPlayer1.setGameRef(mFrozenGame1);
       if (mHighScoreManager != null) {
         mHighScoreManager.startLevel(mLevelManager.getLevelIndex());
       }
@@ -2074,12 +2082,20 @@ public class GameView extends SurfaceView
      */
     public void setPlayerAction(PlayerAction newAction) {
       VirtualInput playerRef;
+      FrozenGame   gameRef;
 
       if (newAction.playerID == VirtualInput.PLAYER1) {
         playerRef = mPlayer1;
       }
       else if (newAction.playerID == VirtualInput.PLAYER2) {
         playerRef = mPlayer2;
+      }
+      else {
+        return;
+      }
+
+      if (playerRef.mGameRef != null) {
+        gameRef = playerRef.mGameRef;
       }
       else {
         return;
@@ -2098,21 +2114,21 @@ public class GameView extends SurfaceView
             (newAction.nextBubbleColor    <  8) &&
             (newAction.newNextBubbleColor > -1) &&
             (newAction.newNextBubbleColor <  8)) {
-          playerRef.mGameRef.setLaunchBubbleColors(newAction.launchBubbleColor,
-                                                   newAction.nextBubbleColor,
-                                                   newAction.newNextBubbleColor);
+          gameRef.setLaunchBubbleColors(newAction.launchBubbleColor,
+                                        newAction.nextBubbleColor,
+                                        newAction.newNextBubbleColor);
         }
 
         /*
          * Set the launcher aim position.
          */
-        playerRef.mGameRef.setPosition(newAction.aimPosition);
+        gameRef.setPosition(newAction.aimPosition);
 
         /*
          * Process a compressor lower request.
          */
         if (newAction.compress) {
-          playerRef.mGameRef.lowerCompressor(true);
+          gameRef.lowerCompressor(true);
         }
 
         /*
@@ -2142,14 +2158,16 @@ public class GameView extends SurfaceView
          * Set the current value of the attack bar.
          */
         if (newAction.attackBarBubbles > -1) {
-          playerRef.mGameRef.malusBar.setAttackBubbles(newAction.attackBarBubbles,
-                                                       newAction.attackBubbles);
+          gameRef.malusBar.setAttackBubbles(newAction.attackBarBubbles,
+                                            newAction.attackBubbles);
         }
       }
     }
 
     public void setPosition(double value) {
-      mLocalInput.mGameRef.setPosition(value);
+      if (mLocalInput.mGameRef != null) {
+        mLocalInput.mGameRef.setPosition(value);
+      }
     }
 
     public void setRunning(boolean b) {
