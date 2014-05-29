@@ -53,6 +53,7 @@
 package org.gsanson.frozenbubble;
 
 import org.jfedor.frozenbubble.BmpWrap;
+import org.jfedor.frozenbubble.LevelManager;
 import org.jfedor.frozenbubble.Sprite;
 
 import android.graphics.Canvas;
@@ -60,6 +61,7 @@ import android.graphics.Rect;
 import android.os.Bundle;
 
 public class MalusBar extends Sprite {
+  public final static int MAX_ATTACK = LevelManager.NUM_COLS - 1;
 
   /* X-pos for tomatoes */
   int minX;
@@ -88,10 +90,9 @@ public class MalusBar extends Sprite {
    */
   public MalusBar(int coordX, int coordY, BmpWrap banana, BmpWrap tomato) {
     super(new Rect(coordX, coordY, coordX + 33, coordY + 354));
-    minX = coordX;
-    maxY = coordY + 354;
+    minX        = coordX;
+    maxY        = coordY + 354;
     releaseTime = 0;
-
     this.banana = banana;
     this.tomato = tomato;
   }
@@ -100,10 +101,10 @@ public class MalusBar extends Sprite {
   public final void paint(Canvas c, double scale, int dx, int dy) {
     int count = nbMalus;
     int pos = maxY;
-    while (count >= 7) {
+    while (count >= MAX_ATTACK) {
       pos -= 13;
       drawImage(tomato, minX, pos, c, scale, dx, dy);
-      count -= 7;
+      count -= MAX_ATTACK;
     }
     while (count > 0) {
       pos -= 11;
@@ -122,7 +123,7 @@ public class MalusBar extends Sprite {
    * Clear the attack bubbles stored in the attack bubble array.
    */
   public void clearAttackBubbles() {
-    for (int i = 0; i < 15; i++)
+    for (int i = 0; i < LevelManager.LANES; i++)
       this.attackBubbles[i] = -1;
   }
 
@@ -149,7 +150,7 @@ public class MalusBar extends Sprite {
   }
 
   public int removeLine() {
-    int nb = Math.min(7, nbMalus);
+    int nb = Math.min(MAX_ATTACK, nbMalus);
     nbMalus -= nb;
     return nb;
   }
@@ -183,7 +184,7 @@ public class MalusBar extends Sprite {
     nbMalus = numBubbles;
 
     if (attackBubbles != null)
-      for (int i = 0; i < 15; i++)
+      for (int i = 0; i < LevelManager.LANES; i++)
         this.attackBubbles[i] = attackBubbles[i];
   }
 }

@@ -58,7 +58,7 @@ import com.peculiargames.andmodplug.MODResourcePlayer;
 import com.peculiargames.andmodplug.PlayerThread;
 
 public class ModPlayer {
-  private MODResourcePlayer resplayer = null;
+  private MODResourcePlayer resPlayer = null;
 
   public ModPlayer(Context context,
                    int songId,
@@ -72,9 +72,9 @@ public class ModPlayer {
    */
   public void destroyMusicPlayer() {
     synchronized(this) {
-      if (resplayer != null) {
-        resplayer.StopAndClose();
-        resplayer = null;
+      if (resPlayer != null) {
+        resPlayer.stopAndClose();
+        resPlayer = null;
       }
     }
   }
@@ -87,13 +87,13 @@ public class ModPlayer {
    * playing.
    */
   public void loadNewSong(int songId, boolean startPlaying) {
-    if (resplayer != null) {
+    if (resPlayer != null) {
       // Pause the current song.
-      resplayer.PausePlay();
+      resPlayer.pausePlay(true);
       // Load the current MOD into the player.
-      resplayer.LoadMODResource(songId, true);
+      resPlayer.loadModuleResource(songId, true);
       if (startPlaying)
-        resplayer.UnPausePlay();
+        resPlayer.unPausePlay();
     }
   }
 
@@ -110,34 +110,34 @@ public class ModPlayer {
                               boolean musicOn,
                               boolean startPaused) {
     // Create a new music player.
-    resplayer = new MODResourcePlayer(context);
-    // Load the mod file.
-    resplayer.LoadMODResource(songId, false);
+    resPlayer = new MODResourcePlayer(context);
+    // Load the MOD file.
+    resPlayer.loadModuleResource(songId, false);
     // Loop the song forever.
-    resplayer.setLoopCount(PlayerThread.LOOP_SONG_FOREVER);
+    resPlayer.setLoopCount(PlayerThread.LOOP_SONG_FOREVER);
     // Turn the music on or off.
     setMusicOn(musicOn);
     // Start the music thread.
-    resplayer.startPaused(startPaused);
-    resplayer.start();
+    resPlayer.startPaused(startPaused);
+    resPlayer.start();
   }
 
   public void pausePlay() {
-    if (resplayer != null)
-      resplayer.PausePlay();
+    if (resPlayer != null)
+      resPlayer.pausePlay(false);
   }
 
   public void setMusicOn(boolean musicOn) {
     if (musicOn) {
-      resplayer.setVolume(255);
+      resPlayer.setVolume(255);
     }
     else {
-      resplayer.setVolume(0);
+      resPlayer.setVolume(0);
     }
   }
 
   public void unPausePlay() {
-    if (resplayer != null)
-      resplayer.UnPausePlay();
+    if (resPlayer != null)
+      resPlayer.unPausePlay();
   }
 }

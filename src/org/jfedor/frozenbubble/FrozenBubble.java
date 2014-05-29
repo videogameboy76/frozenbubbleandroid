@@ -586,15 +586,26 @@ public class FrozenBubble extends Activity
     mGameView = null;
   }
 
-  private int getScreenOrientation() {
+  /**
+   * Obtain the screen orientation.
+   * @param windowManager - used to get a reference to the display to
+   * obtain display information.
+   * @return The screen orientation, which can be among the following
+   * values:<br><code>
+   * ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE<br>
+   * ActivityInfo.SCREEN_ORIENTATION_PORTRAIT<br>
+   * FrozenBubble.SCREEN_ORIENTATION_REVERSE_LANDSCAPE<br>
+   * FrozenBubble.SCREEN_ORIENTATION_REVERSE_PORTRAIT</code>
+   */
+  public static int getScreenOrientation(WindowManager windowManager) {
     /*
      * The method getOrientation() was deprecated in API level 8.
      *
      * For API level 8 or greater, use getRotation().
      */
-    int rotation = getWindowManager().getDefaultDisplay().getOrientation();
+    int rotation = windowManager.getDefaultDisplay().getOrientation();
     DisplayMetrics dm = new DisplayMetrics();
-    getWindowManager().getDefaultDisplay().getMetrics(dm);
+    windowManager.getDefaultDisplay().getMetrics(dm);
     int width  = dm.widthPixels;
     int height = dm.heightPixels;
     int orientation;
@@ -664,12 +675,12 @@ public class FrozenBubble extends Activity
   private void initGameOptions() {
     restoreGamePrefs();
 
-    currentOrientation = getScreenOrientation();
+    currentOrientation = getScreenOrientation(getWindowManager());
     myOrientationEventListener =
       new OrientationEventListener(this, SensorManager.SENSOR_DELAY_NORMAL) {
         @Override
         public void onOrientationChanged(int arg0) {
-          currentOrientation = getScreenOrientation();
+          currentOrientation = getScreenOrientation(getWindowManager());
         }
       };
     if (myOrientationEventListener.canDetectOrientation())
@@ -681,12 +692,8 @@ public class FrozenBubble extends Activity
    */
   public void newGame() {
     if (mGameThread != null) {
-      mGameThread.newGame();
-      if (numPlayers > 1) {
-        mGameThread.startOpponent();
-      }
+      mGameThread.newGame(true);
     }
-
     playMusic(false);
   }
 
@@ -1082,7 +1089,6 @@ public class FrozenBubble extends Activity
           mGameThread.restoreState(savedInstanceState);
         }
       }
-      mGameThread.startOpponent();
       mGameView.requestFocus();
     }
     else {
