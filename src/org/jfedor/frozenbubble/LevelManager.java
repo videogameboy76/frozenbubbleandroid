@@ -58,6 +58,19 @@ import java.util.Vector;
 import android.os.Bundle;
 
 public class LevelManager {
+
+  /*
+   * Level row and column definitions.
+   */
+  public static final int LANES    = 15;
+  public static final int MAX_ROWS = 15;
+  public static final int NUM_COLS = 8;
+  public static final int NUM_ROWS = 13;
+  public static final int VS_ROWS  = 5;
+
+  /*
+   * Level difficulty (number of bubble colors) definitions.
+   */
   public static final int EASY     = 4;
   public static final int NORMAL   = 5;
   public static final int MODERATE = 6;
@@ -98,14 +111,14 @@ public class LevelManager {
    * level difficulty, e.g. <code>EASY</code>, <code>HARD</code>, etc.
    */
   public LevelManager(long seed, int difficulty) {
-    this.randomMode = true;
-    this.randomSeed = seed;
-    this.currentLevel = difficulty;
-    currentLevel = ((currentLevel - 1) % INSANE) + 1;
+    randomMode   = true;
+    randomSeed   = seed;
+    currentLevel = difficulty;
     if (currentLevel < EASY)
-      this.currentLevel = EASY;
-    else
-      this.currentLevel = difficulty;
+      currentLevel = EASY;
+    else if (currentLevel > INSANE) {
+      currentLevel = INSANE;
+    }
     levelList = new Vector<byte[][]>();
     levelList.addElement(getLevel(null));
   }
@@ -150,10 +163,10 @@ public class LevelManager {
   }
 
   private byte[][] getLevel(String data) {
-    byte[][] temp = new byte[8][12];
+    byte[][] temp = new byte[NUM_COLS][NUM_ROWS - 1];
 
-    for (int j=0 ; j<12 ; j++) {
-      for (int i=0 ; i<8 ; i++) {
+    for (int j = 0; j < (NUM_ROWS - 1); j++) {
+      for (int i = 0; i < NUM_COLS; i++) {
         temp[i][j] = -1;
       }
     }
@@ -171,23 +184,22 @@ public class LevelManager {
           temp[tempX][tempY] = -1;
           tempX++;
         }
-  
-        if (tempX == 8) {
+
+        if (tempX == NUM_COLS) {
           tempY++;
-  
-          if (tempY == 12) {
+
+          if (tempY == NUM_ROWS - 1) {
             return temp;
           }
-  
+
           tempX = tempY % 2;
         }
       }
     }
     else {
       Random rand = new Random(randomSeed);
-      rand.nextInt(7);
-      for (int j=0 ; j<5 ; j++) {
-        for (int i=0 ; i<8 ; i++) {
+      for (int j = 0; j < VS_ROWS; j++) {
+        for (int i = 0; i < NUM_COLS; i++) {
           temp[i][j] = (byte)rand.nextInt(currentLevel);
         }
       }

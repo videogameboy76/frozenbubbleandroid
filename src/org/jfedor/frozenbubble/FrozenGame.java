@@ -70,9 +70,9 @@ import com.efortin.frozenbubble.NetworkGameManager;
 import com.efortin.frozenbubble.VirtualInput;
 
 public class FrozenGame extends GameScreen {
-  private final int[] columnX = { 190, 206, 232, 248, 264,
-                                  280, 296, 312, 328, 344,
-                                  360, 376, 392, 408, 424 };
+  private final int[] columnX = { 190, 206, 222, 238, 254,
+                                  270, 286, 302, 318, 334,
+                                  350, 366, 382, 398, 414 };
 
   public final static int HORIZONTAL_MOVE = 0;
   public final static int FIRE            = 1;
@@ -234,7 +234,8 @@ public class FrozenGame extends GameScreen {
     goingUp = new Vector<Sprite>();
     jumping = new Vector<Sprite>();
 
-    bubblePlay    = new BubbleSprite[8][13];
+    bubblePlay    = new BubbleSprite[LevelManager.NUM_COLS]
+                                    [LevelManager.NUM_ROWS];
     bubbleManager = new BubbleManager(bubbles);
 
     /*
@@ -246,8 +247,8 @@ public class FrozenGame extends GameScreen {
       return;
     }
 
-    for (int j = 0; j < 12; j++) {
-      for (int i = j%2; i < 8; i++) {
+    for (int j = 0; j < (LevelManager.NUM_ROWS - 1); j++) {
+      for (int i = j%2; i < LevelManager.NUM_COLS; i++) {
         if (currentLevel[i][j] != -1) {
           BubbleSprite newOne = new BubbleSprite(
             new Rect(190+i*32-(j%2)*16, 44+j*28, 32, 32),
@@ -334,7 +335,7 @@ public class FrozenGame extends GameScreen {
     int move = number%2;
     int column = (number+1) >> 1;
 
-    for (int i = move; i < 13; i++) {
+    for (int i = move; i < LevelManager.NUM_ROWS; i++) {
       if (bubblePlay[column][i] != null) {
         bubblePlay[column][i].blink();
       }
@@ -344,8 +345,8 @@ public class FrozenGame extends GameScreen {
   public void calculateGridChecksum() {
     CRC16 gridCRC = new CRC16(0);
 
-    for (int i = 0; i < 8; i++) {
-      for (int j = 0; j < 12; j++) {
+    for (int i = 0; i < LevelManager.NUM_COLS; i++) {
+      for (int j = 0; j < (LevelManager.NUM_ROWS - 1); j++) {
         if (bubblePlay[i][j] != null) {
           gridCRC.update(bubblePlay[i][j].getColor());
         }
@@ -368,8 +369,8 @@ public class FrozenGame extends GameScreen {
 
       int steps = compressor.getSteps();
 
-      for (int i = 0; i < 8; i++) {
-        if (bubblePlay[i][12 - steps] != null) {
+      for (int i = 0; i < LevelManager.NUM_COLS; i++) {
+        if (bubblePlay[i][(LevelManager.NUM_ROWS - 1) - steps] != null) {
           lost = true;
           break;
         }
@@ -422,7 +423,7 @@ public class FrozenGame extends GameScreen {
   private void frozenify() {
     frozenifyX--;
     if (frozenifyX < 0) {
-      frozenifyX = 7;
+      frozenifyX = LevelManager.NUM_COLS - 1;
       frozenifyY--;
 
       if (frozenifyY < 0) {
@@ -437,7 +438,7 @@ public class FrozenGame extends GameScreen {
     while ((bubblePlay[frozenifyX][frozenifyY] == null) && (frozenifyY >= 0)) {
       frozenifyX--;
       if (frozenifyX < 0) {
-        frozenifyX = 7;
+        frozenifyX = LevelManager.NUM_COLS - 1;
         frozenifyY--;
 
         if (frozenifyY < 0) {
@@ -529,8 +530,8 @@ public class FrozenGame extends GameScreen {
     this.addSprite(freezeLaunchBubble);
     this.addSprite(freezeNextBubble);
 
-    frozenifyX = 7;
-    frozenifyY = 12;
+    frozenifyX = LevelManager.NUM_COLS - 1;
+    frozenifyY = LevelManager.NUM_ROWS - 1;
     frozenify  = true;
   }
 
@@ -545,8 +546,8 @@ public class FrozenGame extends GameScreen {
       soundManager.playSound(FrozenBubble.SOUND_NEWROOT);
     }
 
-    for (int i = 0; i < 8; i++) {
-      for (int j = 0; j < 12; j++) {
+    for (int i = 0; i < LevelManager.NUM_COLS; i++) {
+      for (int j = 0; j < (LevelManager.NUM_ROWS - 1); j++) {
         if (bubblePlay[i][j] != null) {
           bubblePlay[i][j].moveDown();
 
@@ -725,7 +726,6 @@ public class FrozenGame extends GameScreen {
     if (endOfGame && readyToFire) {
       if (move[FIRE] == KEY_UP) {
         if (playResult == gameEnum.WON) {
-          levelManager.goToNextLevel();
           playResult = gameEnum.NEXT_WON;
         }
         else {
@@ -958,12 +958,12 @@ public class FrozenGame extends GameScreen {
      * bubble launches. 
      */
     if (isRemote) {
-      for (int i = 0; i < 15; i++) {
+      for (int i = 0; i < LevelManager.LANES; i++) {
         if (malusBar.attackBubbles[i] >= 0) {
           numBubblesLaunched++;
           int color = malusBar.attackBubbles[i];
           BubbleSprite malusBubble = new BubbleSprite(
-            new Rect(columnX[i], 44+15*28, 32, 32),
+            new Rect(columnX[i], 44+(LevelManager.MAX_ROWS*28), 32, 32),
             START_LAUNCH_DIRECTION,
             color, bubbles[color], bubblesBlind[color],
             frozenBubbles[color], targetedBubbles, bubbleBlink,
@@ -975,25 +975,25 @@ public class FrozenGame extends GameScreen {
       malusBar.removeAttackBubbles(numBubblesLaunched);
     }
     else if (malusBar.getAttackBarBubbles() > 0) {
-      boolean[] lanes = new boolean[15];
+      boolean[] lanes = new boolean[LevelManager.LANES];
       int malusBalls = malusBar.removeLine();
       int pos;
 
       while (malusBalls > 0) {
-        pos = random.nextInt(15);
+        pos = random.nextInt(LevelManager.LANES);
         if (!lanes[pos]) {
           lanes[pos] = true;
           malusBalls--;
         }
       }
 
-      for (int i = 0; i < 15; i++) {
+      for (int i = 0; i < LevelManager.LANES; i++) {
         if (lanes[i]) {
           numBubblesLaunched++;
           int color = random.nextInt(FrozenBubble.getDifficulty());
           malusBar.setAttackBubble(i, color);
           BubbleSprite malusBubble = new BubbleSprite(
-            new Rect(columnX[i], 44+15*28, 32, 32),
+            new Rect(columnX[i], 44+(LevelManager.MAX_ROWS*28), 32, 32),
             START_LAUNCH_DIRECTION,
             color, bubbles[color], bubblesBlind[color],
             frozenBubbles[color], targetedBubbles, bubbleBlink,
@@ -1107,9 +1107,10 @@ public class FrozenGame extends GameScreen {
       int spriteIdx = map.getInt(String.format("%d-falling-%d", player, i));
       falling.addElement(savedSprites.elementAt(spriteIdx));
     }
-    bubblePlay = new BubbleSprite[8][13];
-    for (int i = 0; i < 8; i++) {
-      for (int j = 0; j < 13; j++) {
+    bubblePlay = new BubbleSprite[LevelManager.NUM_COLS]
+                                 [LevelManager.NUM_ROWS];
+    for (int i = 0; i < LevelManager.NUM_COLS; i++) {
+      for (int j = 0; j < LevelManager.NUM_ROWS; j++) {
         int spriteIdx =
             map.getInt(String.format("%d-play-%d-%d", player, i, j));
         if (spriteIdx != -1) {
@@ -1188,8 +1189,8 @@ public class FrozenGame extends GameScreen {
                  ((Sprite)falling.elementAt(i)).getSavedId());
     }
     map.putInt(String.format("%d-numFallingSprites", player), falling.size());
-    for (int i = 0; i < 8; i++) {
-      for (int j = 0; j < 13; j++) {
+    for (int i = 0; i < LevelManager.NUM_COLS; i++) {
+      for (int j = 0; j < LevelManager.NUM_ROWS; j++) {
         if (bubblePlay[i][j] != null) {
           bubblePlay[i][j].saveState(map, savedSprites, player);
           map.putInt(String.format("%d-play-%d-%d", player, i, j),
@@ -1287,8 +1288,8 @@ public class FrozenGame extends GameScreen {
       jumping.clear();
       bubbleManager.initialize();
       removeAllBubbleSprites();
-      for (int i = 0; i < 8; i++) {
-        for (int j = 0; j < 13; j++) {
+      for (int i = 0; i < LevelManager.NUM_COLS; i++) {
+        for (int j = 0; j < LevelManager.NUM_ROWS; j++) {
           bubblePlay[i][j] = null;
           if (newGrid[i][j] != -1) {
             bubblePlay[i][j] = new BubbleSprite(
@@ -1369,8 +1370,8 @@ public class FrozenGame extends GameScreen {
     /*
      * Check the bubble sprite grid for occupied locations.
      */
-    for (int i = 0; i < 8; i++) {
-      for (int j = 0; j < 13; j++) {
+    for (int i = 0; i < LevelManager.NUM_COLS; i++) {
+      for (int j = 0; j < LevelManager.NUM_ROWS; j++) {
         if (bubblePlay[i][j] != null ) {
           numBubblesPlay++;
         }
@@ -1388,8 +1389,8 @@ public class FrozenGame extends GameScreen {
     if (numBubblesManager != numBubblesPlay) {
       bubbleManager.initialize();
       removeAllBubbleSprites();
-      for (int i = 0; i < 8; i++) {
-        for (int j = 0; j < 13; j++) {
+      for (int i = 0; i < LevelManager.NUM_COLS; i++) {
+        for (int j = 0; j < LevelManager.NUM_ROWS; j++) {
           if (bubblePlay[i][j] != null ) {
             bubblePlay[i][j].addToManager();
             this.addSprite(bubblePlay[i][j]);

@@ -53,12 +53,27 @@
 package org.gsanson.frozenbubble;
 
 public interface Opponent {
+  /**
+   * Make any necessary computation before next turn
+   * @param currentColor
+   * @param nextColor
+   * @param compressor
+   */
+  public void compute(int currentColor, int nextColor, int compressor);
 
   /**
-   * Checks whether opponent has a control command awaiting
-   * @return
+   * Get the action the CPU opponent wants to make (aim left, aim right,
+   * fire).
+   * @param currentDirection
+   * @return The action identifier of the next CPU action.
    */
-  public boolean isComputing();
+  public int getAction(double currentDirection);
+
+  /**
+   * Get the final grid location of the next opponent bubble launch. 
+   * @return The final grid location of the next opponent bubble launch.
+   */
+  public int[] getBubbleDestination();
 
   /**
    * Get the exact direction (radian value) pointer should reach
@@ -68,19 +83,8 @@ public interface Opponent {
   public double getExactDirection(double currentDirection);
 
   /**
-   * The action opponent want to make (left, right, fire)
-   * @param currentDirection
+   * Checks whether opponent has a control command awaiting
    * @return
    */
-  public int getAction(double currentDirection);
-
-  /**
-   * Make any necessary computation before next turn
-   * @param currentColor
-   * @param nextColor
-   * @param compressor
-   */
-  public void compute(int currentColor, int nextColor, int compressor);
-
-  public int[] getBallDestination();
+  public boolean isComputing();
 }
