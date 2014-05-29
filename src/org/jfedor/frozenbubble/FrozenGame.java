@@ -530,7 +530,7 @@ public class FrozenGame extends GameScreen {
     this.addSprite(freezeLaunchBubble);
     this.addSprite(freezeNextBubble);
 
-    frozenifyX = LevelManager.NUM_COLS - 1;
+    frozenifyX = LevelManager.NUM_COLS;
     frozenifyY = LevelManager.NUM_ROWS - 1;
     frozenify  = true;
   }
