@@ -68,6 +68,7 @@ public class HighscoreManager {
 
   public static final String PUZZLE_DATABASE_NAME      = "frozenbubble";
   public static final String MULTIPLAYER_DATABASE_NAME = "multiplayer";
+  public static final String ARCADE_DATABASE_NAME      = "arcade";
 
   private boolean isPaused = true;
   private int currentLevel = 0;

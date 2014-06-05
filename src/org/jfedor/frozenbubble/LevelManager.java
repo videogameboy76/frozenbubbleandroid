@@ -84,22 +84,25 @@ public class LevelManager {
     "frozen bubble",
     "easy",
     "normal",
-    "moderate",
+    "medium",
     "hard",
     "insane"
   };
 
   private boolean randomMode;
   private long randomSeed;
-  private int currentLevel;
+  private int  currentLevel;
+  private int  rowOffset;
   private Vector<byte[][]> levelList;
 
   public void saveState(Bundle map) {
     map.putInt("LevelManager-currentLevel", currentLevel);
+    map.putInt("LevelManager-rowOffset", rowOffset);
   }
 
   public void restoreState(Bundle map) {
     currentLevel = map.getInt("LevelManager-currentLevel");
+    rowOffset = map.getInt("LevelManager-rowOffset");
   }
 
   /**
@@ -114,6 +117,12 @@ public class LevelManager {
     randomMode   = true;
     randomSeed   = seed;
     currentLevel = difficulty;
+    if (FrozenBubble.arcadeGame) {
+      rowOffset = 1;
+    }
+    else {
+      rowOffset = 0;
+    }
     if (currentLevel < EASY)
       currentLevel = EASY;
     else if (currentLevel > INSANE) {
@@ -133,6 +142,7 @@ public class LevelManager {
     randomSeed = 0;
     String allLevels = new String(levels);
     currentLevel = startingLevel;
+    rowOffset = 0;
     levelList = new Vector<byte[][]>();
     int nextLevel = allLevels.indexOf("\n\n");
 
@@ -202,10 +212,32 @@ public class LevelManager {
         for (int i = 0; i < NUM_COLS; i++) {
           temp[i][j] = (byte)rand.nextInt(currentLevel);
         }
+        if (FrozenBubble.arcadeGame) {
+          rowOffset = (rowOffset + 1) % 2;
+        }
       }
       randomSeed = rand.nextInt();
     }
     return temp;
+  }
+
+  public byte[] getNewRow(BubbleSprite[][] grid) {
+    byte[] tempRow = new byte[NUM_COLS];
+    Random rand    = new Random(randomSeed);
+
+    for (int column = 0; column < NUM_COLS; column++) {
+      tempRow[column] = (byte)rand.nextInt(currentLevel);
+    }
+
+    if (FrozenBubble.arcadeGame) {
+      rowOffset = (rowOffset + 1) % 2;
+    }
+    randomSeed = rand.nextInt();
+    return tempRow;
+  }
+
+  public int getRowOffset() {
+    return rowOffset;
   }
 
   public byte[][] getCurrentLevel() {
@@ -215,6 +247,9 @@ public class LevelManager {
       }
     }
     else {
+      if (FrozenBubble.arcadeGame) {
+        rowOffset = VS_ROWS % 2;
+      }
       return (byte[][])levelList.elementAt(0);
     }
     return null;

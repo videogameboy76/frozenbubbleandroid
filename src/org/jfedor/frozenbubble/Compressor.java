@@ -56,15 +56,27 @@ import android.graphics.Canvas;
 import android.os.Bundle;
 
 public class Compressor {
+  private static final int SCROLL_START = 6;
+
   private BmpWrap compressorHead;
   private BmpWrap compressor;
   private double moveDown;
+  private int scroll;
+  private int scrollMax;
   private int steps;
 
   public Compressor(BmpWrap compressorHead, BmpWrap compressor) {
     this.compressorHead = compressorHead;
-    this.compressor = compressor;
+    this.compressor     = compressor;
     init();
+  }
+
+  public boolean checkScroll() {
+    if (scroll++ > scrollMax) {
+      scroll = 0;
+      moveDown += 1.;
+    }
+    return scroll == 0;
   }
 
   public double getMoveDown() {
@@ -76,13 +88,19 @@ public class Compressor {
   }
 
   public void init() {
-    moveDown = 0.;
-    steps = 0;
+    moveDown  = 0.;
+    scroll    = 0;
+    scrollMax = SCROLL_START;
+    steps     = 0;
   }
 
   public void moveDown() {
     moveDown += 28.;
     steps++;
+  }
+
+  public void moveDownSubtract(double subtract) {
+    moveDown -= subtract;
   }
 
   public void paint(Canvas c, double scale, int dx, int dy) {
@@ -100,12 +118,17 @@ public class Compressor {
   }
 
   public void restoreState(Bundle map, int id) {
-    moveDown = map.getDouble(String.format("%d-compressor-moveDown", id));
-    steps = map.getInt(String.format("%d-compressor-steps", id));
+    moveDown  = map.getDouble(String.format("%d-compressor-moveDown", id));
+    scroll    = map.getInt(String.format("%d-compressor-scroll", id));
+    scrollMax = map.getInt(String.format("%d-compressor-scrollMax", id));
+    steps     = map.getInt(String.format("%d-compressor-steps", id));
   }
 
   public void saveState(Bundle map, int id) {
     map.putDouble(String.format("%d-compressor-moveDown", id), moveDown);
+    map.putInt(String.format("%d-compressor-scroll", id), scroll);
+    map.putInt(String.format("%d-compressor-scrollMax", id), scrollMax);
+    map.putInt(String.format("%d-compressor-steps", id), steps);
     map.putInt(String.format("%d-compressor-steps", id), steps);
   }
 };

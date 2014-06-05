@@ -795,7 +795,7 @@ public class GameView extends SurfaceView
     }
 
     public GameThread(SurfaceHolder surfaceHolder, byte[] customLevels,
-                      int startingLevel) {
+                      int startingLevel, boolean arcadeGame) {
       //Log.i("frozen-bubble", "GameThread()");
       mSurfaceHolder = surfaceHolder;
       Resources res = mContext.getResources();
@@ -945,33 +945,42 @@ public class GameView extends SurfaceView
       mFont             = new BubbleFont(mFontImage);
       mLauncher         = res.getDrawable(R.drawable.launcher);
       mSoundManager     = new SoundManager(mContext);
-      mHighScoreManager =
-          new HighscoreManager(getContext(),
-                               HighscoreManager.PUZZLE_DATABASE_NAME);
 
-      if (null == customLevels) {
-        try {
-          InputStream is     = mContext.getAssets().open("levels.txt");
-          int         size   = is.available();
-          byte[]      levels = new byte[size];
-          is.read(levels);
-          is.close();
-          SharedPreferences sp = mContext.getSharedPreferences(
-          FrozenBubble.PREFS_NAME, Context.MODE_PRIVATE);
-          startingLevel = sp.getInt("level", 0);
-          mLevelManager = new LevelManager(levels, startingLevel);
-        } catch (IOException e) {
-          /*
-           *  Should never happen.
-           */
-          throw new RuntimeException(e);
-        }
+      if (arcadeGame) {
+        mHighScoreManager =
+            new HighscoreManager(getContext(),
+                                 HighscoreManager.ARCADE_DATABASE_NAME);
+        mLevelManager = new LevelManager(System.currentTimeMillis(),
+                                         FrozenBubble.getDifficulty());
       }
       else {
-        /*
-         *  We were launched by the level editor.
-         */
-        mLevelManager = new LevelManager(customLevels, startingLevel);
+        mHighScoreManager =
+            new HighscoreManager(getContext(),
+                                 HighscoreManager.PUZZLE_DATABASE_NAME);
+        if (null == customLevels) {
+          try {
+            InputStream is     = mContext.getAssets().open("levels.txt");
+            int         size   = is.available();
+            byte[]      levels = new byte[size];
+            is.read(levels);
+            is.close();
+            SharedPreferences sp = mContext.getSharedPreferences(
+            FrozenBubble.PREFS_NAME, Context.MODE_PRIVATE);
+            startingLevel = sp.getInt("level", 0);
+            mLevelManager = new LevelManager(levels, startingLevel);
+          } catch (IOException e) {
+            /*
+             *  Should never happen.
+             */
+            throw new RuntimeException(e);
+          }
+        }
+        else {
+          /*
+           *  We were launched by the level editor.
+           */
+          mLevelManager = new LevelManager(customLevels, startingLevel);
+        }
       }
 
       newGame(false);
@@ -1192,7 +1201,10 @@ public class GameView extends SurfaceView
       if (mFrozenGame1 != null) {
         mFrozenGame1.paint(canvas, mDisplayScale, mPlayer1DX, mDisplayDY);
       }
-      if (numPlayers > 1) {
+      if (FrozenBubble.arcadeGame) {
+        drawDifficulty(canvas);
+      }
+      else if (numPlayers > 1) {
         if (mFrozenGame2 != null) {
           mFrozenGame2.paint(canvas, mDisplayScale, mPlayer2DX, mDisplayDY);
         }
@@ -1394,6 +1406,14 @@ public class GameView extends SurfaceView
                        mDisplayDX, mDisplayDY);
     }
 
+    private void drawDifficulty(Canvas canvas) {
+      int y = 433;
+      int x = 159;
+      int level = mLevelManager.getLevelIndex();
+      mFont.print(LevelManager.DifficultyStrings[level], x, y, canvas,
+                  mDisplayScale, mDisplayDX, mDisplayDY);
+    }
+
     /**
      * Draw the high score screen for puzzle game mode.
      * <p>The objective of puzzle game mode is efficiency - fire as few
@@ -1474,10 +1494,11 @@ public class GameView extends SurfaceView
     }
 
     /**
-     * Draw the low score screen for multiplayer game mode.
-     * <p>The objective of multiplayer game mode is endurance - fire as
-     * many bubbles as possible for as long as possible.  Thus the low
-     * score will exhibit the most shots fired during the longest game.
+     * Draw the low score screen for arcade and multiplayer game modes.
+     * <p>The objective of arcade and multiplayer games is endurance -
+     * fire as many bubbles as possible for as long as possible.  Thus
+     * the low score will exhibit the most shots fired during the
+     * longest game.
      * @param canvas - the drawing canvas to display the scores on.
      * @param level - the level difficulty index.
      */
@@ -1492,12 +1513,15 @@ public class GameView extends SurfaceView
       int y = 20;
       int ysp = 26;
       int indent = 10;
-      int orientation = getScreenOrientation();
 
-      if (orientation == FrozenBubble.SCREEN_ORIENTATION_REVERSE_PORTRAIT)
-        x += GAMEFIELD_WIDTH/2;
-      else if (orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
-        x -= GAMEFIELD_WIDTH/2;
+      if (!FrozenBubble.arcadeGame) {
+        int orientation = getScreenOrientation();
+  
+        if (orientation == FrozenBubble.SCREEN_ORIENTATION_REVERSE_PORTRAIT)
+          x += GAMEFIELD_WIDTH/2;
+        else if (orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
+          x -= GAMEFIELD_WIDTH/2;
+      }
 
       mFont.print("highscore for " +
                   LevelManager.DifficultyStrings[mHighScoreManager.getLevel()],
@@ -1916,7 +1940,7 @@ public class GameView extends SurfaceView
                       }
                     }
                     else if ((mHighScoreManager != null) && mShowScores) {
-                      if (numPlayers > 1) {
+                      if (FrozenBubble.arcadeGame || (numPlayers > 1)) {
                         drawLowScoreScreen(c, mHighScoreManager.getLevel());
                       }
                       else {
@@ -2479,7 +2503,12 @@ public class GameView extends SurfaceView
       }
       else if ((game1State == gameEnum.NEXT_LOST) ||
                (game1State == gameEnum.NEXT_WON )) {
-        if (game1State == gameEnum.NEXT_WON) {
+        if (FrozenBubble.arcadeGame) {
+          game1Status = gameEnum.WON;
+          mShowScores = true;
+          pause();
+        }
+        else if (game1State == gameEnum.NEXT_WON) {
           game1Status = gameEnum.WON;
           mShowScores = true;
           pause();
@@ -2530,7 +2559,7 @@ public class GameView extends SurfaceView
     super(context, attrs);
     //Log.i("frozen-bubble", "GameView constructor");
     init(context, 1, (int) VirtualInput.PLAYER1, FrozenBubble.HUMAN,
-         FrozenBubble.LOCALE_LOCAL, null, 0);
+         FrozenBubble.LOCALE_LOCAL, FrozenBubble.arcadeGame, null, 0);
   }
 
   /**
@@ -2543,7 +2572,8 @@ public class GameView extends SurfaceView
     super(context);
     //Log.i("frozen-bubble", "GameView constructor");
     init(context, 1, (int) VirtualInput.PLAYER1, FrozenBubble.HUMAN,
-         FrozenBubble.LOCALE_LOCAL, levels, startingLevel);
+         FrozenBubble.LOCALE_LOCAL, FrozenBubble.arcadeGame, levels,
+         startingLevel);
   }
 
   /**
@@ -2554,15 +2584,17 @@ public class GameView extends SurfaceView
    * @param opponentId - the opponent type ID, human or CPU.
    * @param gameLocale - the game topology, which can be either local,
    * or distributed over various network types.
+   * @param arcadeGame - arcade game mode flag.
    */
   public GameView(Context context,
                   int numPlayers,
                   int myPlayerId,
                   int opponentId,
-                  int gameLocale) {
+                  int gameLocale,
+                  boolean arcadeGame) {
     super(context);
     //Log.i("frozen-bubble", "GameView constructor");
-    init(context, numPlayers, myPlayerId, opponentId, gameLocale, null, 0);
+    init(context, numPlayers, myPlayerId, opponentId, gameLocale, arcadeGame, null, 0);
   }
 
   private boolean checkImmediateAction() {
@@ -2633,6 +2665,7 @@ public class GameView extends SurfaceView
    * @param opponentId - the opponent type ID, human or CPU.
    * @param gameLocale - the game topology, which can be either local,
    * or distributed over various network types.
+   * @param arcadeGame - arcade game mode flag.
    * @param levels - the single player game levels (can be null).
    * @param startingLevel - the single player game starting level.
    */
@@ -2641,6 +2674,7 @@ public class GameView extends SurfaceView
                     int myPlayerId,
                     int opponentId,
                     int gameLocale,
+                    boolean arcadeGame,
                     byte[] levels,
                     int startingLevel) {
     mContext = context;
@@ -2702,7 +2736,7 @@ public class GameView extends SurfaceView
       mGameThread = new GameThread(holder);
     }
     else {
-      mGameThread = new GameThread(holder, levels, startingLevel);
+      mGameThread = new GameThread(holder, levels, startingLevel, arcadeGame);
     }
     mGameThread.setRunning(true);
     mGameThread.start();
