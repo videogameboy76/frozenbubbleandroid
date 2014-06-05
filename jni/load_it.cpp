@@ -1470,7 +1470,7 @@ UINT CSoundFile::LoadMixPlugins(const void *pData, UINT nLen)
 		UINT nPlugin;
 
 		nPluginSize = bswapLE32(*(DWORD *)(p+nPos+4));
-		if (nPluginSize > nLen-nPos-8) break;;
+		if (nPluginSize > nLen-nPos-8) break;
 		if ((bswapLE32(*(DWORD *)(p+nPos))) == 0x58464843)
 		{
 			for (UINT ch=0; ch<64; ch++) if (ch*4 < nPluginSize)

@@ -3331,7 +3331,7 @@ static int abc_drum_steps(const char *dch)
 	const char *p;
 	int i=0;
 	for( p=dch; *p; p++ ) {
-		if( isdigit(*p) ) i += *p - '0';;
+		if( isdigit(*p) ) i += *p - '0';
 	}
 	return i;
 }
