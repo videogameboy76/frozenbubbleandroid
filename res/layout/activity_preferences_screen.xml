@@ -85,7 +85,7 @@
     android:key="difficulty_option"
     android:max="8"
     android:summary="Choose difficulty"
-    android:title="Player vs CPU Difficulty"
+    android:title="Difficulty"
     efortin:min="4"
     efortin:unitsLeft=""
     efortin:unitsRight=" colors" />
