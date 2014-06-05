@@ -1360,27 +1360,17 @@ public class FrozenGame extends GameScreen {
       }
     }
     if ((movingBubble == null) && (moveDown >= 28.)) {
-      bubbleManager.initialize();
       compressor.moveDownSubtract(28.);
       for (int row = LevelManager.NUM_ROWS - 1; row > 0; row--) {
         for (int column = 0; column < LevelManager.NUM_COLS; column++) {
           bubblePlay[column][row    ] = bubblePlay[column][row - 1];
           bubblePlay[column][row - 1] = null;
-          if (bubblePlay[column][row] != null) {
-          }
         }
       }
       for (int column = 0; column < LevelManager.NUM_COLS; column++) {
         bubblePlay[column][0] = scrolling[column];
       }
       addScrollRow();
-      for (int row = 0; row < LevelManager.NUM_ROWS; row++) {
-        for (int column = 0; column < LevelManager.NUM_COLS; column++) {
-          if (bubblePlay[column][row] != null) {
-            bubblePlay[column][row].addToManager();
-          }
-        }
-      }
     }
   }
 
