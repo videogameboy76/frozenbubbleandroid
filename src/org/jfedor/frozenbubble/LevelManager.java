@@ -269,7 +269,9 @@ public class LevelManager {
   }
 
   public void goToFirstLevel() {
-    currentLevel = 0;
+    if (!randomMode) {
+      currentLevel = 0;
+    }
   }
 
   public int getLevelIndex() {
