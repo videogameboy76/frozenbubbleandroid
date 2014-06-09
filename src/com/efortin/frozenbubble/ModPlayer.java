@@ -91,7 +91,7 @@ public class ModPlayer {
       // Pause the current song.
       resPlayer.pausePlay(true);
       // Load the current MOD into the player.
-      resPlayer.loadModuleResource(songId, true);
+      resPlayer.loadModuleResource(songId);
       if (startPlaying)
         resPlayer.unPausePlay();
     }
@@ -112,7 +112,7 @@ public class ModPlayer {
     // Create a new music player.
     resPlayer = new MODResourcePlayer(context);
     // Load the MOD file.
-    resPlayer.loadModuleResource(songId, false);
+    resPlayer.loadModuleResource(songId);
     // Loop the song forever.
     resPlayer.setLoopCount(PlayerThread.LOOP_SONG_FOREVER);
     // Turn the music on or off.

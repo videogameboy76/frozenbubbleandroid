@@ -102,17 +102,16 @@ const ModPlug_Settings gSettings32000 =
 //
 // ADD FOLLOWING JNI INTERFACE FUNCTIONS after the header files
 //
-// ************************************************************ 
+// ************************************************************
 // Start of JNI stub code
-// ************************************************************ 
-ModPlugFile *currmodFile;
+// ************************************************************
+ModPlugFile* currmodFile;
 
 #define SAMPLEBUFFERSIZE 40000
 
 unsigned char samplebuffer[SAMPLEBUFFERSIZE];
 
 int currsample;
-void *Cbuffer;
 
 /*
  * DIAB hack to change tempo!!
@@ -205,8 +204,10 @@ JNIEXPORT jboolean JNICALL Java_com_peculiargames_andmodplug_PlayerThread_ModPlu
   /*
    * Convert from Java buffer into a C buffer.
    */
-  Cbuffer = (void *) env->GetByteArrayElements(buffer, 0);
-  currmodFile = ModPlug_Load(Cbuffer, csize);
+  jbyte* bytes = env->GetByteArrayElements(buffer, 0);
+  currmodFile = ModPlug_Load(bytes, csize);
+  env->ReleaseByteArrayElements(buffer, bytes, 0);
+  env->DeleteLocalRef(buffer);
 
   DIABpatternchanged = 0;
   ANDMODPLUGpatternfrom = 0;

@@ -116,12 +116,10 @@ public class MODResourcePlayer extends PlayerThread {
    * MOD/XM song file, e.g. R.raw.coolsong
    * @param modResource - Android resource ID for a MOD/XM/etc. (tracker
    * format) song file.
-   * @param gc - if <code>true</code>, perform garbage collection prior
-   * to loading the file.
    */
-  public boolean loadModuleResource(int modResource, boolean gc) {
-    byte[] modData = null;
-    int currfilesize = 0;
+  public boolean loadModuleResource(int modResource) {
+    byte[]      modData      = null;
+    int         currfilesize = 0;
     InputStream mModfileInStream;
 
     /*
@@ -135,7 +133,14 @@ public class MODResourcePlayer extends PlayerThread {
     mModfileInStream = mContext.getResources().openRawResource(modResource);
     try {
       currfilesize = mModfileInStream.available();
-    } catch (IOException e) {
+    } catch (IOException ioe1) {
+      try {
+        mModfileInStream.close();
+      } catch (IOException ioe2) {
+        /*
+         * Should never happen.
+         */
+      }
       return false;
     }
 
@@ -143,27 +148,23 @@ public class MODResourcePlayer extends PlayerThread {
      * Allocate a buffer that can hold the current MOD file data.
      */
     try {
-      /*
-       * This is a very critical and often very large memory allocation.
-       * Force the system to perform garbage collection to free up
-       * memory for the allocation.
-       *
-       * This is not recommended practice, as it can affect system
-       * performance.  This should only be called when the user is not
-       * interacting with the system.
-       */
-      if (gc) {
-        System.gc();
-      }
       modData = new byte[currfilesize];
     } catch (OutOfMemoryError oome) {
       // Auto-generated catch block.
       oome.printStackTrace();
+      try {
+        mModfileInStream.close();
+      } catch (IOException e) {
+        /*
+         * Should never happen.
+         */
+      }
       return false;
     }
 
     try {
-      setModSize(mModfileInStream.read(modData,0, currfilesize));
+      setModSize(mModfileInStream.read(modData, 0, currfilesize));
+      mModfileInStream.close();
     } catch (IOException e) {
       // Auto-generated catch block.
       e.printStackTrace();
@@ -199,6 +200,5 @@ public class MODResourcePlayer extends PlayerThread {
       }
     }
     closeLibModPlug();
-    invalidatePlayer();
   }
 }

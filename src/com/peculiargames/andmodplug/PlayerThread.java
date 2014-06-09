@@ -159,25 +159,10 @@ public class PlayerThread extends Thread {
                                                 0.5f, 0.625f, 0.75f, 1.0f};
 
   /*
-   * Object for lock on PlayerValid check (mostly necessary for passing
-   * a single PlayerThread instance among Activities in an Android
-   * multi-activity application).
-   */
-  public static Object sPVlock;
-
-  /*
    * Object for lock on ReadData call (to prevent UI thread messing
    * with player thread's GetSoundData() calls).
    */
-  public static Object sRDlock;
-
-  /*
-   * Mark the player as invalid for when an Activity shuts it down, but
-   * Android allows a reference to the player to persist.  A better
-   * solution is probably to just null out the reference to the
-   * PlayerThread object in whichever Activity shuts it down.
-   */
-  public  boolean mPlayerValid = false;
+  private Object sRDlock;
 
   /*
    * Private audio playback control flags.
@@ -236,13 +221,6 @@ public class PlayerThread extends Thread {
       Log.e(LOGPREFIX, "WARNING: Could not load libmodplug-"+VERS+".so");
       Log.e(LOGPREFIX, "------ older or differently named libmodplug???");
     }
-
-    /*
-     * Get lock objects for synchronizing access to playerValid flag and
-     * GetSoundData() call.
-     */
-    sPVlock = new Object();
-    sRDlock = new Object();
   }
 
   //********************************************************************
@@ -332,13 +310,16 @@ public class PlayerThread extends Thread {
     playerStarted = false;
 
     /*
+     * Get lock object for synchronizing access to GetSoundData() call.
+     */
+    sRDlock = new Object();
+
+    /*
      * Try to get the audio track.
      */
     if (!getAndroidAudioTrack(desiredRate)) {
       return;
     }
-
-    mPlayerValid = true;
   }
 
   /**
@@ -359,13 +340,9 @@ public class PlayerThread extends Thread {
     posWas = posNow;
   }
 
-  /**
-   * Close the native internal tracker library (libmodplug) and
-   * deallocate any resources.
-   */
-  public void closeLibModPlug() {
-    ModPlug_JUnload();
-    ModPlug_CloseDown();
+  private void cleanUp() {
+    mModname = null;
+    sRDlock  = null;
     /*
      * Release the audio track resources.
      */
@@ -374,6 +351,15 @@ public class PlayerThread extends Thread {
       mMyTrack.release();
       mMyTrack = null;
     }
+  }
+
+  /**
+   * Close the native internal tracker library (libmodplug) and
+   * deallocate any resources.
+   */
+  public void closeLibModPlug() {
+    ModPlug_JUnload();
+    ModPlug_CloseDown();
   }
 
   /**
@@ -444,7 +430,6 @@ public class PlayerThread extends Thread {
     }
 
     if (mMyTrack == null) {
-      mPlayerValid = false;
       /*
        * Couldn't get an audio track so return false to caller.
        */
@@ -560,16 +545,6 @@ public class PlayerThread extends Thread {
   }
 
   /**
-   * Mark this <code>PlayerThread</code> as invalid (typically when
-   * we're closing down the main Activity).
-   */
-  public void invalidatePlayer() {
-    synchronized(sPVlock) {
-      mPlayerValid = false;
-    }
-  }
-
-  /**
    * Pauses playback of the current song.
    * @param immediate - if <code>true</code>, <code>pause()</code> then
    * <code>flush()</code> the audio stream to immediately stop audio
@@ -612,24 +587,6 @@ public class PlayerThread extends Thread {
     }
 
     return paused;
-  }
-
-  /**
-   * This PlayerValid stuff is for multi-activity use, or also
-   * Android's Pause/Resume.
-   * <p>A better way to deal with it is probably to always stop and
-   * <code>join()</code> the PlayerThread in <code>onPause()</code> and
-   * allocate a new PlayerThread in <code>onResume()</code> (or
-   * <code>onCreate()</code>??).
-   * <p>Check if the player thread is still valid.
-   */
-  public boolean playerValid() {
-    /*
-     * Return whether this player is valid.
-     */
-    synchronized(sPVlock) {
-      return mPlayerValid;
-    }
   }
 
   /**
@@ -788,14 +745,7 @@ public class PlayerThread extends Thread {
       }
     }
 
-    /*
-     * Release the audio track resources.
-     */
-    if (mMyTrack != null)
-    {
-      mMyTrack.release();
-      mMyTrack = null;
-    }
+    cleanUp();
   }
 
   /**
