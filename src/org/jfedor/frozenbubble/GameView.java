@@ -1076,7 +1076,13 @@ public class GameView extends SurfaceView
         int size = mImageList.size();
         while (size > 0) {
           BmpWrap bmpWrap = mImageList.elementAt(--size);
-          bmpWrap.bmp.recycle();
+          /*
+           * If the bitmaps were not scaled, then they will already have
+           * been recycled.
+           */
+          if (bmpWrap.bmp != null) {
+            bmpWrap.bmp.recycle();
+          }
           bmpWrap.bmp = null;
         }
         mImageList.clear();
