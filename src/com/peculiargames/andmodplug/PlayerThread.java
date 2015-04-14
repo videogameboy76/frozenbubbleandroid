@@ -572,14 +572,23 @@ public class PlayerThread extends Thread {
       if (mMyTrack.getState() == AudioTrack.STATE_INITIALIZED) try {
         if (immediate) {
           mMyTrack.pause();
-          mMyTrack.flush();
-          mFlushed = true;
+          if (mMyTrack != null) {
+            mMyTrack.flush();
+            mFlushed = true;
+          }
         }
         else {
           mMyTrack.stop();
         }
         paused = true;
-      } catch (IllegalStateException ise) {
+      } catch (NullPointerException npe) {
+        /*
+         * mMyTrack may be destroyed in a different process, so the
+         * slim possibility exists that we may invoke it when it has
+         * been nullified.
+         */
+      }
+        catch (IllegalStateException ise) {
         /*
          * Nothing to do here, so just try to continue gracefully.
          */
@@ -801,10 +810,15 @@ public class PlayerThread extends Thread {
    */
   public void stopThread() {
     /*
+     * Music playback must be paused before stopping the thread.  Force
+     * a flush of the audio data to immediately stop audio playback.
+     */
+    pausePlay(true);
+
+    /*
      * Stops the music player thread (see run() above).
      */
     mRunning = false;
-    pausePlay(true);
 
     /*
      * Interrupt the thread if it is sleeping or waiting.
