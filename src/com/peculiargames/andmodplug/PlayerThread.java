@@ -587,8 +587,7 @@ public class PlayerThread extends Thread {
          * slim possibility exists that we may invoke it when it has
          * been nullified.
          */
-      }
-        catch (IllegalStateException ise) {
+      } catch (IllegalStateException ise) {
         /*
          * Nothing to do here, so just try to continue gracefully.
          */
