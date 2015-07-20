@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="app_name">冰冻泡泡</string>
+  <string name="exit">Exit</string>
   <string name="install_editor">推荐您直接到市场上下载关卡编辑器…</string>
   <string name="market_missing">找不到Android市场! 请手动安装冰冻泡泡编辑器.</string>
+  <string name="menu_bluetooth_device">Bluetooth Device</string>
   <string name="menu_new_game">开始新游戏</string>
   <string name="menu_colorblind_on">色盲模式开启</string>
   <string name="menu_colorblind_off">色盲模式关闭</string>

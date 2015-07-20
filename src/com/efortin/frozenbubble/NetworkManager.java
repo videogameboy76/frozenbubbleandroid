@@ -53,6 +53,7 @@
 package com.efortin.frozenbubble;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -63,12 +64,19 @@ import org.jfedor.frozenbubble.FrozenGame;
 import org.jfedor.frozenbubble.GameView.NetGameInterface;
 import org.jfedor.frozenbubble.LevelManager;
 
+import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.os.AsyncTask;
 import android.preference.PreferenceManager;
+import android.text.format.Formatter;
 
-import com.efortin.frozenbubble.MulticastManager.MulticastListener;
-import com.efortin.frozenbubble.MulticastManager.eventEnum;
+import com.efortin.frozenbubble.BluetoothManager.BluetoothListener;
+import com.efortin.frozenbubble.UDPSocket.UDPListener;
 
 /**
  * This class manages the actions in a network multiplayer game by
@@ -81,15 +89,27 @@ import com.efortin.frozenbubble.MulticastManager.eventEnum;
  * @author Eric Fortin
  *
  */
-public class NetworkGameManager extends Thread
-  implements MulticastListener, NetGameInterface {
-  private static final String MCAST_HOST_NAME = "225.0.0.15";
-  private static final byte[] MCAST_BYTE_ADDR = { (byte) 225, 0, 0, 15 };
-  private static final int    PORT            = 5500;
+public class NetworkManager extends Thread
+  implements BluetoothListener, UDPListener, NetGameInterface {
+
+  /*
+   * UDP unicast and multicast connection type enumeration. 
+   */
+  public static enum connectEnum {
+    BLUETOOTH,
+    UDP_UNICAST,
+    UDP_MULTICAST;
+  }
+
+  private static final String HOST = "225.0.0.15";
+  private static final int    PORT = 5500;
+
+  private static boolean hasBluetooth = false;
 
   /*
    * Message identifier definitions.
    */
+  public static final byte MSG_ID_HELLO  = 0;
   public static final byte MSG_ID_STATUS = 1;
   public static final byte MSG_ID_PREFS  = 2;
   public static final byte MSG_ID_ACTION = 3;
@@ -100,101 +120,90 @@ public class NetworkGameManager extends Thread
    */
   public static final int  ACTION_BYTES = 37;
   public static final int  FIELD_BYTES  = 112;
+  public static final int  HELLO_BYTES  = 6;
   public static final int  PREFS_BYTES  = Preferences.PREFS_BYTES;
   public static final int  STATUS_BYTES = 14;
 
   /*
    * Network game management definitions.
    */
-  private static final long ACTION_TIMEOUT     = 521L;
-  private static final long GAME_START_TIMEOUT = 509L;
-  private static final long STATUS_TIMEOUT     = 503L;
-  private static final byte PROTOCOL_VERSION   = 1;
-  private static final byte GAME_ID_MAX        = 100;
+  private static final long ACTION_TIMEOUT   = 521L;
+  private static final long STATUS_TIMEOUT   = 503L;
+  private static final byte PROTOCOL_VERSION = 1;
 
-  /*
-   * UDP unicast and multicast connection type enumeration. 
-   */
-  public static enum connectEnum {
-    UDP_UNICAST,
-    UDP_MULTICAST;
-  }
-
-  private byte             myGameID;
-  private boolean          anyStatusRx;
-  private boolean          gotFieldData;
-  private boolean          gotPrefsData;
-  private boolean[]        gamesInProgress;
+  private boolean          gameFinished;
   private boolean          missedAction;
+  private boolean          newGameStarted;
   private boolean          paused;
-  private boolean          running;
+  private boolean          running;           
   private long             actionTxTime;
-  private long             gameStartTime;
   private long             statusTxTime;
-  private connectEnum      connectType;
-  private String           localIpAddress = null;
-  private String           remoteIpAddress = null;
-  private Context          myContext = null;
-  private PlayerStatus     localStatus = null;
-  private PlayerStatus     remoteStatus = null;
-  private Preferences      localPrefs = null;
-  private Preferences      remotePrefs = null;
-  private VirtualInput     localPlayer = null;
-  private VirtualInput     remotePlayer = null;
+  private connectEnum      mode;
+  private BluetoothManager sessionBluetooth    = null;
+  private Context          myContext           = null;
   private GameFieldData    remoteGameFieldData = null;
-  private PlayerAction     remotePlayerAction = null;
-  private RemoteInterface  remoteInterface = null;
-  private MulticastManager session = null;
+  private InetAddress      localIpAddress      = null;
+  private InetAddress      opponentAddress     = null;
+  private PlayerAction     remotePlayerAction  = null;
+  private PlayerStatus     localStatus         = null;
+  private PlayerStatus     remoteStatus        = null;
+  private Preferences      localPrefs          = null;
+  private Preferences      remotePrefs         = null;
+  private RemoteInterface  remoteInterface     = null;
+  private String           remoteIpAddress     = null;
+  private UDPSocket        session             = null;
+  private VirtualInput     localPlayer         = null;
+  private VirtualInput     remotePlayer        = null;
 
   /*
    * Keep action lists for action retransmission requests and game
    * access.
    */
-  private ArrayList<PlayerAction> localActionList = null;
+  private ArrayList<PlayerAction> localActionList  = null;
   private ArrayList<PlayerAction> remoteActionList = null;
 
   /**
    * Class constructor.
    * @param myContext - the context from which to obtain the application
    * context to pass to the transport layer.
-   * @param connectType - the transport layer connect type.
+   * @param mode - the connection type.
    * @param localPlayer - reference to the local player input object.
    * @param remotePlayer - reference to the remote player input object.
    * transport layer to create a socket connection.
    */
-  public NetworkGameManager(Context myContext,
-                            connectEnum connectType,
-                            VirtualInput localPlayer,
-                            VirtualInput remotePlayer) {
-    this.myContext = myContext.getApplicationContext();
-    this.connectType = connectType;
-    this.localPlayer = localPlayer;
-    this.remotePlayer = remotePlayer;
-    /*
-     * The game ID is used as the transport layer receive filter.  Do
-     * not filter messages until we have obtained a game ID.
-     */
-    myGameID = MulticastManager.FILTER_OFF;
-    anyStatusRx = false;
-    gotFieldData = false;
-    gotPrefsData = false;
-    gamesInProgress = new boolean[GAME_ID_MAX];
-    missedAction = false;
-    localIpAddress = null;
-    remoteIpAddress = null;
-    localPrefs = new Preferences();
-    remotePrefs = new Preferences();
-    localStatus = null;
-    remoteStatus = null;
+  public NetworkManager(Context      myContext,
+                        connectEnum  mode,
+                        VirtualInput localPlayer,
+                        VirtualInput remotePlayer) {
+    this.myContext      = myContext.getApplicationContext();
+    this.mode           = mode;
+    this.localPlayer    = localPlayer;
+    this.remotePlayer   = remotePlayer;
+    missedAction        = false;
+    newGameStarted      = false;
+    localIpAddress      = getLocalIPaddress();
+    opponentAddress     = null;
+    remoteIpAddress     = HOST;
+    localPrefs          = new Preferences();
+    remotePrefs         = new Preferences();
+    localStatus         = null;
+    remoteStatus        = null;
     remoteGameFieldData = new GameFieldData(null);
-    remotePlayerAction = new PlayerAction(null);
-    remoteInterface = new RemoteInterface(remotePlayerAction,
-                                          remoteGameFieldData);
-    session = null;
+    remotePlayerAction  = new PlayerAction (null);
+    remoteInterface     = new RemoteInterface(remotePlayerAction,
+                                              remoteGameFieldData);
+    session             = null;
+    sessionBluetooth    = null;
+    /*
+     * Determine if the local device has bluetooth hardware.
+     */
+    hasBluetooth = hasBluetooth();
+    /*
+     * Obtain a copy of the local game preferences.
+     */
     SharedPreferences sp =
-        myContext.getSharedPreferences(FrozenBubble.PREFS_NAME,
-                                       Context.MODE_PRIVATE);
-    PreferencesActivity.getFrozenBubblePrefs(localPrefs, sp);
+        PreferenceManager.getDefaultSharedPreferences(myContext);
+    localPrefs = PreferencesActivity.getDefaultPrefs(sp);
     /*
      * Create the player action arrays.  The actions are inserted
      * chronologically based on message receipt order, but are extracted
@@ -227,6 +236,17 @@ public class NetworkGameManager extends Thread
                                    (short) 0, (short) 1,
                                    false, false, false, requestPrefs,
                                    (short) 0, (short) 0);
+  }
+
+  private class ReconnectTask extends AsyncTask<Void, Void, Void> {
+    @Override
+    protected Void doInBackground(Void... params) {
+      if (session != null) {
+        session.cleanUp();
+      }
+      createUDPsocketSession();
+      return null;
+    }
   }
 
   /**
@@ -845,27 +865,30 @@ public class NetworkGameManager extends Thread
   public void cleanUp() {
     stopThread();
 
-    if (session != null)
+    if (session != null) {
       session.cleanUp();
+    }
     session = null;
+
+    if (sessionBluetooth != null) {
+      sessionBluetooth.cleanUp();
+    }
+    sessionBluetooth = null;
 
     /*
      * Restore the local game preferences in the event that they were
      * overwritten by the remote player's preferences.
      */
     if (localPrefs != null) {
-      SharedPreferences sp =
-          myContext.getSharedPreferences(FrozenBubble.PREFS_NAME,
-                                         Context.MODE_PRIVATE);
-      PreferencesActivity.setFrozenBubblePrefs(localPrefs, sp);
+      FrozenBubble.setPrefs(localPrefs);
     }
 
-    localPrefs = null;
-    remotePrefs = null;
-    localPlayer = null;
-    remotePlayer = null;
+    localPrefs          = null;
+    remotePrefs         = null;
+    localPlayer         = null;
+    remotePlayer        = null;
     remoteGameFieldData = null;
-    remotePlayerAction = null;
+    remotePlayerAction  = null;
 
     if (remoteInterface != null)
       remoteInterface.cleanUp();
@@ -878,6 +901,20 @@ public class NetworkGameManager extends Thread
     if (remoteActionList != null)
       remoteActionList.clear();
     remoteActionList = null;
+  }
+
+  private void createUDPsocketSession() {
+    try {
+      session = new UDPSocket(myContext, mode, remoteIpAddress, PORT);
+    } catch (UnknownHostException uhe) {
+      uhe.printStackTrace();
+    } catch (IOException ioe) {
+      ioe.printStackTrace();
+    }
+    if (session != null) {
+      session.setUDPListener(this);
+      session.setLocalIPaddress(getLocalIPaddress());
+    }
   }
 
   /**
@@ -960,13 +997,17 @@ public class NetworkGameManager extends Thread
 
   /**
    * Check if the network game is finished.  The game is finished when
-   * each player has either won or lost the game.
+   * both players have either won or lost the game.
    */
   public boolean getGameIsFinished() {
-    if (remoteStatus == null)
-      return false;
-    else
-      return localStatus.gameWonLost && remoteStatus.gameWonLost;
+    if (remoteStatus == null) {
+      gameFinished = false;
+    }
+    else if (!gameFinished) {
+      gameFinished = localStatus .gameWonLost &&
+                     remoteStatus.gameWonLost;
+    }
+    return gameFinished;
   }
 
   /**
@@ -980,10 +1021,6 @@ public class NetworkGameManager extends Thread
       return false;
     else
       return localStatus.readyToPlay && remoteStatus.readyToPlay;
-  }
-
-  private boolean gameStartTimerExpired() {
-    return System.currentTimeMillis() >= gameStartTime;
   }
 
   private void getGameFieldData(GameFieldData gameData) {
@@ -1016,6 +1053,32 @@ public class NetworkGameManager extends Thread
     else {
       return -1;
     }
+  }
+
+  /**
+   * Obtain the local IP address from the <code>WiFiManager</code>.
+   * <p>The following <code>uses</code> permission must be addeded to
+   * the Android project manifest to obtain the network connection
+   * status:<br>
+   * <code>ACCESS_WIFI_STATE</code>
+   * @return the local WiFi IP address.
+   * @see WifiManager
+   */
+  public InetAddress getLocalIPaddress() {
+    WifiManager wifiManager =
+        (WifiManager) myContext.getSystemService(Context.WIFI_SERVICE);
+    WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+    InetAddress address = null;
+    try {
+      address =
+          InetAddress.getByName(Formatter.formatIpAddress(wifiInfo.getIpAddress()));
+    } catch (UnknownHostException e) {
+      /*
+       * Auto-generated catch block.
+       */
+      e.printStackTrace();
+    }
+    return address;
   }
 
   /**
@@ -1091,18 +1154,6 @@ public class NetworkGameManager extends Thread
     return remoteInterface.gotAction;
   }
 
-  private String getRemoteAddress() {
-    if (connectType == connectEnum.UDP_UNICAST) {
-      SharedPreferences dsp = 
-          PreferenceManager.getDefaultSharedPreferences(myContext);
-      remoteIpAddress = dsp.getString("opponent_ip_address", null);
-    }
-    else
-      remoteIpAddress = MCAST_HOST_NAME;
-
-    return remoteIpAddress;
-  }
-
   /**
    * This function obtains the remote player interface and returns a
    * reference to it to the caller.
@@ -1114,6 +1165,49 @@ public class NetworkGameManager extends Thread
   }
 
   /**
+   * Check if Bluetooth is available and enabled on this device.
+   * <p>The following <code>uses</code> permission must be added to the
+   * Android project manifest to obtain Bluetooth network status:<br>
+   * <code>BLUETOOTH</code>
+   * @return <code>true</code> if Bluetooth is enabled.
+   */
+  public static boolean hasBluetooth()
+  {
+    BluetoothAdapter myAdapter = BluetoothAdapter.getDefaultAdapter();
+    if (myAdapter != null) {
+      if (!myAdapter.isEnabled()) {
+        myAdapter.enable();
+      }
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Check with the <code>ConnectivityManager</code> if the device is
+   * connected to the internet.
+   * <p>The following <code>uses</code> permission must be addeded to
+   * the Android project manifest to obtain the network connection
+   * status:<br>
+   * <code>ACCESS_NETWORK_STATE</code>
+   * @return <code>true</code> if the device is connected to the
+   * internet.
+   * @see ConnectivityManager
+   */
+  public boolean hasInternetConnection()
+  {
+    ConnectivityManager cm =
+        (ConnectivityManager) myContext.getSystemService(Context.
+                                                         CONNECTIVITY_SERVICE);
+    NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+    if ((activeNetwork != null) && activeNetwork.isConnected())
+    {
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * This function is called from manager thread's <code>run()</code>
    * method.  This performs the network handshaking amongst peers to
    * ensure proper game synchronization and operation.
@@ -1122,33 +1216,13 @@ public class NetworkGameManager extends Thread
     if (localStatus == null) {
       return;
     }
-    /*
-     * If the game ID has not been reserved, check the current games in
-     * progress for an available game ID to reserve.
-     */
-    if (myGameID == MulticastManager.FILTER_OFF) {
-      if (gameStartTimerExpired()) {
-        /*
-         * Don't reserve a game ID if we've never received a status
-         * message from another player.  Either we are having network
-         * issues and may inadvertently reserve an already reserved ID,
-         * or there isn't even any one else to play with on the network.
-         */
-        if (anyStatusRx) {
-          reserveGameID();
-        }
-        else {
-          setGameStartTimeout(GAME_START_TIMEOUT);
-        }
-      }
-    }
 
     if (remoteStatus != null) {
       /*
        * On a new game, wait for the remote player to start a new game
        * before requesting field data from the remote player.
        */
-      if (!gotFieldData &&
+      if (!remoteInterface.gotFieldData &&
           !localStatus.fieldRequest &&
           !remoteStatus.readyToPlay) {
         localStatus.fieldRequest = true;
@@ -1182,6 +1256,18 @@ public class NetworkGameManager extends Thread
      * player status, game field data, or preferences.
      */
     if (statusTimerExpired()) {
+      /*
+       * The UDP socket connection mode is set to multicast until an
+       * opponent has been identified.  Until then, transmit the network
+       * peer discovery message.
+       */
+      if (mode != connectEnum.BLUETOOTH) {
+        if ((mode == connectEnum.UDP_MULTICAST) ||
+            (remoteStatus == null)) {
+          transmitHello();
+        }
+      }
+
       if (remoteStatus != null) {
         if (remoteStatus.prefsRequest) {
           transmitPrefs();
@@ -1205,7 +1291,7 @@ public class NetworkGameManager extends Thread
         if (remoteStatus.fieldRequest &&
             ((localStatus.localActionID + 1) == remoteStatus.remoteActionID)) {
           GameFieldData tempField = new GameFieldData(null);
-          getGameFieldData(tempField);
+          getGameFieldData (tempField);
           transmitGameField(tempField);
           /*
            * Clear the remote request flag to potentially reduce network
@@ -1216,13 +1302,14 @@ public class NetworkGameManager extends Thread
         }
       }
 
-      transmitStatus(localStatus);
+      transmitStatus  (localStatus   );
       setStatusTimeout(STATUS_TIMEOUT);
     }
   }
 
   public void newGame() {
-    gotFieldData = false;
+    gameFinished                 = false;
+    remoteInterface.gotFieldData = false;
     if (localStatus != null) {
       localStatus.readyToPlay    = false;
       localStatus.localActionID  = 0;
@@ -1244,32 +1331,35 @@ public class NetworkGameManager extends Thread
      * Initialize the various timers.
      */
     setActionTimeout(0L);
-    setGameStartTimeout(GAME_START_TIMEOUT);
     setStatusTimeout(0L);
+
     /*
      * If a UDP session has not yet been created, create a new one and
      * start the <code>NetworkGameManager</code> thread.
      */
-    if (session == null) {
+    if (((mode == connectEnum.UDP_MULTICAST) ||
+         (mode == connectEnum.UDP_UNICAST  )) &&
+        (session == null)) {
+      createUDPsocketSession();
+
+      /*
+       * Start the network manager thread.
+       */
       try {
-        if (connectType == connectEnum.UDP_UNICAST) {
-          session = new MulticastManager(myContext, getRemoteAddress(), PORT);
-        }
-        else {
-          session = new MulticastManager(myContext, MCAST_BYTE_ADDR, PORT);
-        }
-        session.setMulticastListener(this);
-      } catch (UnknownHostException uhe) {
-        if (session != null) {
-          session.cleanUp();
-        }
-        session = null;
-      } catch (IOException ioe) {
-        if (session != null) {
-          session.cleanUp();
-        }
-        session = null;
+        start();
+      } catch (IllegalThreadStateException itse) {
+        /*
+         * The thread was already started.
+         */
+        itse.printStackTrace();
       }
+    }
+    else if ((mode == connectEnum.BLUETOOTH) && (sessionBluetooth == null)) {
+      sessionBluetooth = new BluetoothManager(localPlayer.playerID ==
+                                              VirtualInput.PLAYER1,
+                                              FrozenBubble.getBluetooth());
+      sessionBluetooth.setBluetoothListener(this);
+
       /*
        * Start the network manager thread.
        */
@@ -1290,174 +1380,113 @@ public class NetworkGameManager extends Thread
         notify();
       }
     }
+    newGameStarted = true;
+  }
+
+  public boolean newGameStarted() {
+    boolean gameWasStarted = newGameStarted;
+    newGameStarted = false;
+    return gameWasStarted;
   }
 
   @Override
-  public void onMulticastEvent(eventEnum event, byte[] buffer, int length) {
+  public void onBluetoothEvent(byte[] buffer, int length) {
     /*
-     * Process the multicast message if it is a successfully received
-     * datagram that possesses a payload.
+     * Process the Bluetooth message if it possesses a payload.
      */
-    if ((event == eventEnum.PACKET_RX) && (buffer != null)) {
+    if ((buffer != null) && (buffer.length > 2)) {
       /*
-       * The first three bytes of every message must contain the same
-       * three fields - the game ID, the message ID, and the player ID.
-       * The game ID and message ID are prefixed prior to each datagram
-       * transmission, as they are used by the network layer and are of
-       * no significance to any other module.  The player ID must be the
-       * first byte of every datagram class implemented by the Frozen
-       * Bubble network game protocol.
+       * The first two bytes of every message must contain the same
+       * two fields - the message ID, and the player ID.
        *
-       * The game ID is used to filter messages so that only players
-       * with the same game ID will process each others' messages - all
-       * other messages are discarded.  The exception is when the game
-       * ID is -1, which means that the player is attempting to join a
-       * game, so all incoming messages are processed until an
-       * unreserved game ID is found.
+       * The message ID is prefixed prior to each datagram transmission,
+       * as it is used by the network layer and is of no significance to
+       * any other module.  The player ID must be the first byte of
+       * every datagram class implemented by the Cold Cash network game
+       * protocol.  The exception to this is the peer discovery message.
        *
        * The message ID is used to identify the message type - either a
        * player status datagram, game field datagram, player preferences
        * datagram, or a player action datagram.
        *
        * The player ID is used to identify who originated the message.
-       * This must be unique amongst all the players using the same game
-       * ID.
+       * This must be unique amongst all the players in the same game.
        */
-      byte gameId   = buffer[0];
-      byte msgId    = buffer[1];
-      byte playerId = buffer[2];
+      byte playerId = buffer[1];
 
+      if (playerId == remotePlayer.playerID) {
+        processEventData(buffer, length);
+      }
+    }
+  }
+
+  @Override
+  public void onUDPEvent(InetAddress address, byte[] buffer, int length) {
+    /*
+     * Process the UDP message if it is a successfully received
+     * datagram that possesses a payload.
+     */
+    if ((buffer != null) && (buffer.length > 2)) {
       /*
-       * If the message contains the remote player status, copy it to
-       * the remote player status object.  The remote player status
-       * object will be null until the first remote status datagram is
-       * received.
+       * The first two bytes of every message must contain the same
+       * two fields - the message ID, and the player ID.
        *
-       * If the game ID has not yet been set, then player status
-       * messages are the only messages that will be processed.
+       * The message ID is prefixed prior to each datagram transmission,
+       * as it is used by the network layer and is of no significance to
+       * any other module.  The player ID must be the first byte of
+       * every datagram class implemented by the Cold Cash network game
+       * protocol.  The exception to this is the peer discovery message.
+       *
+       * The message ID is used to identify the message type - either a
+       * player status datagram, game field datagram, player preferences
+       * datagram, or a player action datagram.
+       *
+       * The player ID is used to identify who originated the message.
+       * This must be unique amongst all the players in the same game.
        */
-      if ((msgId == MSG_ID_STATUS) && (length == (STATUS_BYTES + 2))) {
-        anyStatusRx = true;
+      byte msgId    = buffer[0];
+      byte playerId = buffer[1];
+
+      if ((mode == connectEnum.UDP_MULTICAST) &&
+          (playerId == remotePlayer.playerID) &&
+          (msgId == MSG_ID_HELLO) && (length >= HELLO_BYTES)) {
+        opponentAddress = address;
         /*
-         * Perform game ID checking; otherwise process the remote player
-         * player status.
+         * If the payload of the message is the IP address of this local
+         * host, then the remote host has designated this host as the
+         * other player for the network game.  The remote host IP
+         * address becomes the payload for our own network game
+         * discovery message.
          */
-        if (myGameID == MulticastManager.FILTER_OFF) {
-          PlayerStatus tempStatus = new PlayerStatus(buffer, 2);
+        byte[] addressData = new byte[4];
+        for (int index = 0; index < 4; index++) {
+          addressData[index] = buffer[index + 2];
+        }
+        InetAddress tempAddress = null;
+        try {
+          tempAddress = InetAddress.getByAddress(addressData);
+        } catch (UnknownHostException e) {
           /*
-           * If we receive a status from a game already in progress,
-           * mark it and bump the game start timer.
-           *
-           * If we receive a status with the filter mask off and we have
-           * the same player ID as the player ID in that status, mark
-           * that game as already in progress and bump game start timer.
+           * Auto-generated catch block.
            */
-          if (tempStatus.readyToPlay ||
-              ((gameId != MulticastManager.FILTER_OFF) &&
-               (playerId == localPlayer.playerID))) {
-            if ((gameId >= 0) && (gameId < GAME_ID_MAX)) {
-              if (gamesInProgress[gameId] == false) {
-                gamesInProgress[gameId] = true;
-                setGameStartTimeout(GAME_START_TIMEOUT);
-              }
-            }
-          }
+          e.printStackTrace();
         }
-        else if ((gameId != MulticastManager.FILTER_OFF) &&
-                 (playerId == remotePlayer.playerID)) {
-          if (remoteStatus == null) {
-            remoteStatus = new PlayerStatus(buffer, 2);
-          }
-          else {
-            remoteStatus.copyFromBuffer(buffer, 2);
-          }
+        if ((tempAddress != null) && localIpAddress.equals(tempAddress)) {
+          /*
+           * Reconnect the UDP socket session in unicast mode using
+           * the provided opponent IP address.
+           */
+          mode            = connectEnum.UDP_UNICAST;
+          remoteIpAddress = opponentAddress.getHostAddress();
+          new ReconnectTask().execute();
         }
+        return;
       }
 
-      if (myGameID != MulticastManager.FILTER_OFF) {
-        /*
-         * If the message contains game preferences from player 1, then
-         * update the game preferences.  The game preferences for all
-         * players are set per player 1.
-         */
-        if ((msgId == MSG_ID_PREFS) && (length == (PREFS_BYTES + 3))) {
-          if ((playerId == VirtualInput.PLAYER1) && localStatus.prefsRequest) {
-            copyPrefsFromBuffer(remotePrefs, buffer, 3);
-            /*
-             * In a network game, do not override any of the local game
-             * options that can be configuring during game play.  Only 
-             * set the bubble collision sensitivity and the compressor
-             * on/off option as specified by player 1, as these options
-             * are inaccessible during game play, and are absolutely
-             * necessary for distributed game behavior synchronization.
-             * All the other options are purely cosmetic, or may cause
-             * confusion if they are changed without notification.
-             */
-            FrozenBubble.setCollision(remotePrefs.collision);
-            FrozenBubble.setCompressor(remotePrefs.compressor);
-            /*
-             * If all new game data synchronization requests have been
-             * fulfilled, then the network game is ready to begin.
-             */
-            gotPrefsData = true;
-            localStatus.prefsRequest = false;
-            if (gotFieldData              &&
-                !localStatus.fieldRequest &&
-                !localStatus.readyToPlay) {
-              localStatus.readyToPlay = true;
-              localStatus.gameWonLost = false;
-            }
-            /*
-             * The local player status was updated.  Set the status
-             * timeout to expire immediately and wake up the network
-             * manager thread.
-             */
-            setStatusTimeout(0L);
-            synchronized(this) {
-              notify();
-            }
-          }
-        }
-
-        /*
-         * If the message contains a remote player game action, add it
-         * to the remote player action list if we are ready to play.
-         */
-        if ((msgId == MSG_ID_ACTION) && (length == (ACTION_BYTES + 2))) {
-          if (localStatus.readyToPlay && (playerId == remotePlayer.playerID)) {
-            addAction(new PlayerAction(buffer, 2));
-          }
-        }
-
-        /*
-         * If the message contains the remote player game field, update
-         * the remote player interface game field object.
-         */
-        if ((msgId == MSG_ID_FIELD) && (length == (FIELD_BYTES + 2))) {
-          if ((playerId == remotePlayer.playerID) &&
-              localStatus.fieldRequest) {
-            remoteInterface.gameFieldData.copyFromBuffer(buffer, 2);
-            remoteInterface.gotFieldData = true;
-            /*
-             * If all new game data synchronization requests have been
-             * fulfilled, then the network game is ready to begin.
-             */
-            gotFieldData = true;
-            localStatus.fieldRequest = false;
-            if (!localStatus.prefsRequest && !localStatus.readyToPlay) {
-              localStatus.readyToPlay = true;
-              localStatus.gameWonLost = false;
-            }
-            /*
-             * The local player status was updated.  Set the status
-             * timeout to expire immediately and wake up the network
-             * manager thread.
-             */
-            setStatusTimeout(0L);
-            synchronized(this) {
-              notify();
-            }
-          }
+      if (mode == connectEnum.UDP_UNICAST) {
+        if ((opponentAddress != null) && (playerId == remotePlayer.playerID) &&
+            opponentAddress.equals(address)) {
+          processEventData(buffer, length);
         }
       }
     }
@@ -1468,31 +1497,119 @@ public class NetworkGameManager extends Thread
       if (session != null) {
         session.pause();
       }
+      if (sessionBluetooth != null) {
+        sessionBluetooth.pause();
+      }
       paused = true;
     }
   }
+  
+  private void processEventData(byte[] buffer, int length) {
+    byte msgId    = buffer[0];
+    byte playerId = buffer[1];
 
-  /**
-   * Reserve the first available game ID, and update the transport layer
-   * receive message filter to ignore all messages that don't have this
-   * game ID.
-   */
-  public void reserveGameID() {
-    for (byte index = 0;index < GAME_ID_MAX;index++) {
-      if (!gamesInProgress[index]) {
-        myGameID = index;
-        if (session != null) {
-          session.setFilter(myGameID);
+    /*
+     * If the message contains the remote player status, copy it to
+     * the remote player status object.  The remote player status
+     * object will be null until the first remote status datagram is
+     * received.
+     *
+     * If the game ID has not yet been set, then player status
+     * messages are the only messages that will be processed.
+     */
+    if ((msgId == MSG_ID_STATUS) && (length >= (STATUS_BYTES + 1))) {
+      /*
+       * Process the remote player status.
+       */
+      if (remoteStatus == null) {
+        remoteStatus = new PlayerStatus(buffer, 1);
+      }
+      else {
+        remoteStatus.copyFromBuffer(buffer, 1);
+      }
+    }
+
+    /*
+     * If the message contains game preferences from player 1, then
+     * update the game preferences.  The game preferences for all
+     * players are set per player 1.
+     */
+    if ((msgId == MSG_ID_PREFS) && (length >= (PREFS_BYTES + 2))) {
+      if ((playerId == VirtualInput.PLAYER1) && localStatus.prefsRequest) {
+        copyPrefsFromBuffer(remotePrefs, buffer, 2);
+        /*
+         * In a network game, do not override any of the local game
+         * options that can be configuring during game play.  Only 
+         * set the bubble collision sensitivity and the compressor
+         * on/off option as specified by player 1, as these options
+         * are inaccessible during game play, and are absolutely
+         * necessary for distributed game behavior synchronization.
+         * All the other options are purely cosmetic, or may cause
+         * confusion if they are changed without notification.
+         */
+        FrozenBubble.setCollision (remotePrefs.collision );
+        FrozenBubble.setCompressor(remotePrefs.compressor);
+        /*
+         * If all new game data synchronization requests have been
+         * fulfilled, then the network game is ready to begin.
+         */
+        remoteInterface.gotPrefsData = true;
+        localStatus    .prefsRequest = false;
+        if (remoteInterface.gotFieldData &&
+            !localStatus.fieldRequest &&
+            !localStatus.readyToPlay) {
+          localStatus.readyToPlay = true;
+          localStatus.gameWonLost = false;
         }
         /*
-         * The transport layer message format has been updated, so send
-         * an immediate status message to notify peers that we have
-         * reserved a game ID.  This function is called directly from
-         * the network manager thread, so there is no need to notify the
-         * thread to wake up.
+         * The local player status was updated.  Set the status
+         * timeout to expire immediately and wake up the network
+         * manager thread.
          */
         setStatusTimeout(0L);
-        break;
+        synchronized(this) {
+          notify();
+        }
+      }
+    }
+
+    /*
+     * If the message contains a remote player game action, add it
+     * to the remote player action list if we are ready to play.
+     */
+    if ((msgId == MSG_ID_ACTION) && (length >= (ACTION_BYTES + 1))) {
+      if (localStatus.readyToPlay && (playerId == remotePlayer.playerID)) {
+        addAction(new PlayerAction(buffer, 1));
+      }
+    }
+
+    /*
+     * If the message contains the remote player game field, update
+     * the remote player interface game field object.
+     */
+    if ((msgId == MSG_ID_FIELD) && (length >= (FIELD_BYTES + 1))) {
+      if ((playerId == remotePlayer.playerID) &&
+          localStatus.fieldRequest) {
+        remoteInterface.gameFieldData.copyFromBuffer(buffer, 1);
+        remoteInterface.gotFieldData = true;
+        localStatus    .fieldRequest = false;
+        /*
+         * If all new game data synchronization requests have been
+         * fulfilled, then the network game is ready to begin.
+         */
+        if (!localStatus.prefsRequest && !localStatus.readyToPlay) {
+          localStatus.readyToPlay = true;
+          localStatus.gameWonLost = false;
+        }
+        /*
+         * The local player status was updated.  Set the status
+         * timeout to expire immediately and wake up the network
+         * manager thread.
+         */
+        setStatusTimeout(0L);
+        synchronized(this) {
+          notify();
+        }
       }
     }
   }
@@ -1643,14 +1760,6 @@ public class NetworkGameManager extends Thread
   }
 
   /**
-   * Set the game start timeout.
-   * @param timeout - the timeout expiration interval.
-   */
-  public void setGameStartTimeout(long timeout) {
-    gameStartTime = System.currentTimeMillis() + timeout;
-  }
-
-  /**
    * Set the local player local game field checksum.  The checksum is
    * set to zero immediately after every local player action, and must
    * be set as soon as the game field has become static and a new
@@ -1773,15 +1882,17 @@ public class NetworkGameManager extends Thread
    * @return <code>true</code> if the transmission was successful.
    */
   private boolean transmitAction(PlayerAction action) {
-    byte[] buffer = new byte[ACTION_BYTES + 2];
-    buffer[0] = myGameID;
-    buffer[1] = MSG_ID_ACTION;
-    action.copyToBuffer(buffer, 2);
+    byte[] buffer = new byte[ACTION_BYTES + 1];
+    buffer[0] = MSG_ID_ACTION;
+    action.copyToBuffer(buffer, 1);
     /*
-     * Send the datagram via the multicast manager.
+     * Send the datagram via UDP socket.
      */
     if (session != null) {
       return session.transmit(buffer);
+    }
+    else if (sessionBluetooth != null) {
+      return sessionBluetooth.transmit(buffer);
     }
     else {
       return false;
@@ -1795,15 +1906,46 @@ public class NetworkGameManager extends Thread
    * @return <code>true</code> if the transmission was successful.
    */
   private boolean transmitGameField(GameFieldData gameField) {
-    byte[] buffer = new byte[FIELD_BYTES + 2];
-    buffer[0] = myGameID;
-    buffer[1] = MSG_ID_FIELD;
-    gameField.copyToBuffer(buffer, 2);
+    byte[] buffer = new byte[FIELD_BYTES + 1];
+    buffer[0] = MSG_ID_FIELD;
+    gameField.copyToBuffer(buffer, 1);
     /*
-     * Send the datagram via the multicast manager.
+     * Send the datagram via UDP socket.
      */
     if (session != null) {
       return session.transmit(buffer);
+    }
+    else if (sessionBluetooth != null) {
+      return sessionBluetooth.transmit(buffer);
+    }
+    else {
+      return false;
+    }
+  }
+
+  /**
+   * Transmit the hello datagram.
+   * @param helloData - the hello datagram contents to transmit.
+   * @return <code>true</code> if the transmission was successful.
+   */
+  private boolean transmitHello() {
+    byte[] buffer = new byte[HELLO_BYTES];
+    buffer[0] = MSG_ID_HELLO;
+    buffer[1] = (byte) localPlayer.playerID;
+    if (opponentAddress != null) {
+      byte[] address = opponentAddress.getAddress();
+      for (int index = 0; index < 4; index++) {
+        buffer[index + 2] = address[index];
+      }
+    }
+    /*
+     * Send the datagram via UDP socket.
+     */
+    if (session != null) {
+      return session.transmit(buffer);
+    }
+    else if (sessionBluetooth != null) {
+      return sessionBluetooth.transmit(buffer);
     }
     else {
       return false;
@@ -1815,15 +1957,17 @@ public class NetworkGameManager extends Thread
    * @return <code>true</code> if the transmission was successful.
    */
   private boolean transmitStatus(PlayerStatus status) {
-    byte[] buffer = new byte[STATUS_BYTES + 2];
-    buffer[0] = myGameID;
-    buffer[1] = MSG_ID_STATUS;
-    status.copyToBuffer(buffer, 2);
+    byte[] buffer = new byte[STATUS_BYTES + 1];
+    buffer[0] = MSG_ID_STATUS;
+    status.copyToBuffer(buffer, 1);
     /*
-     * Send the datagram via the multicast manager.
+     * Send the datagram via the UDP socket.
      */
     if (session != null) {
       return session.transmit(buffer);
+    }
+    else if (sessionBluetooth != null) {
+      return sessionBluetooth.transmit(buffer);
     }
     else {
       return false;
@@ -1836,16 +1980,18 @@ public class NetworkGameManager extends Thread
    * @return <code>true</code> if the transmission was successful.
    */
   private boolean transmitPrefs() {
-    byte[] buffer = new byte[Preferences.PREFS_BYTES + 3];
-    buffer[0] = myGameID;
-    buffer[1] = MSG_ID_PREFS;
-    buffer[2] = (byte) localPlayer.playerID;
-    copyPrefsToBuffer(localPrefs, buffer, 3);
+    byte[] buffer = new byte[Preferences.PREFS_BYTES + 2];
+    buffer[0] = MSG_ID_PREFS;
+    buffer[1] = (byte) localPlayer.playerID;
+    copyPrefsToBuffer(localPrefs, buffer, 2);
     /*
-     * Send the datagram via the multicast manager.
+     * Send the datagram via UDP socket.
      */
     if (session != null) {
       return session.transmit(buffer);
+    }
+    else if (sessionBluetooth != null) {
+      return sessionBluetooth.transmit(buffer);
     }
     else {
       return false;
@@ -1860,35 +2006,40 @@ public class NetworkGameManager extends Thread
     if (session != null) {
       session.unPause();
     }
+    if (sessionBluetooth != null) {
+      sessionBluetooth.unPause();
+    }
   }
 
   public void updateNetworkStatus(NetworkStatus status) {
-    status.localPlayerId  = localPlayer.playerID;
+    if (localIpAddress == null) {
+      localIpAddress = getLocalIPaddress();
+      if (session != null) {
+        session.setLocalIPaddress(localIpAddress);
+      }
+    }
+    status.localPlayerId  = localPlayer .playerID;
     status.remotePlayerId = remotePlayer.playerID;
-    if (session != null) {
-      status.isConnected = session.hasInternetConnection();
+    if ((mode == connectEnum.UDP_MULTICAST) || (mode == connectEnum.UDP_UNICAST)) {
+      status.isConnected     = hasInternetConnection();
+      status.localIpAddress  = localIpAddress.getHostAddress();
+      status.remoteIpAddress = remoteIpAddress;
+      status.playerJoined    = opponentAddress != null;
     }
-    else {
-      status.isConnected = false;
+    else if (mode == connectEnum.BLUETOOTH) {
+      status.isConnected     = hasBluetooth;
+      status.localIpAddress  = sessionBluetooth.getLocalName   ().toLowerCase();
+      status.remoteIpAddress = sessionBluetooth.getRemoteName  ().toLowerCase();
+      status.playerJoined    = sessionBluetooth.getIsConnected();
     }
-    status.reservedGameId = myGameID != MulticastManager.FILTER_OFF;
-    status.playerJoined = remoteStatus != null;
     if (localStatus != null) {
-      status.gotFieldData  = gotFieldData;
-      status.gotPrefsData  = gotPrefsData;
+      status.gotFieldData = remoteInterface.gotFieldData;
+      status.gotPrefsData = remoteInterface.gotPrefsData;
     }
     else {
-      status.gotFieldData  = false;
-      status.gotPrefsData  = false;
+      status.gotFieldData = false;
+      status.gotPrefsData = false;
     }
     status.readyToPlay = gameIsReadyForAction();
-    if ((localIpAddress == null) && (session != null)) {
-      localIpAddress = session.getLocalIpAddress();
-    }
-    status.localIpAddress = localIpAddress;
-    if (remoteIpAddress == null) {
-      getRemoteAddress();
-    }
-    status.remoteIpAddress = remoteIpAddress;
   }
 };

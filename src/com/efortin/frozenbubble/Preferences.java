@@ -59,24 +59,24 @@ import org.jfedor.frozenbubble.LevelManager;
 public class Preferences {
   public static final int PREFS_BYTES = 22;
 
-  boolean adsOn      = true;
-  int     collision  = BubbleSprite.MIN_PIX;
-  boolean colorMode  = false;
-  boolean compressor = false;
-  int     difficulty = LevelManager.MODERATE;
-  boolean dontRushMe = true;
-  boolean fullscreen = true;
-  int     gameMode   = FrozenBubble.GAME_NORMAL;
-  boolean musicOn    = true;
-  boolean soundOn    = true;
-  int     targetMode = FrozenBubble.POINT_TO_SHOOT;
+  public int     bluetooth;
+  public int     collision;
+  public boolean colorMode;
+  public boolean compressor;
+  public int     difficulty;
+  public boolean dontRushMe;
+  public boolean fullscreen;
+  public int     gameMode;
+  public boolean musicOn;
+  public boolean soundOn;
+  public int     targetMode;
 
   /**
    * <code>Preferences</code> class constructor.  Variables are
    * initialized to defaults.
    */
   public Preferences() {
-    adsOn      = true;
+    bluetooth  = 0;
     collision  = BubbleSprite.MIN_PIX;
     colorMode  = false;
     compressor = false;
@@ -104,16 +104,16 @@ public class Preferences {
    */
   public void copy(Preferences prefs) {
     if (prefs != null) {
-      this.adsOn = prefs.adsOn;
-      this.collision = prefs.collision;
-      this.colorMode = prefs.colorMode;
+      this.bluetooth  = prefs.bluetooth;
+      this.collision  = prefs.collision;
+      this.colorMode  = prefs.colorMode;
       this.compressor = prefs.compressor;
       this.difficulty = prefs.difficulty;
       this.dontRushMe = prefs.dontRushMe;
       this.fullscreen = prefs.fullscreen;
-      this.gameMode = prefs.gameMode;
-      this.musicOn = prefs.musicOn;
-      this.soundOn = prefs.soundOn;
+      this.gameMode   = prefs.gameMode;
+      this.musicOn    = prefs.musicOn;
+      this.soundOn    = prefs.soundOn;
       this.targetMode = prefs.targetMode;
     }
   }

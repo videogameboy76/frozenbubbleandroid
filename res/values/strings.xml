@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="app_name">Frozen Bubble</string>
+  <string name="exit">Exit</string>
   <string name="install_editor">Redirecting you to the Market to download the Frozen Bubble Level Editor…</string>
   <string name="market_missing">Cannot find Android Market! Please install Frozen Bubble Level Editor manually.</string>
+  <string name="menu_bluetooth_device">Bluetooth Device</string>
   <string name="menu_new_game">Start New Game</string>
   <string name="menu_colorblind_on">Colorblind Mode On</string>
   <string name="menu_colorblind_off">Colorblind Mode Off</string>

@@ -33,30 +33,29 @@
     android:title="@string/menu_settings" >
   <CheckBoxPreference
     android:defaultValue="true"
-    android:key="ads_option"
-    android:summary="On/Off"
-    android:title="Enable Ads" />
-  <CheckBoxPreference
-    android:defaultValue="true"
     android:key="colorblind_option"
     android:summary="On/Off"
     android:title="Colorblind Mode" />
+
   <CheckBoxPreference
     android:defaultValue="true"
     android:key="fullscreen_option"
     android:summary="On/Off"
     android:title="Fullscreen Mode" />
+
   <CheckBoxPreference
     android:defaultValue="true"
     android:key="rush_me_option"
     android:summary="On/Off"
     android:title="Hurry Mode" />
+
   <ListPreference
     android:entries="@array/shoot_mode_array"
     android:entryValues="@array/targeting_values_array"
     android:key="targeting_option"
     android:summary="Choose targeting mode"
     android:title="@string/menu_target_mode" />
+
   <com.efortin.frozenbubble.SeekBarPreference
     android:defaultValue="20"
     android:key="collision_option"
@@ -71,10 +70,11 @@
   <PreferenceCategory
     android:summary="Frozen Bubble Game Options"
     android:title="2 Player Game Options" >
-  <EditTextPreference
-    android:key="opponent_ip_address"
-    android:summary="Please enter opponent IP address"
-    android:title="Opponent Internet Address" />
+  <ListPreference
+    android:defaultValue="0"
+    android:key="bluetooth_list"
+    android:summary="Select Bluetooth Device"
+    android:title="@string/menu_bluetooth_device" />
   <CheckBoxPreference
     android:defaultValue="true"
     android:key="compressor_option"

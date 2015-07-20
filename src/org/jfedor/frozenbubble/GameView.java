@@ -78,7 +78,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.List;
-import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
@@ -92,7 +91,6 @@ import org.jfedor.frozenbubble.GameView.NetGameInterface.RemoteInterface;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.Resources;
@@ -110,10 +108,10 @@ import android.view.SurfaceView;
 import com.efortin.frozenbubble.ComputerAI;
 import com.efortin.frozenbubble.HighscoreDO;
 import com.efortin.frozenbubble.HighscoreManager;
-import com.efortin.frozenbubble.NetworkGameManager;
-import com.efortin.frozenbubble.NetworkGameManager.GameFieldData;
-import com.efortin.frozenbubble.NetworkGameManager.PlayerAction;
-import com.efortin.frozenbubble.NetworkGameManager.connectEnum;
+import com.efortin.frozenbubble.NetworkManager;
+import com.efortin.frozenbubble.NetworkManager.GameFieldData;
+import com.efortin.frozenbubble.NetworkManager.PlayerAction;
+import com.efortin.frozenbubble.NetworkManager.connectEnum;
 import com.efortin.frozenbubble.VirtualInput;
 
 public class GameView extends SurfaceView
@@ -123,23 +121,23 @@ public class GameView extends SurfaceView
   public static final int  GAMEFIELD_HEIGHT         = 480;
   public static final int  EXTENDED_GAMEFIELD_WIDTH = 640;
 
-  private boolean               mBlankScreen       = false;
-  private boolean               mInterstitialShown = false;
-  private boolean               muteKeyToggle      = false;
-  private boolean               pauseKeyToggle     = false;
-  private int                   numPlayers;
-  private int                   numPlayer1GamesWon;
-  private int                   numPlayer2GamesWon;
-  private Context               mContext;
-  private gameEnum              game1Status;
-  private GameThread            mGameThread;
-  private NetworkGameManager    mNetworkManager;
-  private RemoteInterface       remoteInterface;
-  private ComputerAI            mOpponent;
-  private VirtualInput          mLocalInput;
-  private VirtualInput          mRemoteInput;
-  private PlayerInput           mPlayer1;
-  private PlayerInput           mPlayer2;
+  private boolean         mBlankScreen   = false;
+  private boolean         muteKeyToggle  = false;
+  private boolean         pauseKeyToggle = false;
+  private int             gameLocale;
+  private int             numPlayers;
+  private int             numPlayer1GamesWon;
+  private int             numPlayer2GamesWon;
+  private Context         mContext;
+  private gameEnum        game1Status;
+  private GameThread      mGameThread;
+  private NetworkManager  mNetworkManager;
+  private RemoteInterface remoteInterface;
+  private ComputerAI      mOpponent;
+  private VirtualInput    mLocalInput;
+  private VirtualInput    mRemoteInput;
+  private PlayerInput     mPlayer1;
+  private PlayerInput     mPlayer2;
 
   //********************************************************************
   // Listener interface for various events
@@ -178,7 +176,6 @@ public class GameView extends SurfaceView
       public int     localPlayerId;
       public int     remotePlayerId;
       public boolean isConnected;
-      public boolean reservedGameId;
       public boolean playerJoined;
       public boolean gotFieldData;
       public boolean gotPrefsData;
@@ -188,7 +185,6 @@ public class GameView extends SurfaceView
 
       public NetworkStatus() {
         isConnected     = false;
-        reservedGameId  = false;
         playerJoined    = false;
         gotFieldData    = false;
         gotPrefsData    = false;
@@ -208,20 +204,23 @@ public class GameView extends SurfaceView
     public class RemoteInterface {
       public boolean       gotAction;
       public boolean       gotFieldData;
+      public boolean       gotPrefsData;
       public PlayerAction  playerAction;
       public GameFieldData gameFieldData;
 
       public RemoteInterface(PlayerAction action, GameFieldData fieldData) {
-        gotAction = false;
-        gotFieldData = false;
-        playerAction = action;
+        gotAction     = false;
+        gotFieldData  = false;
+        gotPrefsData  = false;
+        playerAction  = action;
         gameFieldData = fieldData;
       }
 
       public void cleanUp() {
-        gotAction = false;
-        gotFieldData = false;
-        playerAction = null;
+        gotAction     = false;
+        gotFieldData  = false;
+        gotPrefsData  = false;
+        playerAction  = null;
         gameFieldData = null;
       }
     };
@@ -1300,9 +1299,9 @@ public class GameView extends SurfaceView
     private void drawAboutScreen(Canvas canvas) {
       canvas.drawRGB(0, 0, 0);
       if (!mBlankScreen) {
-        int x = 168;
-        int y = 20;
-        int ysp = 26;
+        int x      = drawTextOffsetX();
+        int y      = 20;
+        int ysp    = 26;
         int indent = 10;
         mFont.print("original frozen bubble:", x, y, canvas,
                     mDisplayScale, mDisplayDX, mDisplayDY);
@@ -1356,8 +1355,8 @@ public class GameView extends SurfaceView
     }
 
     private void drawDifficulty(Canvas canvas) {
-      int y = 433;
-      int x = 159;
+      int y     = 433;
+      int x     = 159;
       int level = mLevelManager.getLevelIndex();
       mFont.print(LevelManager.DifficultyStrings[level], x, y, canvas,
                   mDisplayScale, mDisplayDX, mDisplayDY);
@@ -1378,9 +1377,9 @@ public class GameView extends SurfaceView
       }
 
       canvas.drawRGB(0, 0, 0);
-      int x = 168;
-      int y = 20;
-      int ysp = 26;
+      int x      = drawTextOffsetX();
+      int y      = 20;
+      int ysp    = 26;
       int indent = 10;
 
       mFont.print("highscore for level " + (level + 1), x, y, canvas,
@@ -1458,19 +1457,10 @@ public class GameView extends SurfaceView
       }
 
       canvas.drawRGB(0, 0, 0);
-      int x = 168;
-      int y = 20;
-      int ysp = 26;
+      int x      = drawTextOffsetX();
+      int y      = 20;
+      int ysp    = 26;
       int indent = 10;
-
-      if (!FrozenBubble.arcadeGame) {
-        int orientation = getScreenOrientation();
-  
-        if (orientation == FrozenBubble.SCREEN_ORIENTATION_REVERSE_PORTRAIT)
-          x += GAMEFIELD_WIDTH/2;
-        else if (orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
-          x -= GAMEFIELD_WIDTH/2;
-      }
 
       mFont.print("highscore for " +
                   LevelManager.DifficultyStrings[mHighScoreManager.getLevel()],
@@ -1511,28 +1501,36 @@ public class GameView extends SurfaceView
       }
 
       canvas.drawRGB(0, 0, 0);
-      int x = 168;
-      int y = 20;
+      int x   = drawTextOffsetX();
+      int y   = 20;
       int ysp = 26;
-      int orientation = getScreenOrientation();
-
-      if (orientation == FrozenBubble.SCREEN_ORIENTATION_REVERSE_PORTRAIT)
-        x += GAMEFIELD_WIDTH/2;
-      else if (orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
-        x -= GAMEFIELD_WIDTH/2;
 
       NetworkStatus status = new NetworkStatus();
       mNetworkManager.updateNetworkStatus(status);
 
-      if (status.isConnected) {
-        mFont.print("internet status: ]", x, y, canvas,
-                    mDisplayScale, mDisplayDX, mDisplayDY);
-        y += ysp;
+      if (gameLocale == FrozenBubble.LOCALE_WIFI) {
+        if (status.isConnected) {
+          mFont.print("wifi status: ]", x, y, canvas,
+                      mDisplayScale, mDisplayDX, mDisplayDY);
+          y += ysp;
+        }
+        else {
+          mFont.print("wifi status: _", x, y, canvas,
+                      mDisplayScale, mDisplayDX, mDisplayDY);
+          y += ysp;
+        }
       }
-      else {
-        mFont.print("internet status: _", x, y, canvas,
-                    mDisplayScale, mDisplayDX, mDisplayDY);
-        y += ysp;
+      else if (gameLocale == FrozenBubble.LOCALE_BLUETOOTH) {
+        if (status.isConnected) {
+          mFont.print("bluetooth status: ]", x, y, canvas,
+                      mDisplayScale, mDisplayDX, mDisplayDY);
+          y += ysp;
+        }
+        else {
+          mFont.print("bluetooth status: _", x, y, canvas,
+                      mDisplayScale, mDisplayDX, mDisplayDY);
+          y += ysp;
+        }
       }
 
       mFont.print("my address: " + status.localIpAddress, x, y, canvas,
@@ -1541,21 +1539,6 @@ public class GameView extends SurfaceView
 
       mFont.print("connect to: " + status.remoteIpAddress, x, y, canvas,
           mDisplayScale, mDisplayDX, mDisplayDY);
-      y += ysp;
-
-      if (status.reservedGameId) {
-        mFont.print("checking for games...|", x, y, canvas,
-                    mDisplayScale, mDisplayDX, mDisplayDY);
-        y += ysp;
-      }
-      else {
-        mFont.print("checking for games...", x, y, canvas,
-                    mDisplayScale, mDisplayDX, mDisplayDY);
-        return;
-      }
-
-      mFont.print("open game slot found!", x, y, canvas,
-                  mDisplayScale, mDisplayDX, mDisplayDY);
       y += ysp;
 
       if (status.playerJoined) {
@@ -1608,6 +1591,30 @@ public class GameView extends SurfaceView
                   mDisplayScale, mDisplayDX, mDisplayDY);
     }
 
+    /**
+     * Obtain the horizontal offset to approximately center a line of
+     * 20 characters in the screen for the current device orientation.
+     * @return The horizontal offset.
+     */
+    private int drawTextOffsetX() {
+      int x           = (int) (GAMEFIELD_WIDTH * 0.55f);
+      int orientation = getScreenOrientation();
+
+      if (numPlayers == 2) {
+        if ((orientation == FrozenBubble.SCREEN_ORIENTATION_REVERSE_PORTRAIT) ||
+            (orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)) {
+          if (mLocalInput.playerID == VirtualInput.PLAYER2) {
+            x = (int) -((float) mDisplayDX / mDisplayScale) + 5;
+          }
+          else {
+            x = mDisplayDX + 5;
+          }
+        }
+      }
+
+      return x;
+    }
+
     private void drawWinTotals(Canvas canvas) {
       int y = 433;
       int x = GAMEFIELD_WIDTH - 40;
@@ -1658,6 +1665,10 @@ public class GameView extends SurfaceView
         x += mFont.paintChar(Character.forDigit(gamesWon2 % 10, 10), x, y, canvas,
                              mDisplayScale, mDisplayDX, mDisplayDY);
       }
+    }
+
+    public boolean gameInProgress() {
+      return !mShowNetwork;
     }
 
     public int getCurrentLevelIndex() {
@@ -2116,42 +2127,40 @@ public class GameView extends SurfaceView
       synchronized(mSurfaceHolder) {
         if ((newWidth / newHeight) >= (gameWidth / gameHeight)) {
           mDisplayScale = (1.0 * newHeight) / gameHeight;
-          mDisplayDX = (int)((newWidth - (mDisplayScale * extGameWidth)) / 2);
-          mDisplayDY = 0;
+          mDisplayDX    = (int)((newWidth - (mDisplayScale * extGameWidth)) / 2);
+          mDisplayDY    = 0;
         }
         else {
           mDisplayScale = (1.0 * newWidth) / gameWidth;
-          if (numPlayers > 1) {
-            /*
-             * When rotate to shoot targeting mode is selected during a
-             * multiplayer game, then the screen orientation is forced
-             * to landscape.
-             *
-             * In portrait mode during a multiplayer game, display just
-             * one game field.  Depending on which player is the local
-             * player, display the game field for just that player. This
-             * is useful for devices with small screens.
-             */
-            if (FrozenBubble.getTargetMode() == FrozenBubble.ROTATE_TO_SHOOT) {
-              mDisplayDX = 0;
-            }
-            else {
-              int orientation = getScreenOrientation();
-              if ((orientation == FrozenBubble.SCREEN_ORIENTATION_REVERSE_PORTRAIT) ||
-                  (orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)) {
-                if (mLocalInput.playerID == VirtualInput.PLAYER2) {
-                  mDisplayDX = (int)(-mDisplayScale * gameWidth);
-                }
-                else {
-                  mDisplayDX = 0;
-                }
+          mDisplayDX    = (int)(mDisplayScale * (gameWidth - extGameWidth) / 2);
+          mDisplayDY    = (int)((newHeight - (mDisplayScale * gameHeight)) / 2);
+        }
+        if (numPlayers > 1) {
+          /*
+           * When rotate to shoot targeting mode is selected during a
+           * multiplayer game, then the screen orientation is forced
+           * to landscape.
+           *
+           * In portrait mode during a multiplayer game, display just
+           * one game field.  Depending on which player is the local
+           * player, display the game field for just that player. This
+           * is useful for devices with small screens.
+           */
+          if (FrozenBubble.getTargetMode() == FrozenBubble.ROTATE_TO_SHOOT) {
+            mDisplayDX = 0;
+          }
+          else {
+            int orientation = getScreenOrientation();
+            if ((orientation == FrozenBubble.SCREEN_ORIENTATION_REVERSE_PORTRAIT) ||
+                (orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)) {
+              if (mLocalInput.playerID == VirtualInput.PLAYER2) {
+                mDisplayDX = (int)(-mDisplayScale * gameWidth);
+              }
+              else {
+                mDisplayDX = 0;
               }
             }
           }
-          else {
-            mDisplayDX = (int)(mDisplayScale * (gameWidth - extGameWidth) / 2);
-          }
-          mDisplayDY = (int)((newHeight - (mDisplayScale * gameHeight)) / 2);
         }
         if (numPlayers > 1) {
           mPlayer1DX = (int)(mDisplayDX - (mDisplayScale * (gameWidth / 2)));
@@ -2461,12 +2470,6 @@ public class GameView extends SurfaceView
           game1Status = gameEnum.WON;
           mShowScores = true;
           pause();
-          if (FrozenBubble.getAdsOn() &&
-              (!mInterstitialShown && (new Random().nextInt(10) == 0))) {
-            mInterstitialShown = true;
-            Intent intent = new Intent(mContext, InterstitialActivity.class);
-            mContext.startActivity(intent);
-          }
         }
         else {
           game1Status = gameEnum.LOST;
@@ -2627,6 +2630,7 @@ public class GameView extends SurfaceView
                     byte[] levels,
                     int startingLevel) {
     mContext = context;
+    this.gameLocale = gameLocale;
     this.numPlayers = numPlayers;
     SurfaceHolder holder = getHolder();
     holder.addCallback(this);
@@ -2655,19 +2659,19 @@ public class GameView extends SurfaceView
      * Create a network game manager if this is a network game.
      */
     mNetworkManager = null;
-    if ((gameLocale == FrozenBubble.LOCALE_LAN) ||
-        (gameLocale == FrozenBubble.LOCALE_INTERNET)) {
-      connectEnum connectType;
-      if (gameLocale == FrozenBubble.LOCALE_LAN) {
-        connectType = connectEnum.UDP_MULTICAST;
+    if ((gameLocale == FrozenBubble.LOCALE_BLUETOOTH) ||
+        (gameLocale == FrozenBubble.LOCALE_WIFI     )) {
+      connectEnum mode;
+      if (gameLocale == FrozenBubble.LOCALE_BLUETOOTH) {
+        mode = connectEnum.BLUETOOTH;
       }
       else {
-        connectType = connectEnum.UDP_UNICAST;
+        mode = connectEnum.UDP_MULTICAST;
       }
-      mNetworkManager = new NetworkGameManager(context,
-                                               connectType,
-                                               mLocalInput,
-                                               mRemoteInput);
+      mNetworkManager = new NetworkManager(context,
+                                           mode,
+                                           mLocalInput,
+                                           mRemoteInput);
       remoteInterface = mNetworkManager.getRemoteInterface();
     }
 
