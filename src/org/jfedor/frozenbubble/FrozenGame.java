@@ -66,7 +66,7 @@ import android.util.Log;
 
 import com.efortin.frozenbubble.CRC16;
 import com.efortin.frozenbubble.HighscoreManager;
-import com.efortin.frozenbubble.NetworkGameManager;
+import com.efortin.frozenbubble.NetworkManager;
 import com.efortin.frozenbubble.VirtualInput;
 
 public class FrozenGame extends GameScreen {
@@ -105,12 +105,12 @@ public class FrozenGame extends GameScreen {
   ImageSprite nextBubble;
   int currentColor, nextColor, newNextColor;
 
-  BubbleSprite movingBubble;
-  BubbleManager bubbleManager;
-  LevelManager levelManager;
-  MalusBar malusBar;
+  BubbleSprite     movingBubble;
+  BubbleManager    bubbleManager;
+  LevelManager     levelManager;
+  MalusBar         malusBar;
   HighscoreManager highscoreManager;
-  NetworkGameManager networkManager;
+  NetworkManager   networkManager;
 
   Vector<Sprite> falling;
   Vector<Sprite> goingUp;
@@ -170,7 +170,7 @@ public class FrozenGame extends GameScreen {
                     SoundManager soundManager_arg,
                     LevelManager levelManager_arg,
                     HighscoreManager highscoreManager_arg,
-                    NetworkGameManager networkManager_arg,
+                    NetworkManager networkManager_arg,
                     VirtualInput input_arg) {
     random               = new Random(System.currentTimeMillis());
     launcher             = launcher_arg;

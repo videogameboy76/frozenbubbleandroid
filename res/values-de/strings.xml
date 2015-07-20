@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="app_name">Frozen Bubble</string>
+  <string name="exit">Exit</string>
   <string name="install_editor">Weiterleitung zum Android Market für den Download des Level-Editors…</string>
   <string name="market_missing">Android Market nicht gefunden! Bitten installieren Sie den Level-Editor manuell.</string>
+  <string name="menu_bluetooth_device">Bluetooth Device</string>
   <string name="menu_new_game">Starten neues Spiel</string>
   <string name="menu_colorblind_on">Darstellung mit Symbolen</string>
   <string name="menu_colorblind_off">Darstellung ohne Symbole</string>

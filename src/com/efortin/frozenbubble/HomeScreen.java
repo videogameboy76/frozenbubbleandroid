@@ -71,7 +71,6 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.RelativeLayout.LayoutParams;
-import android.widget.Toast;
 
 public class HomeScreen extends Activity {
   /*
@@ -100,14 +99,13 @@ public class HomeScreen extends Activity {
   private static int buttonSelPage2 = BTN5_ID;
   private static int buttonSelPage3 = BTN8_ID;
 
-  private boolean finished        = false;
-  private boolean homeShown       = false;
-  private boolean musicOn         = true;
-  private long lastBackPressTime  = 0;
-  private ImageView myImageView   = null;
-  private RelativeLayout myLayout = null;
-  private ModPlayer myModPlayer   = null;
-  private Thread splashThread     = null;
+  private boolean        finished          = false;
+  private boolean        homeShown         = false;
+  private boolean        musicOn           = true;
+  private ImageView      myImageView       = null;
+  private RelativeLayout myLayout          = null;
+  private ModPlayer      myModPlayer       = null;
+  private Thread         splashThread      = null;
 
   /**
    * Given that we are using a relative layout for the home screen in
@@ -348,10 +346,10 @@ public class HomeScreen extends Activity {
    */
   private void addMultiplayerButtons() {
     /*
-     * Construct the LAN game button.
+     * Construct the WiFi game button.
      */
-    Button startLanGameButton = new Button(this);
-    startLanGameButton.setOnClickListener(new Button.OnClickListener(){
+    Button startWiFiGameButton = new Button(this);
+    startWiFiGameButton.setOnClickListener(new Button.OnClickListener(){
       public void onClick(View v){
         buttonSelected = BTN6_ID;
         buttonSelPage2 = BTN6_ID;
@@ -361,23 +359,23 @@ public class HomeScreen extends Activity {
         displayButtonPage(3);
       }
     });
-    startLanGameButton.setOnTouchListener(new Button.OnTouchListener(){
+    startWiFiGameButton.setOnTouchListener(new Button.OnTouchListener(){
       public boolean onTouch(View v, MotionEvent event){
         if (event.getAction() == MotionEvent.ACTION_DOWN)
           v.requestFocus();
         return false;
       }
     });
-    startLanGameButton.setText("Local Network");
-    startLanGameButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
-    startLanGameButton.setWidth((int) (startLanGameButton.getTextSize() * 9));
-    startLanGameButton.setTypeface(null, Typeface.BOLD);
-    startLanGameButton.setHorizontalFadingEdgeEnabled(true);
-    startLanGameButton.setFadingEdgeLength(5);
-    startLanGameButton.setShadowLayer(5, 5, 5, R.color.black);
-    startLanGameButton.setId(BTN6_ID);
-    startLanGameButton.setFocusable(true);
-    startLanGameButton.setFocusableInTouchMode(true);
+    startWiFiGameButton.setText("WiFi");
+    startWiFiGameButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
+    startWiFiGameButton.setWidth((int) (startWiFiGameButton.getTextSize() * 9));
+    startWiFiGameButton.setTypeface(null, Typeface.BOLD);
+    startWiFiGameButton.setHorizontalFadingEdgeEnabled(true);
+    startWiFiGameButton.setFadingEdgeLength(5);
+    startWiFiGameButton.setShadowLayer(5, 5, 5, R.color.black);
+    startWiFiGameButton.setId(BTN6_ID);
+    startWiFiGameButton.setFocusable(true);
+    startWiFiGameButton.setFocusableInTouchMode(true);
     LayoutParams myParams1 = new LayoutParams(LayoutParams.WRAP_CONTENT,
                                               LayoutParams.WRAP_CONTENT);
     myParams1.addRule(RelativeLayout.CENTER_IN_PARENT);
@@ -386,7 +384,7 @@ public class HomeScreen extends Activity {
     /*
      * Add view to layout.
      */
-    myLayout.addView(startLanGameButton, myParams1);
+    myLayout.addView(startWiFiGameButton, myParams1);
     /*
      * Construct the Player vs. CPU game button.
      */
@@ -423,7 +421,7 @@ public class HomeScreen extends Activity {
     LayoutParams myParams2 = new LayoutParams(LayoutParams.WRAP_CONTENT,
                                               LayoutParams.WRAP_CONTENT);
     myParams2.addRule(RelativeLayout.CENTER_IN_PARENT);
-    myParams2.addRule(RelativeLayout.ABOVE, startLanGameButton.getId());
+    myParams2.addRule(RelativeLayout.ABOVE, startWiFiGameButton.getId());
     myParams2.topMargin = 15;
     myParams2.bottomMargin = 15;
     /*
@@ -431,10 +429,10 @@ public class HomeScreen extends Activity {
      */
     myLayout.addView(startCPUGameButton, myParams2);
     /*
-     * Construct the Internet game button.
+     * Construct the Bluetooth network game button.
      */
-    Button startIPGameButton = new Button(this);
-    startIPGameButton.setOnClickListener(new Button.OnClickListener(){
+    Button startBluetoothGameButton = new Button(this);
+    startBluetoothGameButton.setOnClickListener(new Button.OnClickListener(){
       public void onClick(View v){
         buttonSelected = BTN7_ID;
         buttonSelPage2 = BTN7_ID;
@@ -444,33 +442,36 @@ public class HomeScreen extends Activity {
         displayButtonPage(3);
       }
     });
-    startIPGameButton.setOnTouchListener(new Button.OnTouchListener(){
+    startBluetoothGameButton.setOnTouchListener(new Button.OnTouchListener(){
       public boolean onTouch(View v, MotionEvent event){
         if (event.getAction() == MotionEvent.ACTION_DOWN)
           v.requestFocus();
         return false;
       }
     });
-    startIPGameButton.setText("Internet");
-    startIPGameButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
-    startIPGameButton.setWidth((int) (startIPGameButton.getTextSize() * 9));
-    startIPGameButton.setTypeface(null, Typeface.BOLD);
-    startIPGameButton.setHorizontalFadingEdgeEnabled(true);
-    startIPGameButton.setFadingEdgeLength(5);
-    startIPGameButton.setShadowLayer(5, 5, 5, R.color.black);
-    startIPGameButton.setId(BTN7_ID);
-    startIPGameButton.setFocusable(true);
-    startIPGameButton.setFocusableInTouchMode(true);
+    startBluetoothGameButton.setText("Bluetooth");
+    startBluetoothGameButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
+    startBluetoothGameButton.setWidth((int) (startBluetoothGameButton.getTextSize() * 9));
+    startBluetoothGameButton.setTypeface(null, Typeface.BOLD);
+    startBluetoothGameButton.setHorizontalFadingEdgeEnabled(true);
+    startBluetoothGameButton.setFadingEdgeLength(5);
+    startBluetoothGameButton.setShadowLayer(5, 5, 5, R.color.black);
+    startBluetoothGameButton.setId(BTN7_ID);
+    startBluetoothGameButton.setFocusable(true);
+    startBluetoothGameButton.setFocusableInTouchMode(true);
+    if (BluetoothManager.getPairedDevices() == null) {
+      startBluetoothGameButton.setEnabled(false);
+    }
     LayoutParams myParams3 = new LayoutParams(LayoutParams.WRAP_CONTENT,
                                               LayoutParams.WRAP_CONTENT);
     myParams3.addRule(RelativeLayout.CENTER_IN_PARENT);
-    myParams3.addRule(RelativeLayout.BELOW, startLanGameButton.getId());
+    myParams3.addRule(RelativeLayout.BELOW, startWiFiGameButton.getId());
     myParams3.topMargin = 15;
     myParams3.bottomMargin = 15;
     /*
      * Add view to layout.
      */
-    myLayout.addView(startIPGameButton, myParams3);
+    myLayout.addView(startBluetoothGameButton, myParams3);
   }
 
   /**
@@ -497,12 +498,12 @@ public class HomeScreen extends Activity {
         if (buttonSelPage2 == BTN7_ID) {
           startFrozenBubble(VirtualInput.PLAYER2, 2,
                             FrozenBubble.HUMAN,
-                            FrozenBubble.LOCALE_INTERNET, false);
+                            FrozenBubble.LOCALE_BLUETOOTH, false);
         }
         else {
           startFrozenBubble(VirtualInput.PLAYER2, 2,
                             FrozenBubble.HUMAN,
-                            FrozenBubble.LOCALE_LAN, false);
+                            FrozenBubble.LOCALE_WIFI, false);
         }
       }
     });
@@ -546,12 +547,12 @@ public class HomeScreen extends Activity {
         if (buttonSelPage2 == BTN7_ID) {
           startFrozenBubble(VirtualInput.PLAYER1, 2,
                             FrozenBubble.HUMAN,
-                            FrozenBubble.LOCALE_INTERNET, false);
+                            FrozenBubble.LOCALE_BLUETOOTH, false);
         }
         else {
           startFrozenBubble(VirtualInput.PLAYER1, 2,
                             FrozenBubble.HUMAN,
-                            FrozenBubble.LOCALE_LAN, false);
+                            FrozenBubble.LOCALE_WIFI, false);
         }
       }
     });
@@ -604,22 +605,9 @@ public class HomeScreen extends Activity {
       displayButtonPage(2);
     }
     else {
-      long currentTime = System.currentTimeMillis();
-      /*
-       * If the player presses back twice in less than three seconds,
-       * then exit the game.  Otherwise pop up a toast telling them that
-       * if they press the button again the game will exit.
-       */
-      if ((currentTime - lastBackPressTime) < 3000) {
-        finished = true;
-        cleanUp();
-        finish();
-      }
-      else
-        Toast.makeText(getApplicationContext(), "Press again to exit...",
-                       Toast.LENGTH_SHORT).show();
-
-      lastBackPressTime = currentTime;
+      finished = true;
+      cleanUp();
+      finish();
     }
   }
 
@@ -865,10 +853,10 @@ public class HomeScreen extends Activity {
    * using TCP.
    * @param arcadeGame - endless arcade game that scrolls new bubbles.
    */
-  private void startFrozenBubble(int myPlayerId,
-                                 int numPlayers,
-                                 int opponentId,
-                                 int gameLocale,
+  private void startFrozenBubble(int     myPlayerId,
+                                 int     numPlayers,
+                                 int     opponentId,
+                                 int     gameLocale,
                                  boolean arcadeGame) {
     finished = true;
     /*

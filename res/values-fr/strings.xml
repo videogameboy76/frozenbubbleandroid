@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="app_name">Frozen Bubble</string>
+  <string name="exit">Exit</string>
   <string name="install_editor">Redirection vers le Play Store afin de télécharger l\'éditeur de niveau…</string>
   <string name="market_missing">Play Store introuvable! Veuillez installer l\'éditeur de niveau Frozen Bubble manuellement.</string>
+  <string name="menu_bluetooth_device">Bluetooth Device</string>
   <string name="menu_new_game">Nouvelle Partie</string>
   <string name="menu_colorblind_on">Activer Mode Daltonien</string>
   <string name="menu_colorblind_off">Désactiver Mode Daltonien</string>

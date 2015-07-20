@@ -55,4 +55,5 @@
 		<resource resourceType="PROJECT" workspacePath="/frozenbubble"/>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
+	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 </cproject>

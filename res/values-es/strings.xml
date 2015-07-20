@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="app_name">Frozen Bubble</string>
+  <string name="exit">Exit</string>
   <string name="install_editor">Redireccionando a Google Play para descargar el editor de niveles...</string>
   <string name="market_missing">No se puede encontrar la aplicación de Google Play. Por favor, instala el editor de niveles manualmente.</string>
+  <string name="menu_bluetooth_device">Bluetooth Device</string>
   <string name="menu_new_game">Nuevo juego</string>
   <string name="menu_colorblind_on">Activar modo daltónico</string>
   <string name="menu_colorblind_off">Desactivar modo daltónico</string>
