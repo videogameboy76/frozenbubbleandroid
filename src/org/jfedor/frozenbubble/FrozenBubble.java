@@ -74,6 +74,10 @@
 
 package org.jfedor.frozenbubble;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Random;
 
 import org.jfedor.frozenbubble.GameScreen.eventEnum;
@@ -87,21 +91,30 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
+import android.graphics.Typeface;
 import android.hardware.SensorManager;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcel;
 import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
+import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.OrientationEventListener;
 import android.view.Surface;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.RelativeLayout;
+import android.widget.RelativeLayout.LayoutParams;
 import android.widget.Toast;
 
 import com.efortin.frozenbubble.AccelerometerManager;
@@ -162,18 +175,22 @@ public class FrozenBubble extends Activity
 
   public final static int CPU   = 0;
   public final static int HUMAN = 1;
+  
+  private final static int BACK_ID = 101;
 
   public static boolean arcadeGame = false;
   public static int     gameLocale = LOCALE_LOCAL;
   public static int     myPlayerId = VirtualInput.PLAYER1; 
   public static int     numPlayers = 0;
   public static int     opponentId = CPU;
+  public static boolean playerSave = false;
 
   private static Preferences prefs = new Preferences();
 
-  public final static String PREFS_NAME   = "frozenbubble";
-  public final static String TAG          = "FrozenBubble.java";
   public final static String EDITORACTION = "org.jfedor.frozenbubble.GAME";
+  public final static String PREFS_NAME   = "frozenbubble";
+  public final static String SAVE_GAME    = "FrozenBubble.save";
+  public final static String TAG          = "FrozenBubble.java";
 
   private boolean    activityCustomStarted = false;
   private boolean    allowUnpause          = true;
@@ -415,10 +432,16 @@ public class FrozenBubble extends Activity
      * Just have the View's thread save its state into our Bundle.
      */
     super.onSaveInstanceState(outState);
-    saveState();
+    saveState(outState);
 
-    if (mGameThread != null)
-      mGameThread.saveState(outState);
+    /*
+     * Set a flag indicating that the system passed us a bundle to save
+     * the game state in.
+     */
+    SharedPreferences.Editor editor =
+        PreferenceManager.getDefaultSharedPreferences(this).edit();
+    editor.putBoolean("systemSave", true);
+    editor.commit();
   }
 
   @Override
@@ -524,6 +547,71 @@ public class FrozenBubble extends Activity
    */
 
   /**
+   * Given that we are using a relative layout for the display to
+   * arrange view objects relative to each other, this function
+   * programmatically adds an on-screen back button to the layout.
+   */
+  private void addBackButton(RelativeLayout myLayout) {
+    /*
+     * Construct the back button.
+     */
+    Button backButton = new Button(this);
+    backButton.setOnClickListener(new Button.OnClickListener(){
+      public void onClick(View v) {
+        /*
+         * Only show the game exit dialog while a game is in progress,
+         * otherwise simply exit.
+         */
+        if ((mGameThread != null) && mGameThread.gameInProgress()) {
+          exitGameDialog();
+        }
+        else {
+          exit(true);
+        }
+      }
+    });
+    backButton.setOnTouchListener(new Button.OnTouchListener(){
+      public boolean onTouch(View v, MotionEvent event){
+        boolean result = false;
+        switch (event.getAction()) {
+          case MotionEvent.ACTION_DOWN:
+            v.requestFocus();
+            break;
+          case MotionEvent.ACTION_UP:
+            result = v.performClick();
+            break;
+          default:
+            break;
+        }
+        return result;
+      }
+    });
+    /*
+     * Set the back button text to the following Unicode character:
+     * Anticlockwise Top Semicircle Arrow
+     * http://en.wikipedia.org/wiki/Arrow_(symbol)
+     */
+    backButton.setText("\u21B6");
+    backButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 30);
+    backButton.setWidth((int) backButton.getTextSize() * 2);
+    backButton.setTypeface(null, Typeface.BOLD);
+    backButton.setBackgroundResource(R.drawable.round_button);
+    backButton.setId(BACK_ID);
+    backButton.setFocusable(true);
+    backButton.setFocusableInTouchMode(true);
+    LayoutParams myParams = new LayoutParams(LayoutParams.WRAP_CONTENT,
+                                             LayoutParams.WRAP_CONTENT);
+    myParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+    myParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+    myParams.rightMargin = 0;
+    myParams.topMargin   = 0;
+    /*
+     * Add view to layout.
+     */
+    myLayout.addView(backButton, myParams);
+  }
+
+  /**
    * Perform activity cleanup.  <b>This must only be called when the
    * activity is being destroyed.</b>
    */
@@ -601,27 +689,46 @@ public class FrozenBubble extends Activity
     /*
      * Set the action buttons.
      */
-    .setPositiveButton(R.string.exit,
+    .setPositiveButton(R.string.save_and_exit,
                        new DialogInterface.OnClickListener() {
       @Override
       public void onClick(DialogInterface dialog, int id) {
-        // User clicked OK.  Quit.
+        /*
+         * User clicked OK.  Save and quit.  Only save if this isn't a
+         * custom game.
+         */
+        if (!activityCustomStarted) {
+          saveGame(null);
+        }
+        exit(true);
+      }
+    })
+    .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+      @Override
+      public void onClick(DialogInterface dialog, int id) {
+        /*
+         * User clicked Cancel.  Do nothing.
+         */
+        if (mGameThread != null) {
+          mGameThread.resumeGame();
+        }
+      }
+    })
+    .setNeutralButton(R.string.exit, new DialogInterface.OnClickListener() {
+      @Override
+      public void onClick(DialogInterface dialog, int id) {
+        /*
+         * User clicked neutral option.  Quit.
+         */
         exit(true);
       }
     })
     .setOnCancelListener(new DialogInterface.OnCancelListener() {
       @Override
       public void onCancel(DialogInterface dialog) {
-        // User canceled.  Do nothing.
-        if (mGameThread != null) {
-          mGameThread.resumeGame();
-        }
-      }
-    })
-    .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-      @Override
-      public void onClick(DialogInterface dialog, int id) {
-        // User clicked Cancel.  Do nothing.
+        /*
+         * User canceled.  Do nothing.
+         */
         if (mGameThread != null) {
           mGameThread.resumeGame();
         }
@@ -775,6 +882,37 @@ public class FrozenBubble extends Activity
     builder.show();
   }
 
+  private void newGameView(Bundle map) {
+    if (map != null) {
+      /*
+       * Force the game locale to be confined to the local device when
+       * restoring a saved game.  Restoring a network game is of little
+       * to no value as opposed to simply starting a new game.
+       */
+      arcadeGame = map.getBoolean("arcadeGame", false               );
+      gameLocale = LOCALE_LOCAL;
+      myPlayerId = map.getInt    ("myPlayerId", VirtualInput.PLAYER1);
+      numPlayers = map.getInt    ("numPlayers", 0                   );
+      opponentId = map.getInt    ("opponentId", CPU                 );
+    }
+    FrameLayout    game        = new FrameLayout   (this);
+    RelativeLayout gameWidgets = new RelativeLayout(this);
+    mGameView = new GameView(this,
+                             numPlayers,
+                             myPlayerId,
+                             opponentId,
+                             gameLocale,
+                             arcadeGame);
+    addBackButton(gameWidgets);
+    game.addView(mGameView);
+    game.addView(gameWidgets);
+    setContentView(game);
+    mGameView.setGameListener(this);
+    mGameThread = mGameView.getThread();
+    mGameThread.restoreState(map);
+    game.requestFocus();
+  }
+
   public void onAccelerationChanged(float x, float y, float z) {
     if (mGameThread != null) {
       if (numPlayers > 1) {
@@ -801,8 +939,6 @@ public class FrozenBubble extends Activity
         break;
 
       case GAME_PAUSED:
-        saveState();
-
         if (myModPlayer != null)
           myModPlayer.pausePlay();
         break;
@@ -906,6 +1042,42 @@ public class FrozenBubble extends Activity
   }
 
   /**
+   * Restore the game from a player saved bundle.
+   * <p>Note that this implementation uses a practice that is not
+   * recommended by the API documentation, as serializing a
+   * <code>Parcel</code> object is not guaranteed to be compatible
+   * amongst disparate versions of the Android OS.
+   */
+  private Bundle restoreSavedGame() {
+    Bundle inState = null;
+    Parcel parcel  = Parcel.obtain();
+
+    try {
+      FileInputStream fis = openFileInput(SAVE_GAME);
+      byte[] array = new byte[(int) fis.getChannel().size()];
+      fis.read(array, 0, array.length);
+      fis.close();
+      parcel.unmarshall(array, 0, array.length);
+      parcel.setDataPosition(0);
+      inState = parcel.readBundle();
+      inState.putAll(inState);
+    } catch (FileNotFoundException fnfe) {
+      /*
+       * Cannot open file, so the game could not be restored.
+       */
+    } catch (IOException ioe) {
+      /*
+       * Error occurred while reading from file.
+       */
+      ioe.printStackTrace();
+    } finally {
+      parcel.recycle();
+    }
+
+    return inState;
+  }
+
+  /**
    * Load the game options from the saved shared preferences.
    */
   private void restoreGamePrefs() {
@@ -922,9 +1094,53 @@ public class FrozenBubble extends Activity
   }
 
   /**
+   * Save the game to a player saved bundle.
+   * <p>Note that this implementation uses a practice that is not
+   * recommended by the API documentation, as serializing a
+   * <code>Parcel</code> object is not guaranteed to be compatible
+   * amongst disparate versions of the Android OS.
+   */
+  private void saveGame(Bundle map) {
+    Bundle outState = map;
+    Parcel parcel   = Parcel.obtain();
+
+    if (outState == null) {
+      outState = new Bundle();
+      saveState(outState);
+    }
+
+    try {
+      FileOutputStream fos = openFileOutput(SAVE_GAME, Context.MODE_PRIVATE);
+      outState.writeToParcel(parcel, 0);
+      fos.write(parcel.marshall());
+      fos.flush();
+      fos.close();
+      /*
+       * Set a flag indicating that the player saved the game.
+       */
+      Editor editor =
+          PreferenceManager.getDefaultSharedPreferences(this).edit();
+      editor.putBoolean("playerSave", true);
+      editor.commit();
+    } catch (FileNotFoundException fnfe) {
+      /*
+       * Cannot create file, so the game could not be saved.
+       */
+      fnfe.printStackTrace();
+    } catch (IOException ioe) {
+      /*
+       * Error occurred while writing to file.
+       */
+      ioe.printStackTrace();
+    } finally {
+      parcel.recycle();
+    }
+  }
+
+  /**
    * Save critically important game information.
    */
-  public void saveState() {
+  public void saveState(Bundle map) {
     if (!arcadeGame && (mGameThread != null) && (numPlayers == 1)) {
       /*
        * Allow level editor functionalities.
@@ -947,6 +1163,17 @@ public class FrozenBubble extends Activity
         editor.putInt("levelCustom", mGameThread.getCurrentLevelIndex());
       }
       editor.commit();
+    }
+    if (map != null) {
+      map.putBoolean("arcadeGame", arcadeGame);
+      map.putInt    ("gameLocale", gameLocale);
+      map.putInt    ("myPlayerId", myPlayerId);
+      map.putInt    ("numPlayers", numPlayers);
+      map.putInt    ("opponentId", opponentId);
+  
+      if (mGameThread != null) {
+        mGameThread.saveState(map);
+      }
     }
   }
 
@@ -1092,13 +1319,18 @@ public class FrozenBubble extends Activity
     int startingLevelIntent = intent.getIntExtra("startingLevel", -2);
     startingLevel =
       (startingLevelIntent == -2) ? startingLevel : startingLevelIntent;
+    FrameLayout    game        = new FrameLayout   (this);
+    RelativeLayout gameWidgets = new RelativeLayout(this);
     mGameView = new GameView(this,
                              intent.getExtras().getByteArray("levels"),
                              startingLevel);
-    setContentView(mGameView);
+    addBackButton(gameWidgets);
+    game.addView(mGameView);
+    game.addView(gameWidgets);
+    setContentView(game);
     mGameView.setGameListener(this);
     mGameThread = mGameView.getThread();
-    mGameView.requestFocus();
+    game.requestFocus();
     setFullscreen();
     playMusic(false);
   }
@@ -1115,14 +1347,22 @@ public class FrozenBubble extends Activity
      * Initialize the flag to denote this game uses default levels.
      */
     activityCustomStarted = false;
+
     /*
-     * Check if this is a single player or multiplayer game.
+     * Initialize the game state variables to safe defaults.
      */
     arcadeGame = false;
     gameLocale = LOCALE_LOCAL;
     myPlayerId = VirtualInput.PLAYER1;
     numPlayers = 1;
     opponentId = CPU;
+    playerSave = false;
+
+    /*
+     * Load the game configuration from the intent data, if it exists.
+     * These values may be superseded if a player or system save bundle
+     * is loaded.
+     */
     if (intent != null) {
       if (intent.hasExtra("myPlayerId"))
         myPlayerId = intent.getIntExtra("myPlayerId", VirtualInput.PLAYER1);
@@ -1134,45 +1374,19 @@ public class FrozenBubble extends Activity
         gameLocale = intent.getIntExtra("gameLocale", LOCALE_LOCAL);
       if (intent.hasExtra("arcadeGame"))
         arcadeGame = intent.getBooleanExtra("arcadeGame", false);
+      if (intent.hasExtra("playerSave"))
+        playerSave = intent.getBooleanExtra("playerSave", false);
     }
+
     initGameOptions();
-    /*
-     * If there is more than one player, launch a multiplayer game.
-     * Otherwise start a single player game.
-     */
-    if (numPlayers > 1) {
-      mGameView = new GameView(this,
-                               numPlayers,
-                               myPlayerId,
-                               opponentId,
-                               gameLocale,
-                               arcadeGame);
-      setContentView(mGameView);
-      mGameView.setGameListener(this);
-      mGameThread = mGameView.getThread();
-      /*
-       * Only restore the bundle for a multiplayer game if it was local.
-       */
-      if ((savedInstanceState != null) && (gameLocale == LOCALE_LOCAL)) {
-        int savedPlayers = savedInstanceState.getInt("numPlayers");
-        if (savedPlayers == 2) {
-          mGameThread.restoreState(savedInstanceState);
-        }
-      }
-      mGameView.requestFocus();
+
+    if (playerSave) {
+      newGameView(restoreSavedGame());
     }
     else {
-      setContentView(R.layout.activity_frozen_bubble);
-      mGameView = (GameView)findViewById(R.id.game);
-      mGameView.setGameListener(this);
-      mGameThread = mGameView.getThread();
-      if (savedInstanceState != null) {
-        int savedPlayers = savedInstanceState.getInt("numPlayers");
-        if (savedPlayers == 1)
-          mGameThread.restoreState(savedInstanceState);
-      }
-      mGameView.requestFocus();
+      newGameView(savedInstanceState);
     }
+
     setFullscreen();
     playMusic(false);
   }
