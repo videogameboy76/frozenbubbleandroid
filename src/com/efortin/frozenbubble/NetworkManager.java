@@ -58,11 +58,11 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
-import org.jfedor.frozenbubble.BubbleSprite;
-import org.jfedor.frozenbubble.FrozenBubble;
-import org.jfedor.frozenbubble.FrozenGame;
-import org.jfedor.frozenbubble.GameView.NetGameInterface;
-import org.jfedor.frozenbubble.LevelManager;
+import org.jfedor.frozenbubbleplus.BubbleSprite;
+import org.jfedor.frozenbubbleplus.FrozenBubble;
+import org.jfedor.frozenbubbleplus.FrozenGame;
+import org.jfedor.frozenbubbleplus.GameView.NetGameInterface;
+import org.jfedor.frozenbubbleplus.LevelManager;
 
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;

@@ -52,8 +52,8 @@
 
 package org.gsanson.frozenbubble;
 
-import org.jfedor.frozenbubble.BubbleSprite;
-import org.jfedor.frozenbubble.LevelManager;
+import org.jfedor.frozenbubbleplus.BubbleSprite;
+import org.jfedor.frozenbubbleplus.LevelManager;
 
 import android.view.KeyEvent;
 

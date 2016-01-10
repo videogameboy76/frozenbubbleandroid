@@ -54,10 +54,10 @@ package com.efortin.frozenbubble;
 
 import java.util.ArrayList;
 
-import org.jfedor.frozenbubble.BubbleSprite;
-import org.jfedor.frozenbubble.FrozenBubble;
-import org.jfedor.frozenbubble.LevelManager;
-import org.jfedor.frozenbubble.R;
+import org.jfedor.frozenbubbleplus.BubbleSprite;
+import org.jfedor.frozenbubbleplus.FrozenBubble;
+import org.jfedor.frozenbubbleplus.LevelManager;
+import org.jfedor.frozenbubbleplus.R;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.SharedPreferences;

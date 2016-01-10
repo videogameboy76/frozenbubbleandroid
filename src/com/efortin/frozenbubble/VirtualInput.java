@@ -52,7 +52,7 @@
 
 package com.efortin.frozenbubble;
 
-import org.jfedor.frozenbubble.FrozenGame;
+import org.jfedor.frozenbubbleplus.FrozenGame;
 
 import android.view.KeyEvent;
 

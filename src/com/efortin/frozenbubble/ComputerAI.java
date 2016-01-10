@@ -54,8 +54,8 @@ package com.efortin.frozenbubble;
 
 import org.gsanson.frozenbubble.Freile;
 import org.gsanson.frozenbubble.Freile.eventEnum;
-import org.jfedor.frozenbubble.FrozenGame;
-import org.jfedor.frozenbubble.GameScreen.gameEnum;
+import org.jfedor.frozenbubbleplus.FrozenGame;
+import org.jfedor.frozenbubbleplus.GameScreen.gameEnum;
 
 import android.view.KeyEvent;
 

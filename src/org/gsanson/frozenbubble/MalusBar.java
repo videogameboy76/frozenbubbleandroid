@@ -52,9 +52,9 @@
 
 package org.gsanson.frozenbubble;
 
-import org.jfedor.frozenbubble.BmpWrap;
-import org.jfedor.frozenbubble.LevelManager;
-import org.jfedor.frozenbubble.Sprite;
+import org.jfedor.frozenbubbleplus.BmpWrap;
+import org.jfedor.frozenbubbleplus.LevelManager;
+import org.jfedor.frozenbubbleplus.Sprite;
 
 import android.graphics.Canvas;
 import android.graphics.Rect;
