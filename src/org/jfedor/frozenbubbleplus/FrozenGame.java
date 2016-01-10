@@ -210,15 +210,20 @@ public class FrozenGame extends GameScreen {
     /*
      * Create objects for all the game graphics.
      */
-    if ((pauseButton_arg != null) && (playButton_arg != null)) {
+    if (pauseButton_arg != null) {
       pauseButtonSprite = new ImageSprite(new Rect(167, 444, 32, 32),
                                           pauseButton_arg);
-      playButtonSprite  = new ImageSprite(new Rect(167, 444, 32, 32),
-                                          playButton_arg);
       this.addSprite(pauseButtonSprite);
     }
     else {
       pauseButtonSprite = null;
+    }
+
+    if (playButton_arg != null) {
+      playButtonSprite = new ImageSprite(new Rect(167, 444, 32, 32),
+                                         playButton_arg);
+    }
+    else {
       playButtonSprite  = null;
     }
 

@@ -887,7 +887,8 @@ public class GameView extends SurfaceView
       mHurryOrig = BitmapFactory.decodeResource(
           res, R.drawable.hurry, options);
       mPauseButtonOrig = null;
-      mPlayButtonOrig = null;
+      mPlayButtonOrig = BitmapFactory.decodeResource(
+          res, R.drawable.play_button, options);
       mPenguinsOrig = BitmapFactory.decodeResource(
           res, R.drawable.penguins, options);
       mPenguins2Orig = null;
@@ -931,7 +932,7 @@ public class GameView extends SurfaceView
       mGamePaused     = NewBmpWrap();
       mHurry          = NewBmpWrap();
       mPauseButton    = null;
-      mPlayButton     = null;
+      mPlayButton     = NewBmpWrap();
       mPenguins       = NewBmpWrap();
       mPenguins2      = null;
       mCompressorHead = NewBmpWrap();
@@ -1832,24 +1833,26 @@ public class GameView extends SurfaceView
      * @param savedState - Bundle containing the game state.
      */
     public void restoreState(Bundle map) {
-      synchronized(mSurfaceHolder) {
-        setState(stateEnum.PAUSED);
-        if (mFrozenGame1 != null) {
-          mFrozenGame1.restoreState(map, mImageList);
-        }
-        if (numPlayers > 1) {
-          numPlayer1GamesWon = map.getInt("numPlayer1GamesWon", 0);
-          numPlayer2GamesWon = map.getInt("numPlayer2GamesWon", 0);
-          if (mFrozenGame2 != null) {
-            mFrozenGame2.restoreState(map, mImageList);
-            startOpponent();
+      if (map != null) {
+        synchronized(mSurfaceHolder) {
+          setState(stateEnum.PAUSED);
+          if (mFrozenGame1 != null) {
+            mFrozenGame1.restoreState(map, mImageList);
           }
-        }
-        if (mLevelManager != null) {
-          mLevelManager.restoreState(map);
-        }
-        if (mHighScoreManager != null) {
-          mHighScoreManager.restoreState(map);
+          if (numPlayers > 1) {
+            numPlayer1GamesWon = map.getInt("numPlayer1GamesWon", 0);
+            numPlayer2GamesWon = map.getInt("numPlayer2GamesWon", 0);
+            if (mFrozenGame2 != null) {
+              mFrozenGame2.restoreState(map, mImageList);
+              startOpponent();
+            }
+          }
+          if (mLevelManager != null) {
+            mLevelManager.restoreState(map);
+          }
+          if (mHighScoreManager != null) {
+            mHighScoreManager.restoreState(map);
+          }
         }
       }
     }
