@@ -1,0 +1,1 @@
+The Android port of the Frozen Bubble game.  Knock the bubbles down by making clusters of three or more bubbles in the same color.
