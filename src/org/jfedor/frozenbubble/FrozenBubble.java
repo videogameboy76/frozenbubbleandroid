@@ -910,7 +910,7 @@ public class FrozenBubble extends Activity
     mGameView.setGameListener(this);
     mGameThread = mGameView.getThread();
     mGameThread.restoreState(map);
-    game.requestFocus();
+    mGameView.requestFocus();
   }
 
   public void onAccelerationChanged(float x, float y, float z) {
@@ -1330,7 +1330,7 @@ public class FrozenBubble extends Activity
     setContentView(game);
     mGameView.setGameListener(this);
     mGameThread = mGameView.getThread();
-    game.requestFocus();
+    mGameView.requestFocus();
     setFullscreen();
     playMusic(false);
   }
