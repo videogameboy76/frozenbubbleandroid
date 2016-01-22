@@ -81,7 +81,7 @@ public class Preferences {
     colorMode  = false;
     compressor = false;
     difficulty = LevelManager.MODERATE;
-    dontRushMe = true;
+    dontRushMe = false;
     fullscreen = true;
     gameMode   = FrozenBubble.GAME_NORMAL;
     musicOn    = true;
