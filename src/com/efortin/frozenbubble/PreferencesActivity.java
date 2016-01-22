@@ -82,16 +82,16 @@ public class PreferencesActivity extends PreferenceActivity{
   
   public static Preferences getDefaultPrefs(SharedPreferences sp) {
     Preferences prefs = new Preferences();
-    prefs.bluetooth  = Integer.valueOf(sp.getString("bluetooth_list", "0"));
-    prefs.collision  = sp.getInt("collision_option", BubbleSprite.MIN_PIX);
-    prefs.compressor = sp.getBoolean("compressor_option", false);
-    prefs.difficulty = sp.getInt("difficulty_option", LevelManager.MODERATE);
-    prefs.dontRushMe = sp.getBoolean("rush_me_option", true);
-    prefs.fullscreen = sp.getBoolean("fullscreen_option", true);
-    prefs.colorMode  = sp.getBoolean("colorblind_option", false);
-    prefs.musicOn    = sp.getBoolean("play_music_option", true);
-    prefs.soundOn    = sp.getBoolean("sound_effects_option", true);
-    prefs.targetMode = Integer.valueOf(sp.getString("targeting_option",
+    prefs.bluetooth  =  Integer.valueOf(sp.getString("bluetooth_list", "0"));
+    prefs.collision  =  sp.getInt("collision_option", BubbleSprite.MIN_PIX);
+    prefs.compressor =  sp.getBoolean("compressor_option", false);
+    prefs.difficulty =  sp.getInt("difficulty_option", LevelManager.MODERATE);
+    prefs.dontRushMe = !sp.getBoolean("rush_me_option", true);
+    prefs.fullscreen =  sp.getBoolean("fullscreen_option", true);
+    prefs.colorMode  =  sp.getBoolean("colorblind_option", false);
+    prefs.musicOn    =  sp.getBoolean("play_music_option", true);
+    prefs.soundOn    =  sp.getBoolean("sound_effects_option", true);
+    prefs.targetMode =  Integer.valueOf(sp.getString("targeting_option",
         Integer.toString(FrozenBubble.POINT_TO_SHOOT)));
 
     if (!prefs.colorMode)

@@ -1219,12 +1219,12 @@ public class FrozenGame extends GameScreen {
       this.addSprite(malusBar);
     }
     int penguinId = map.getInt(String.format("%d-penguinId", player));
-    penguin = (PenguinSprite)savedSprites.elementAt(penguinId);
+    penguin       = (PenguinSprite)savedSprites.elementAt(penguinId);
     compressor.restoreState(map, player);
     int nextBubbleId = map.getInt(String.format("%d-nextBubbleId", player));
-    nextBubble = (ImageSprite)savedSprites.elementAt(nextBubbleId);
-    currentColor = map.getInt(String.format("%d-currentColor", player));
-    nextColor = map.getInt(String.format("%d-nextColor", player));
+    nextBubble       = (ImageSprite)savedSprites.elementAt(nextBubbleId);
+    currentColor     = map.getInt(String.format("%d-currentColor", player));
+    nextColor        = map.getInt(String.format("%d-nextColor", player));
     int movingBubbleId =
         map.getInt(String.format("%d-movingBubbleId", player));
     if (movingBubbleId == -1) {
@@ -1234,20 +1234,36 @@ public class FrozenGame extends GameScreen {
       movingBubble = (BubbleSprite)savedSprites.elementAt(movingBubbleId);
     }
     bubbleManager.restoreState(map, player);
-    fixedBubbles = map.getInt(String.format("%d-fixedBubbles", player));
-    nbBubbles = map.getInt(String.format("%d-nbBubbles", player));
+    int pauseButtonId =
+        map.getInt(String.format("%d-pauseButtonId", player));
+    if (pauseButtonId == -1) {
+      pauseButtonSprite = null;
+    }
+    else {
+      pauseButtonSprite = (ImageSprite) savedSprites.elementAt(pauseButtonId);
+    }
+    int playButtonId =
+        map.getInt(String.format("%d-playButtonId", player));
+    if (playButtonId == -1) {
+      playButtonSprite = null;
+    }
+    else {
+      playButtonSprite = (ImageSprite) savedSprites.elementAt(playButtonId);
+    }
+    fixedBubbles   = map.getInt(String.format("%d-fixedBubbles", player));
+    nbBubbles      = map.getInt(String.format("%d-nbBubbles", player));
     sendToOpponent = map.getInt(String.format("%d-sendToOpponent", player));
-    blinkDelay = map.getInt(String.format("%d-blinkDelay", player));
-    int hurryId = map.getInt(String.format("%d-hurryId", player));
-    hurrySprite = (ImageSprite)savedSprites.elementAt(hurryId);
-    hurryTime = map.getInt(String.format("%d-hurryTime", player));
-    int pausedId = map.getInt(String.format("%d-pausedId", player));
-    pausedSprite = (ImageSprite)savedSprites.elementAt(pausedId);
-    readyToFire = map.getBoolean(String.format("%d-readyToFire", player));
-    endOfGame = map.getBoolean(String.format("%d-endOfGame", player));
-    frozenify = map.getBoolean(String.format("%d-frozenify", player));
-    frozenifyX = map.getInt(String.format("%d-frozenifyX", player));
-    frozenifyY = map.getInt(String.format("%d-frozenifyY", player));
+    blinkDelay     = map.getInt(String.format("%d-blinkDelay", player));
+    int hurryId    = map.getInt(String.format("%d-hurryId", player));
+    hurrySprite    = (ImageSprite)savedSprites.elementAt(hurryId);
+    hurryTime      = map.getInt(String.format("%d-hurryTime", player));
+    int pausedId   = map.getInt(String.format("%d-pausedId", player));
+    pausedSprite   = (ImageSprite)savedSprites.elementAt(pausedId);
+    readyToFire    = map.getBoolean(String.format("%d-readyToFire", player));
+    endOfGame      = map.getBoolean(String.format("%d-endOfGame", player));
+    frozenify      = map.getBoolean(String.format("%d-frozenify", player));
+    frozenifyX     = map.getInt(String.format("%d-frozenifyX", player));
+    frozenifyY     = map.getInt(String.format("%d-frozenifyY", player));
   }
 
   public void resume() {
@@ -1326,6 +1342,22 @@ public class FrozenGame extends GameScreen {
       map.putInt(String.format("%d-movingBubbleId", player), -1);
     }
     bubbleManager.saveState(map, player);
+    if (pauseButtonSprite != null) {
+      pauseButtonSprite.saveState(map, savedSprites, player);
+      map.putInt(String.format("%d-pauseButtonId", player),
+                 pauseButtonSprite.getSavedId());
+    }
+    else {
+      map.putInt(String.format("%d-pauseButtonId", player), -1);
+    }
+    if (playButtonSprite != null) {
+      playButtonSprite.saveState(map, savedSprites, player);
+      map.putInt(String.format("%d-playButtonId", player),
+                 playButtonSprite.getSavedId());
+    }
+    else {
+      map.putInt(String.format("%d-playButtonId", player), -1);
+    }
     map.putInt(String.format("%d-fixedBubbles", player), fixedBubbles);
     map.putInt(String.format("%d-nbBubbles", player), nbBubbles);
     map.putInt(String.format("%d-sendToOpponent", player), sendToOpponent);
