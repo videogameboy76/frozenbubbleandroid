@@ -1236,7 +1236,7 @@ public class FrozenGame extends GameScreen {
     bubbleManager.restoreState(map, player);
     int pauseButtonId =
         map.getInt(String.format("%d-pauseButtonId", player));
-    if (pauseButtonId == -1) {
+    if (pauseButtonId < 1) {
       pauseButtonSprite = null;
     }
     else {
@@ -1244,7 +1244,7 @@ public class FrozenGame extends GameScreen {
     }
     int playButtonId =
         map.getInt(String.format("%d-playButtonId", player));
-    if (playButtonId == -1) {
+    if (playButtonId < 1) {
       playButtonSprite = null;
     }
     else {
