@@ -54,6 +54,7 @@ package com.efortin.frozenbubble;
 
 import org.jfedor.frozenbubble.FrozenBubble;
 import org.jfedor.frozenbubble.R;
+import org.jfedor.frozenbubble.SoundManager;
 
 import android.app.Activity;
 import android.content.Context;
@@ -104,14 +105,15 @@ public class HomeScreen extends Activity {
   private static int buttonSelPage4 = BTN10_ID;
   private static int pageSelected   = 1;
 
-  private boolean        finished          = false;
-  private boolean        homeShown         = false;
-  private boolean        musicOn           = true;
-  private boolean        playerSave        = false;
-  private ImageView      myImageView       = null;
-  private RelativeLayout myLayout          = null;
-  private ModPlayer      myModPlayer       = null;
-  private Thread         splashThread      = null;
+  private boolean        finished      = false;
+  private boolean        homeShown     = false;
+  private boolean        musicOn       = true;
+  private boolean        playerSave    = false;
+  private ImageView      myImageView   = null;
+  private RelativeLayout myLayout      = null;
+  private ModPlayer      myModPlayer   = null;
+  private SoundManager   mSoundManager = null;
+  private Thread         splashThread  = null;
 
   /**
    * Given that we are using a relative layout for the home screen in
@@ -126,6 +128,7 @@ public class HomeScreen extends Activity {
     Button backButton = new Button(this);
     backButton.setOnClickListener(new Button.OnClickListener(){
       public void onClick(View v){
+        mSoundManager.playSound("stick", R.raw.stick);
         backKeyPress();
       }
     });
@@ -178,6 +181,7 @@ public class HomeScreen extends Activity {
     optionsButton.setOnClickListener(new Button.OnClickListener(){
       public void onClick(View v){
         buttonSelPage4 = BTN11_ID;
+        mSoundManager.playSound("stick", R.raw.stick);
         /*
          * Process the button tap and start the preferences activity.
          */
@@ -226,6 +230,7 @@ public class HomeScreen extends Activity {
     continueButton.setOnClickListener(new Button.OnClickListener(){
       public void onClick(View v){
         buttonSelPage4 = BTN10_ID;
+        mSoundManager.playSound("stick", R.raw.stick);
         /*
          * Process the button tap and load the saved game.
          */
@@ -290,6 +295,7 @@ public class HomeScreen extends Activity {
     start2pGameButton.setOnClickListener(new Button.OnClickListener(){
       public void onClick(View v){
         buttonSelPage1 = BTN3_ID;
+        mSoundManager.playSound("stick", R.raw.stick);
         /*
          * Display the 2 player mode buttons page.
          */
@@ -329,6 +335,7 @@ public class HomeScreen extends Activity {
     start1pGameButton.setOnClickListener(new Button.OnClickListener(){
       public void onClick(View v){
         buttonSelPage1 = BTN2_ID;
+        mSoundManager.playSound("stick", R.raw.stick);
         /*
          * Process the button tap and start/resume a 1 player game.
          */
@@ -371,6 +378,7 @@ public class HomeScreen extends Activity {
     startArcadeGameButton.setOnClickListener(new Button.OnClickListener(){
       public void onClick(View v){
         buttonSelPage1 = BTN1_ID;
+        mSoundManager.playSound("stick", R.raw.stick);
         /*
          * Process the button tap and start/resume a 1 player arcade
          * game.
@@ -414,6 +422,7 @@ public class HomeScreen extends Activity {
     gameExtrasButton.setOnClickListener(new Button.OnClickListener(){
       public void onClick(View v){
         buttonSelPage1 = BTN4_ID;
+        mSoundManager.playSound("stick", R.raw.stick);
         /*
          * Display the game extras buttons page.
          */
@@ -466,6 +475,7 @@ public class HomeScreen extends Activity {
     startWiFiGameButton.setOnClickListener(new Button.OnClickListener(){
       public void onClick(View v){
         buttonSelPage2 = BTN6_ID;
+        mSoundManager.playSound("stick", R.raw.stick);
         /*
          * Display the player ID buttons page.
          */
@@ -505,6 +515,7 @@ public class HomeScreen extends Activity {
     startCPUGameButton.setOnClickListener(new Button.OnClickListener(){
       public void onClick(View v){
         buttonSelPage2 = BTN5_ID;
+        mSoundManager.playSound("stick", R.raw.stick);
         /*
          * Process the button tap and start a 2 player game.
          */
@@ -547,6 +558,7 @@ public class HomeScreen extends Activity {
     startBluetoothGameButton.setOnClickListener(new Button.OnClickListener(){
       public void onClick(View v){
         buttonSelPage2 = BTN7_ID;
+        mSoundManager.playSound("stick", R.raw.stick);
         /*
          * Display the player ID buttons page.
          */
@@ -602,6 +614,7 @@ public class HomeScreen extends Activity {
     player2Button.setOnClickListener(new Button.OnClickListener(){
       public void onClick(View v){
         buttonSelPage3 = BTN9_ID;
+        mSoundManager.playSound("stick", R.raw.stick);
         /*
          * Process the button tap and start a 2 player game.
          */
@@ -650,6 +663,7 @@ public class HomeScreen extends Activity {
     player1Button.setOnClickListener(new Button.OnClickListener(){
       public void onClick(View v){
         buttonSelPage3 = BTN8_ID;
+        mSoundManager.playSound("stick", R.raw.stick);
         /*
          * Process the button tap and start a 2 player game.
          */
@@ -719,10 +733,14 @@ public class HomeScreen extends Activity {
   }
 
   private void cleanUp() {
+    if (mSoundManager != null) {
+      mSoundManager.cleanUp();
+    }
+    mSoundManager = null;
     if (myModPlayer != null) {
       myModPlayer.destroyMusicPlayer();
-      myModPlayer = null;
     }
+    myModPlayer = null;
   }
 
   /**
@@ -1027,6 +1045,17 @@ public class HomeScreen extends Activity {
       myLayout.requestFocus();
       addBackButton();
       displayPage(pageSelected);
+
+      /*
+       * Create a sound manager to play sound effects.
+       */
+      mSoundManager = new SoundManager(this);
+
+      /*
+       * Load game sound effects.
+       */
+      mSoundManager.loadSound("stick", R.raw.stick );
+
       /*
        * Create a new music player to play the home screen music.
        */

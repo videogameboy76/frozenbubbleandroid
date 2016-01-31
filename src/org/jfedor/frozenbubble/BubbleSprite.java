@@ -458,12 +458,12 @@ public class BubbleSprite extends Sprite {
     if (realX>=414.) {
       moveX = -moveX;
       realX += (414. - realX);
-      soundManager.playSound(FrozenBubble.SOUND_REBOUND);
+      soundManager.playSound("rebound", R.raw.rebound);
     }
     else if (realX<=190.) {
       moveX = -moveX;
       realX += (190. - realX);
-      soundManager.playSound(FrozenBubble.SOUND_REBOUND);
+      soundManager.playSound("rebound", R.raw.rebound);
     }
 
     realY += moveY;
@@ -518,7 +518,7 @@ public class BubbleSprite extends Sprite {
           }
         }
 
-        soundManager.playSound(FrozenBubble.SOUND_DESTROY);
+        soundManager.playSound("destroy_group", R.raw.destroy_group);
       }
       else if (!this.register(grid, lastOpenPosition)) {
         /*
@@ -527,7 +527,7 @@ public class BubbleSprite extends Sprite {
          * the sprite, but otherwise act like it became affixed.
          */
         frozen.removeSprite(this);
-        soundManager.playSound(FrozenBubble.SOUND_STICK);
+        soundManager.playSound("stick", R.raw.stick);
         return;
       }
       else {
@@ -535,7 +535,7 @@ public class BubbleSprite extends Sprite {
         moveX = 0.;
         moveY = 0.;
         fixedAnim = 0;
-        soundManager.playSound(FrozenBubble.SOUND_STICK);
+        soundManager.playSound("stick", R.raw.stick);
       }
     }
 

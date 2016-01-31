@@ -778,6 +778,20 @@ public class GameView extends SurfaceView
       mSoundManager     = new SoundManager(mContext);
 
       /*
+       * Load game sound effects.
+       */
+      mSoundManager.loadSound("applause",      R.raw.applause     );
+      mSoundManager.loadSound("destroy_group", R.raw.destroy_group);
+      mSoundManager.loadSound("hurry",         R.raw.hurry        );
+      mSoundManager.loadSound("launch",        R.raw.launch       );
+      mSoundManager.loadSound("lose",          R.raw.lose         );
+      mSoundManager.loadSound("newroot_solo",  R.raw.newroot_solo );
+      mSoundManager.loadSound("noh",           R.raw.noh          );
+      mSoundManager.loadSound("rebound",       R.raw.rebound      );
+      mSoundManager.loadSound("stick",         R.raw.stick        );
+      mSoundManager.loadSound("whip",          R.raw.whip         );
+
+      /*
        * Only keep a high score database when the opponent is the CPU.
        */
       if (mRemoteInput.isCPU) {
@@ -945,6 +959,20 @@ public class GameView extends SurfaceView
       mFont             = new BubbleFont(mFontImage);
       mLauncher         = res.getDrawable(R.drawable.launcher);
       mSoundManager     = new SoundManager(mContext);
+
+      /*
+       * Load game sound effects.
+       */
+      mSoundManager.loadSound("applause",      R.raw.applause     );
+      mSoundManager.loadSound("destroy_group", R.raw.destroy_group);
+      mSoundManager.loadSound("hurry",         R.raw.hurry        );
+      mSoundManager.loadSound("launch",        R.raw.launch       );
+      mSoundManager.loadSound("lose",          R.raw.lose         );
+      mSoundManager.loadSound("newroot_solo",  R.raw.newroot_solo );
+      mSoundManager.loadSound("noh",           R.raw.noh          );
+      mSoundManager.loadSound("rebound",       R.raw.rebound      );
+      mSoundManager.loadSound("stick",         R.raw.stick        );
+      mSoundManager.loadSound("whip",          R.raw.whip         );
 
       if (arcadeGame) {
         mHighScoreManager =
