@@ -52,50 +52,153 @@
 
 package org.jfedor.frozenbubbleplus;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import android.content.Context;
-import android.media.AudioManager;
 import android.media.SoundPool;
 
 public class SoundManager {
-  private SoundPool soundPool;
-  private int[] sm;
-  Context context;
+  private static final int MAX_STREAMS_PER_POOL = 4;
+
+  private Context                  context;
+  private List<SoundPoolContainer> containers;
 
   public SoundManager(Context context) {
-    this.context = context;
-    soundPool    = new SoundPool(4, AudioManager.STREAM_MUSIC, 0);
-    sm           = new int[ FrozenBubble.NUM_SOUNDS ];
-
-    sm[ FrozenBubble.SOUND_WON ] = soundPool.load(context, R.raw.applause, 1);
-    sm[ FrozenBubble.SOUND_LOST ] = soundPool.load(context, R.raw.lose, 1);
-    sm[ FrozenBubble.SOUND_LAUNCH ] = soundPool.load(context, R.raw.launch, 1);
-    sm[ FrozenBubble.SOUND_DESTROY ] =
-      soundPool.load(context, R.raw.destroy_group, 1);
-    sm[ FrozenBubble.SOUND_REBOUND ] =
-      soundPool.load(context, R.raw.rebound, 1);
-    sm[ FrozenBubble.SOUND_STICK ] = soundPool.load(context, R.raw.stick, 1);
-    sm[ FrozenBubble.SOUND_HURRY ] = soundPool.load(context, R.raw.hurry, 1);
-    sm[ FrozenBubble.SOUND_NEWROOT ] =
-      soundPool.load(context, R.raw.newroot_solo, 1);
-    sm[ FrozenBubble.SOUND_NOH ] = soundPool.load(context, R.raw.noh, 1);
-    sm[ FrozenBubble.SOUND_WHIP ] = soundPool.load(context, R.raw.whip, 1);
-  }
-
-  public final void playSound(int sound) {
-    if (FrozenBubble.getSoundOn()) {
-      AudioManager mgr =
-        (AudioManager)context.getSystemService(Context.AUDIO_SERVICE);
-      float volume    = mgr.getStreamVolume   (AudioManager.STREAM_MUSIC);
-      float volumeMax = mgr.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-      volume = volume / volumeMax;
-      soundPool.play(sm[ sound ], volume, volume, 1, 0, 1f);
-    }
+    this.context    = context;
+    this.containers =
+        Collections.synchronizedList(new ArrayList<SoundPoolContainer>());
   }
 
   public final void cleanUp() {
-    sm        = null;
-    context   = null;
-    soundPool.release();
-    soundPool = null;
+    for (SoundPoolContainer container : containers) {
+      container.release();
+    }
+    containers.clear();
+    containers = null;
+    context    = null;
+  }
+
+  public void loadSound(String id, int resId) {
+    try {
+      for (SoundPoolContainer container : containers) {
+        if (container.contains(id)) {
+          return;
+        }
+      }
+      for (SoundPoolContainer container : containers) {
+        if (!container.isFull()) {
+          container.load(id, resId);
+          return;
+        }
+      }
+      SoundPoolContainer container = new SoundPoolContainer(context);
+      containers.add (container);
+      container .load(id, resId);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  public void playSound(String id, int resId) {
+    if (FrozenBubble.getSoundOn()) {
+      for (SoundPoolContainer container : containers) {
+        if (container.contains(id)) {
+          container.play(id, resId);
+          break;
+        }
+      }
+    }
+  }
+
+  public void onPause() {
+    for (SoundPoolContainer container : containers) {
+      container.onPause();
+    }
+  }
+
+  public void onResume() {
+    for (SoundPoolContainer container : containers) {
+      container.onResume();
+    }
+  }
+
+  private class SoundPoolContainer {
+    private AtomicInteger        size;
+    private Context              context;
+    private Map<String, Integer> soundMap;
+    private SoundPool            soundPool;
+
+    public SoundPoolContainer(Context context) {
+      this.context   = context;
+      this.size      = new AtomicInteger(0);
+      this.soundMap  =
+          new ConcurrentHashMap<String, Integer>(MAX_STREAMS_PER_POOL);
+      this.soundPool =
+          new SoundPool(MAX_STREAMS_PER_POOL,
+                        android.media.AudioManager.STREAM_MUSIC, 0);
+    }
+
+    public void load(String id, int resId) {
+      try {
+        size.incrementAndGet();
+        soundMap.put(id, soundPool.load(context, resId, 1));
+      } catch (Exception e) {
+        size.decrementAndGet();
+        e.printStackTrace();
+      }
+    }
+
+    public void play(String id, int resId) {
+      android.media.AudioManager audioManager =
+          (android.media.AudioManager) context.
+          getSystemService(Context.AUDIO_SERVICE);
+      final int streamVolume =
+          audioManager.
+          getStreamVolume(android.media.AudioManager.STREAM_MUSIC);
+      Integer   soundId      = soundMap.get(id);
+
+      if (soundId != null) try {
+        soundPool.play(soundId, streamVolume, streamVolume, 1, 0, 1f);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+
+    public void release() {
+      soundPool.release();
+      soundPool = null;
+      soundMap .clear();
+      soundMap  = null;
+      context   = null;
+    }
+
+    public boolean contains(String id) {
+      return soundMap.containsKey(id);
+    }
+
+    public boolean isFull() {
+      return size.get() >= MAX_STREAMS_PER_POOL;
+    }
+
+    public void onPause() {
+      try {
+        soundPool.autoPause();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+
+    public void onResume() {
+      try {
+        soundPool.autoResume();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
   }
 }

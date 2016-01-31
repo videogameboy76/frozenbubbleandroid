@@ -137,18 +137,6 @@ public class FrozenBubble extends Activity
   public final static int SCREEN_ORIENTATION_REVERSE_LANDSCAPE = 8;
   public final static int SCREEN_ORIENTATION_REVERSE_PORTRAIT  = 9;
 
-  public final static int SOUND_WON     = 0;
-  public final static int SOUND_LOST    = 1;
-  public final static int SOUND_LAUNCH  = 2;
-  public final static int SOUND_DESTROY = 3;
-  public final static int SOUND_REBOUND = 4;
-  public final static int SOUND_STICK   = 5;
-  public final static int SOUND_HURRY   = 6;
-  public final static int SOUND_NEWROOT = 7;
-  public final static int SOUND_NOH     = 8;
-  public final static int SOUND_WHIP    = 9;
-  public final static int NUM_SOUNDS    = 10;
-
   public final static int GAME_NORMAL     = 0;
   public final static int GAME_COLORBLIND = 1;
 
