@@ -8,11 +8,17 @@
     android:smallScreens="true"
     android:normalScreens="true"
     android:largeScreens="true"
-    android:anyDensity="true"/>
+    android:anyDensity="true"
+    android:resizeable="true"
+    android:xlargeScreens="true"/>
 
   <uses-sdk
     android:minSdkVersion="10"
     android:targetSdkVersion="10"/>
+
+  <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
+  <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+  <uses-feature android:name="android.hardware.wifi" android:required="false" />
 
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
   <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
