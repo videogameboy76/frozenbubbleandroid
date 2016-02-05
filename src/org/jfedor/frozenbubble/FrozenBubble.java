@@ -93,7 +93,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
-import android.graphics.Typeface;
 import android.hardware.SensorManager;
 import android.media.AudioManager;
 import android.net.Uri;
@@ -101,20 +100,14 @@ import android.os.Bundle;
 import android.os.Parcel;
 import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
-import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.OrientationEventListener;
 import android.view.Surface;
-import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.FrameLayout;
-import android.widget.RelativeLayout;
-import android.widget.RelativeLayout.LayoutParams;
 import android.widget.Toast;
 
 import com.efortin.frozenbubble.AccelerometerManager;
@@ -163,8 +156,6 @@ public class FrozenBubble extends Activity
 
   public final static int CPU   = 0;
   public final static int HUMAN = 1;
-  
-  private final static int BACK_ID = 101;
 
   public static boolean arcadeGame = false;
   public static int     gameLocale = LOCALE_LOCAL;
@@ -535,71 +526,6 @@ public class FrozenBubble extends Activity
    */
 
   /**
-   * Given that we are using a relative layout for the display to
-   * arrange view objects relative to each other, this function
-   * programmatically adds an on-screen back button to the layout.
-   */
-  private void addBackButton(RelativeLayout myLayout) {
-    /*
-     * Construct the back button.
-     */
-    Button backButton = new Button(this);
-    backButton.setOnClickListener(new Button.OnClickListener(){
-      public void onClick(View v) {
-        /*
-         * Only show the game exit dialog while a game is in progress,
-         * otherwise simply exit.
-         */
-        if ((mGameThread != null) && mGameThread.gameInProgress()) {
-          exitGameDialog();
-        }
-        else {
-          exit(true);
-        }
-      }
-    });
-    backButton.setOnTouchListener(new Button.OnTouchListener(){
-      public boolean onTouch(View v, MotionEvent event){
-        boolean result = false;
-        switch (event.getAction()) {
-          case MotionEvent.ACTION_DOWN:
-            v.requestFocus();
-            break;
-          case MotionEvent.ACTION_UP:
-            result = v.performClick();
-            break;
-          default:
-            break;
-        }
-        return result;
-      }
-    });
-    /*
-     * Set the back button text to the following Unicode character:
-     * Anticlockwise Top Semicircle Arrow
-     * http://en.wikipedia.org/wiki/Arrow_(symbol)
-     */
-    backButton.setText("\u21B6");
-    backButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 30);
-    backButton.setWidth((int) backButton.getTextSize() * 2);
-    backButton.setTypeface(null, Typeface.BOLD);
-    backButton.setBackgroundResource(R.drawable.round_button);
-    backButton.setId(BACK_ID);
-    backButton.setFocusable(true);
-    backButton.setFocusableInTouchMode(true);
-    LayoutParams myParams = new LayoutParams(LayoutParams.WRAP_CONTENT,
-                                             LayoutParams.WRAP_CONTENT);
-    myParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-    myParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-    myParams.rightMargin = 0;
-    myParams.topMargin   = 0;
-    /*
-     * Add view to layout.
-     */
-    myLayout.addView(backButton, myParams);
-  }
-
-  /**
    * Perform activity cleanup.  <b>This must only be called when the
    * activity is being destroyed.</b>
    */
@@ -883,18 +809,13 @@ public class FrozenBubble extends Activity
       numPlayers = map.getInt    ("numPlayers", 0                   );
       opponentId = map.getInt    ("opponentId", CPU                 );
     }
-    FrameLayout    game        = new FrameLayout   (this);
-    RelativeLayout gameWidgets = new RelativeLayout(this);
     mGameView = new GameView(this,
                              numPlayers,
                              myPlayerId,
                              opponentId,
                              gameLocale,
                              arcadeGame);
-    addBackButton(gameWidgets);
-    game.addView(mGameView);
-    game.addView(gameWidgets);
-    setContentView(game);
+    setContentView(mGameView);
     mGameView.setGameListener(this);
     mGameThread = mGameView.getThread();
     mGameThread.restoreState(map);
@@ -920,6 +841,19 @@ public class FrozenBubble extends Activity
 
   public void onGameEvent(eventEnum event) {
     switch (event) {
+      case GAME_EXIT:
+        /*
+         * Only show the game exit dialog while a game is in progress,
+         * otherwise simply exit.
+         */
+        if ((mGameThread != null) && mGameThread.gameInProgress()) {
+          exitGameDialog();
+        }
+        else {
+          exit(true);
+        }
+        break;
+
       case GAME_WON:
         break;
 
@@ -938,7 +872,7 @@ public class FrozenBubble extends Activity
           myModPlayer.unPausePlay();
         break;
 
-      case LEVEL_START:
+      case GAME_START:
         if (!arcadeGame && (mGameView != null) && (mGameThread != null) &&
             (numPlayers == 1)) {
           if (mGameThread.getCurrentLevelIndex() == 0) {
@@ -1307,15 +1241,10 @@ public class FrozenBubble extends Activity
     int startingLevelIntent = intent.getIntExtra("startingLevel", -2);
     startingLevel =
       (startingLevelIntent == -2) ? startingLevel : startingLevelIntent;
-    FrameLayout    game        = new FrameLayout   (this);
-    RelativeLayout gameWidgets = new RelativeLayout(this);
     mGameView = new GameView(this,
                              intent.getExtras().getByteArray("levels"),
                              startingLevel);
-    addBackButton(gameWidgets);
-    game.addView(mGameView);
-    game.addView(gameWidgets);
-    setContentView(game);
+    setContentView(mGameView);
     mGameView.setGameListener(this);
     mGameThread = mGameView.getThread();
     mGameView.requestFocus();

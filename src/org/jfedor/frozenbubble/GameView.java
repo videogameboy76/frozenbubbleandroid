@@ -543,6 +543,14 @@ public class GameView extends SurfaceView
 
     private static final int FRAME_DELAY = 40;
 
+    public static final int    BACK_1P_X                  = 447;
+    public static final int    BACK_1P_Y                  = 0;
+    public static final int    BACK_2P_X                  = 287;
+    public static final int    BACK_2P_Y                  = 0;
+    public static final int    BACK_TOUCH_X               = 463;
+    public static final int    BACK_TOUCH_Y               = 15;
+    public static final int    PAUSE_TOUCH_X              = 183;
+    public static final int    PAUSE_TOUCH_Y              = 460;
     public static final double TRACKBALL_COEFFICIENT      = 5;
     public static final double TOUCH_BUTTON_THRESHOLD     = 16;
     public static final double TOUCH_FIRE_Y_THRESHOLD     = 380;
@@ -566,6 +574,7 @@ public class GameView extends SurfaceView
     private stateEnum mMode;
     private stateEnum mModeWas;
 
+    private Bitmap mBackButtonOrig;
     private Bitmap mBackgroundOrig;
     private Bitmap[] mBubblesOrig;
     private Bitmap[] mBubblesBlindOrig;
@@ -586,6 +595,7 @@ public class GameView extends SurfaceView
     private Bitmap mFontImageOrig;
     private Bitmap mBananaOrig;
     private Bitmap mTomatoOrig;
+    private BmpWrap mBackButton;
     private BmpWrap mBackground;
     private BmpWrap[] mBubbles;
     private BmpWrap[] mBubblesBlind;
@@ -637,6 +647,8 @@ public class GameView extends SurfaceView
         f.set(options, Boolean.FALSE);
       } catch (Exception ignore) {}
 
+      mBackButtonOrig = BitmapFactory.decodeResource(
+          res, R.drawable.back_button, options);
       mBackgroundOrig = BitmapFactory.decodeResource(
         res, R.drawable.background2, options);
       mBubblesOrig = new Bitmap[8];
@@ -756,6 +768,7 @@ public class GameView extends SurfaceView
         mTargetedBubbles[i] = NewBmpWrap();
       }
 
+      mBackButton     = NewBmpWrap();
       mBackground     = NewBmpWrap();
       mBubbleBlink    = NewBmpWrap();
       mGameWon        = NewBmpWrap();
@@ -824,6 +837,8 @@ public class GameView extends SurfaceView
         f.set(options, Boolean.FALSE);
       } catch (Exception ignore) {}
 
+      mBackButtonOrig = BitmapFactory.decodeResource(
+          res, R.drawable.back_button, options);
       mBackgroundOrig = BitmapFactory.decodeResource(
           res, R.drawable.background, options);
       mBubblesOrig = new Bitmap[8];
@@ -939,6 +954,7 @@ public class GameView extends SurfaceView
         mTargetedBubbles[i] = NewBmpWrap();
       }
 
+      mBackButton     = NewBmpWrap();
       mBackground     = NewBmpWrap();
       mBubbleBlink    = NewBmpWrap();
       mGameWon        = NewBmpWrap();
@@ -1028,6 +1044,9 @@ public class GameView extends SurfaceView
         mFrozenGame1 = null;
         mFrozenGame2 = null;
 
+        mBackButtonOrig.recycle();
+        mBackButtonOrig = null;
+
         mBackgroundOrig.recycle();
         mBackgroundOrig = null;
 
@@ -1116,6 +1135,7 @@ public class GameView extends SurfaceView
         mImageList.clear();
         mImageList = null;
 
+        mBackButton = null;
         mBackground = null;
 
         for (int i = 0; i < mBubbles.length; i++) {
@@ -1260,6 +1280,20 @@ public class GameView extends SurfaceView
       else {
         x_offset = 0;
       }
+
+      /*
+       * Check for a back button sprite press.
+       */
+      if (event.getAction() == MotionEvent.ACTION_DOWN) {
+        if ((Math.abs(x - BACK_TOUCH_X) <= TOUCH_BUTTON_THRESHOLD) &&
+            (Math.abs(y - BACK_TOUCH_Y) <= TOUCH_BUTTON_THRESHOLD)) {
+          if (mGameListener != null) {
+            mGameListener.onGameEvent(eventEnum.GAME_EXIT);
+            return true;
+          }
+        }
+      }
+
       /*
        * Check for a pause button sprite press.  This will toggle the
        * pause button sprite between pause and play.  If the game was
@@ -1267,8 +1301,8 @@ public class GameView extends SurfaceView
        * that aren't on the pause button sprite.
        */
       if (event.getAction() == MotionEvent.ACTION_DOWN) {
-        if ((Math.abs(x - 183) <= TOUCH_BUTTON_THRESHOLD) &&
-            (Math.abs(y - 460) <= TOUCH_BUTTON_THRESHOLD)) {
+        if ((Math.abs(x - PAUSE_TOUCH_X) <= TOUCH_BUTTON_THRESHOLD) &&
+            (Math.abs(y - PAUSE_TOUCH_Y) <= TOUCH_BUTTON_THRESHOLD)) {
           toggleKeyPress(KeyEvent.KEYCODE_P, false, true);
         }
         else if (toggleKeyState(KeyEvent.KEYCODE_P)) {
@@ -1379,8 +1413,16 @@ public class GameView extends SurfaceView
     }
 
     private void drawBackground(Canvas c) {
-      Sprite.drawImage(mBackground, 0, 0, c, mDisplayScale,
-                       mDisplayDX, mDisplayDY);
+      Sprite.drawImage(mBackground, 0, 0, c,
+                       mDisplayScale, mDisplayDX, mDisplayDY);
+      if (numPlayers > 1) {
+        Sprite.drawImage(mBackButton, BACK_2P_X, BACK_2P_Y, c,
+                         mDisplayScale, mDisplayDX, mDisplayDY);
+      }
+      else {
+        Sprite.drawImage(mBackButton, BACK_1P_X, BACK_1P_Y, c,
+                         mDisplayScale, mDisplayDX, mDisplayDY);
+      }
     }
 
     private void drawDifficulty(Canvas canvas) {
@@ -1740,7 +1782,7 @@ public class GameView extends SurfaceView
 
         mImagesReady = false;
         mPlayer1.setGameRef(null);
-        mFrozenGame1 = new FrozenGame(mBackground, mBubbles, mBubblesBlind,
+        mFrozenGame1 = new FrozenGame(mBubbles, mBubblesBlind,
                                       mFrozenBubbles, mTargetedBubbles,
                                       mBubbleBlink, mGameWon, mGameLost,
                                       mGamePaused, mHurry,
@@ -1754,7 +1796,7 @@ public class GameView extends SurfaceView
 
         if (numPlayers > 1) {
           mPlayer2.setGameRef(null);
-          mFrozenGame2 = new FrozenGame(mBackground, mBubbles, mBubblesBlind,
+          mFrozenGame2 = new FrozenGame(mBubbles, mBubblesBlind,
                                         mFrozenBubbles, mTargetedBubbles,
                                         mBubbleBlink, mGameWon, mGameLost,
                                         mGamePaused, mHurry,
@@ -1812,6 +1854,7 @@ public class GameView extends SurfaceView
 
     private void resizeBitmaps() {
       //Log.i("frozen-bubble", "resizeBitmaps()");
+      scaleFrom(mBackButton, mBackButtonOrig);
       scaleFrom(mBackground, mBackgroundOrig);
       for (int i = 0; i < mBubblesOrig.length; i++) {
         scaleFrom(mBubbles[i], mBubblesOrig[i]);
@@ -2323,7 +2366,7 @@ public class GameView extends SurfaceView
                   mShowNetwork = false;
                   setState(stateEnum.RUNNING);
                   if (mGameListener != null) {
-                    mGameListener.onGameEvent(eventEnum.LEVEL_START);
+                    mGameListener.onGameEvent(eventEnum.GAME_START);
                   }
                 }
                 return true;
@@ -2343,7 +2386,7 @@ public class GameView extends SurfaceView
                 }
               }
               if (mGameListener != null) {
-                mGameListener.onGameEvent(eventEnum.LEVEL_START);
+                mGameListener.onGameEvent(eventEnum.GAME_START);
               }
               return true;
             }

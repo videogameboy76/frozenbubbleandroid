@@ -89,7 +89,6 @@ public class FrozenGame extends GameScreen {
   public static final int HURRY_ME_TIME = 480;
   public static final int RELEASE_TIME  = 300;
 
-  BmpWrap background;
   BmpWrap[] bubbles;
   BmpWrap[] bubblesBlind;
   BmpWrap[] frozenBubbles;
@@ -150,8 +149,7 @@ public class FrozenGame extends GameScreen {
   Drawable launcher;
   BmpWrap penguins;
 
-  public FrozenGame(BmpWrap background_arg,
-                    BmpWrap[] bubbles_arg,
+  public FrozenGame(BmpWrap[] bubbles_arg,
                     BmpWrap[] bubblesBlind_arg,
                     BmpWrap[] frozenBubbles_arg,
                     BmpWrap[] targetedBubbles_arg,
@@ -175,7 +173,6 @@ public class FrozenGame extends GameScreen {
     random               = new Random(System.currentTimeMillis());
     launcher             = launcher_arg;
     penguins             = penguins_arg;
-    background           = background_arg;
     bubbles              = bubbles_arg;
     bubblesBlind         = bubblesBlind_arg;
     frozenBubbles        = frozenBubbles_arg;
@@ -304,8 +301,7 @@ public class FrozenGame extends GameScreen {
     sendToOpponent = 0;
   }
 
-  public FrozenGame(BmpWrap background_arg,
-                    BmpWrap[] bubbles_arg,
+  public FrozenGame(BmpWrap[] bubbles_arg,
                     BmpWrap[] bubblesBlind_arg,
                     BmpWrap[] frozenBubbles_arg,
                     BmpWrap[] targetedBubbles_arg,
@@ -321,11 +317,11 @@ public class FrozenGame extends GameScreen {
                     SoundManager soundManager_arg,
                     LevelManager levelManager_arg,
                     HighscoreManager highscoreManager_arg) {
-    this(background_arg, bubbles_arg, bubblesBlind_arg, frozenBubbles_arg,
-         targetedBubbles_arg, bubbleBlink_arg, gameWon_arg, gameLost_arg,
-         gamePaused_arg, hurry_arg, null, null, penguins_arg, compressorHead_arg,
-         compressor_arg, null, launcher_arg, soundManager_arg,
-         levelManager_arg, highscoreManager_arg, null, null);
+    this(bubbles_arg, bubblesBlind_arg, frozenBubbles_arg, targetedBubbles_arg,
+         bubbleBlink_arg, gameWon_arg, gameLost_arg, gamePaused_arg, hurry_arg,
+         null, null, penguins_arg, compressorHead_arg, compressor_arg, null,
+         launcher_arg, soundManager_arg, levelManager_arg, highscoreManager_arg,
+         null, null);
   }
 
   public void addAttackBubbles(int attackBubbles) {
