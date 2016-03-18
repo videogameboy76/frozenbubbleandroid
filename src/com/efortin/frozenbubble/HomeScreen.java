@@ -57,7 +57,6 @@ import org.jfedor.frozenbubble.R;
 import org.jfedor.frozenbubble.SoundManager;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -107,11 +106,11 @@ public class HomeScreen extends Activity {
 
   private boolean        finished      = false;
   private boolean        homeShown     = false;
-  private boolean        musicOn       = true;
   private boolean        playerSave    = false;
   private ImageView      myImageView   = null;
   private RelativeLayout myLayout      = null;
   private ModPlayer      myModPlayer   = null;
+  private Preferences    myPreferences = null;
   private SoundManager   mSoundManager = null;
   private Thread         splashThread  = null;
 
@@ -809,9 +808,9 @@ public class HomeScreen extends Activity {
     finished = false;
     restoreGamePrefs();
     /*
-     * Configure the window presentation and layout.
+     * Remove the title bar and configure the window layout.
      */
-    setWindowLayout();
+    requestWindowFeature(Window.FEATURE_NO_TITLE);
     myLayout = new RelativeLayout(this);
     myLayout.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT,
                                               LayoutParams.FILL_PARENT));
@@ -830,6 +829,7 @@ public class HomeScreen extends Activity {
     else if (getIntent().hasExtra("startHomeScreen")) {
       setBackgroundImage(R.drawable.home_screen);
       setContentView(myLayout);
+      setWindowLayout();
       startHomeScreen();
     }
     else {
@@ -843,6 +843,7 @@ public class HomeScreen extends Activity {
       {
         setBackgroundImage(R.drawable.splash);
         setContentView(myLayout);
+        setWindowLayout();
         /*
          * Thread for managing the splash screen.
          */
@@ -886,7 +887,7 @@ public class HomeScreen extends Activity {
     super.onPause();
     if (myModPlayer != null) {
       restoreGamePrefs();
-      if (musicOn)
+      if (myPreferences.musicOn)
         myModPlayer.unPausePlay();
     }
   }
@@ -908,6 +909,15 @@ public class HomeScreen extends Activity {
     return true;
   }
 
+  @Override
+  public void onWindowFocusChanged (boolean hasFocus) {
+    super.onWindowFocusChanged(hasFocus);
+    if (hasFocus) {
+      restoreGamePrefs();
+      setWindowLayout ();
+    }
+  }
+
   private void removeViewByID(int id) {
     if (myLayout != null) {
       myLayout.removeView(myLayout.findViewById(id));
@@ -915,9 +925,9 @@ public class HomeScreen extends Activity {
   }
 
   private void restoreGamePrefs() {
-    SharedPreferences mConfig = getSharedPreferences(FrozenBubble.PREFS_NAME,
-                                                     Context.MODE_PRIVATE);
-    musicOn = mConfig.getBoolean("musicOn", true );
+    SharedPreferences sp =
+        PreferenceManager.getDefaultSharedPreferences(this);
+    myPreferences = PreferencesActivity.getDefaultPrefs(sp);
   }
 
   private void selectInitialButton(int initialButton) {
@@ -951,23 +961,19 @@ public class HomeScreen extends Activity {
     final int flagFs   = WindowManager.LayoutParams.FLAG_FULLSCREEN;
     final int flagNoFs = WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN;
     /*
-     * Remove the title bar.
-     */
-    requestWindowFeature(Window.FEATURE_NO_TITLE);
-    /*
      * Set full screen mode based on the game preferences.
      */
-    SharedPreferences mConfig =
-      getSharedPreferences(FrozenBubble.PREFS_NAME, Context.MODE_PRIVATE);
-    boolean fullscreen = mConfig.getBoolean("fullscreen", true);
-
-    if (fullscreen) {
+    if (myPreferences.fullscreen) {
       getWindow().addFlags(flagFs);
       getWindow().clearFlags(flagNoFs);
     }
     else {
       getWindow().clearFlags(flagFs);
       getWindow().addFlags(flagNoFs);
+    }
+
+    if (myLayout != null) {
+      myLayout.requestLayout();
     }
   }
 
@@ -1059,7 +1065,8 @@ public class HomeScreen extends Activity {
       /*
        * Create a new music player to play the home screen music.
        */
-      myModPlayer = new ModPlayer(this, R.raw.introzik, musicOn, false);
+      myModPlayer =
+          new ModPlayer(this, R.raw.introzik, myPreferences.musicOn, false);
     }
   }
 
