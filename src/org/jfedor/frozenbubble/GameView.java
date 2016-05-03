@@ -2403,8 +2403,9 @@ public class GameView extends SurfaceView
 
     private void updateGameState() {
       if ((mFrozenGame1 == null) ||
-          ((mFrozenGame2 == null) && (numPlayers > 1)) ||
-          ((mOpponent == null) && mRemoteInput.isCPU)) {
+          ((numPlayers > 1) &&
+           ((mFrozenGame2 == null) ||
+            ((mOpponent == null) && mRemoteInput.isCPU)))) {
         return;
       }
 
