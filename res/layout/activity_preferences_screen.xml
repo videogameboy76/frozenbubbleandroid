@@ -70,11 +70,6 @@
   <PreferenceCategory
     android:summary="Frozen Bubble Game Options"
     android:title="2 Player Game Options" >
-  <ListPreference
-    android:defaultValue="0"
-    android:key="bluetooth_list"
-    android:summary="Select Bluetooth Device"
-    android:title="@string/menu_bluetooth_device" />
   <CheckBoxPreference
     android:defaultValue="true"
     android:key="compressor_option"

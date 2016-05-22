@@ -2028,8 +2028,8 @@ public class NetworkManager extends Thread
     }
     else if (mode == connectEnum.BLUETOOTH) {
       status.isConnected     = hasBluetooth;
-      status.localIpAddress  = sessionBluetooth.getLocalName   ().toLowerCase();
-      status.remoteIpAddress = sessionBluetooth.getRemoteName  ().toLowerCase();
+      status.localIpAddress  = sessionBluetooth.getLocalName  ().toLowerCase();
+      status.remoteIpAddress = sessionBluetooth.getRemoteName ().toLowerCase();
       status.playerJoined    = sessionBluetooth.getIsConnected();
     }
     if (localStatus != null) {

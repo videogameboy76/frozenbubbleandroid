@@ -57,6 +57,9 @@ import org.jfedor.frozenbubbleplus.R;
 import org.jfedor.frozenbubbleplus.SoundManager;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.bluetooth.BluetoothDevice;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -69,6 +72,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -558,10 +562,7 @@ public class HomeScreen extends Activity {
       public void onClick(View v){
         buttonSelPage2 = BTN7_ID;
         mSoundManager.playSound("stick", R.raw.stick);
-        /*
-         * Display the player ID buttons page.
-         */
-        displayPage(3);
+        displayBluetoothDevicesList();
       }
     });
     startBluetoothGameButton.setOnTouchListener(new Button.OnTouchListener(){
@@ -740,6 +741,49 @@ public class HomeScreen extends Activity {
       myModPlayer.destroyMusicPlayer();
     }
     myModPlayer = null;
+  }
+
+  private void displayBluetoothDevicesList() {
+    AlertDialog.Builder builderSingle =
+        new AlertDialog.Builder(HomeScreen.this);
+    builderSingle.setIcon(R.drawable.bluetooth);
+    builderSingle.setTitle(R.string.menu_bluetooth_device);
+
+    final ArrayAdapter<String> arrayAdapter =
+        new ArrayAdapter<String>(HomeScreen.this,
+                                 android.R.layout.select_dialog_singlechoice);
+
+    BluetoothDevice[] devices = BluetoothManager.getPairedDevices();
+    if (devices != null) {
+      for (int index = 0; index < devices.length; index++) {
+        arrayAdapter.add(devices[index].getName());
+      }
+    }
+
+    builderSingle.setNegativeButton(R.string.cancel,
+                                    new DialogInterface.OnClickListener() {
+      @Override
+      public void onClick(DialogInterface dialog, int which) {
+        dialog.dismiss();
+      }
+    });
+
+    builderSingle.setAdapter(arrayAdapter,
+                             new DialogInterface.OnClickListener() {
+      @Override
+      public void onClick(DialogInterface dialog, int which) {
+        SharedPreferences sp =
+            PreferenceManager.getDefaultSharedPreferences(HomeScreen.this);
+        myPreferences.bluetooth = which;
+        PreferencesActivity.saveDefaultPreferences(myPreferences, sp);
+        /*
+         * Display the player ID buttons page.
+         */
+        displayPage(3);
+      }
+    });
+
+    builderSingle.show();
   }
 
   /**
