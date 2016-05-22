@@ -94,7 +94,7 @@ public class BluetoothManager {
   private BluetoothSocket              mySocket       = null;
   private InputStream                  myInputStream  = null;
   private OutputStream                 myOutputStream = null;
-  private String                       remoteName     = "not available";
+  private String                       remoteName     = null;
   private Thread                       myRxThread     = null;
   private Thread                       myTxThread     = null;
 
@@ -251,7 +251,7 @@ public class BluetoothManager {
   }
 
   public String getLocalName() {
-    String name = "not available";
+    String name = null;
 
     BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -262,6 +262,10 @@ public class BluetoothManager {
       else {
         name = adapter.getName();
       }
+    }
+
+    if (name == null) {
+      name = "not available";
     }
 
     return name;
@@ -407,6 +411,10 @@ public class BluetoothManager {
   }
 
   public String getRemoteName() {
+    if (remoteName == null) {
+      remoteName = "not available";
+    }
+
     return remoteName;
   }
 
