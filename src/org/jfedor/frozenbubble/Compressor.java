@@ -58,17 +58,16 @@ import android.os.Bundle;
 public class Compressor {
   private static final int SCROLL_START = 6;
 
-  private BmpWrap compressorHead;
   private BmpWrap compressor;
+  private BmpWrap compressorHead;
   private double moveDown;
   private int scroll;
   private int scrollMax;
   private int steps;
 
   public Compressor(BmpWrap compressorHead, BmpWrap compressor) {
-    this.compressorHead = compressorHead;
-    this.compressor     = compressor;
     init();
+    setBitmaps(compressorHead, compressor);
   }
 
   public boolean checkScroll() {
@@ -130,5 +129,10 @@ public class Compressor {
     map.putInt(String.format("%d-compressor-scrollMax", id), scrollMax);
     map.putInt(String.format("%d-compressor-steps", id), steps);
     map.putInt(String.format("%d-compressor-steps", id), steps);
+  }
+
+  public void setBitmaps(BmpWrap compressorHead, BmpWrap compressor) {
+    this.compressorHead = compressorHead;
+    this.compressor     = compressor;
   }
 };

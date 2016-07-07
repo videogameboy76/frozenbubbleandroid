@@ -71,7 +71,7 @@
     android:summary="Frozen Bubble Game Options"
     android:title="2 Player Game Options" >
   <CheckBoxPreference
-    android:defaultValue="true"
+    android:defaultValue="false"
     android:key="compressor_option"
     android:summary="On/Off"
     android:title="Compressor Option" />
