@@ -93,8 +93,7 @@ public class MalusBar extends Sprite {
     minX        = coordX;
     maxY        = coordY + 354;
     releaseTime = 0;
-    this.banana = banana;
-    this.tomato = tomato;
+    setBitmaps(banana, tomato);
   }
 
   @Override
@@ -186,5 +185,10 @@ public class MalusBar extends Sprite {
     if (attackBubbles != null)
       for (int i = 0; i < LevelManager.LANES; i++)
         this.attackBubbles[i] = attackBubbles[i];
+  }
+
+  public void setBitmaps(BmpWrap banana, BmpWrap tomato) {
+    this.banana = banana;
+    this.tomato = tomato;
   }
 }

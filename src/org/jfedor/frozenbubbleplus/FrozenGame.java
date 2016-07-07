@@ -89,48 +89,47 @@ public class FrozenGame extends GameScreen {
   public static final int HURRY_ME_TIME = 480;
   public static final int RELEASE_TIME  = 300;
 
-  BmpWrap[] bubbles;
-  BmpWrap[] bubblesBlind;
-  BmpWrap[] frozenBubbles;
-  BmpWrap[] targetedBubbles;
-  Random random;
-
-  LaunchBubbleSprite launchBubble;
   double launchBubblePosition;
+  LaunchBubbleSprite launchBubble;
 
-  PenguinSprite penguin;
-  Compressor compressor;
-
+  int currentColor;
+  int nextColor;
+  int newNextColor;
   ImageSprite nextBubble;
-  int currentColor, nextColor, newNextColor;
 
+  BmpWrap          gameLost;
+  BmpWrap          gameWon;
+  BmpWrap          penguins;
+  BmpWrap[]        bubbles;
+  BmpWrap[]        bubblesBlind;
+  BmpWrap[]        frozenBubbles;
+  BmpWrap[]        targetedBubbles;
   BubbleSprite     movingBubble;
   BubbleManager    bubbleManager;
+  BubbleSprite[][] bubblePlay;
+  BubbleSprite[]   scrolling;
+  Compressor       compressor;
+  Drawable         launcher;
   LevelManager     levelManager;
-  MalusBar         malusBar;
   HighscoreManager highscoreManager;
+  ImageSprite      pauseButtonSprite;
+  ImageSprite      playButtonSprite;
+  ImageSprite      pausedSprite;
+  MalusBar         malusBar;
   NetworkManager   networkManager;
+  PenguinSprite    penguin;
+  Random           random;
+  SoundManager     soundManager;
 
   Vector<Sprite> falling;
   Vector<Sprite> goingUp;
   Vector<Sprite> jumping;
-
-  BubbleSprite[][] bubblePlay;
-  BubbleSprite[]   scrolling;
-
-  BmpWrap gameWon, gameLost;
 
   BmpWrap bubbleBlink;
   int blinkDelay;
 
   ImageSprite hurrySprite;
   int hurryTime;
-
-  ImageSprite pauseButtonSprite;
-  ImageSprite playButtonSprite;
-  ImageSprite pausedSprite;
-
-  SoundManager soundManager;
 
   boolean endOfGame;
   boolean frozenify;
@@ -145,9 +144,6 @@ public class FrozenGame extends GameScreen {
   int nbBubbles;
   int player;
   int sendToOpponent;
-
-  Drawable launcher;
-  BmpWrap penguins;
 
   public FrozenGame(BmpWrap[] bubbles_arg,
                     BmpWrap[] bubblesBlind_arg,
@@ -1581,6 +1577,20 @@ public class FrozenGame extends GameScreen {
       for (int i = 0; i < jumping.size(); i++) {
         this.addSprite(jumping.elementAt(i));
       }
+    }
+  }
+
+  public void updateBitmaps(BmpWrap compressorHeadBmp,
+                            BmpWrap compressorBmp,
+                            BmpWrap banana,
+                            BmpWrap tomato) {
+    if ((compressor        != null) &&
+        (compressorHeadBmp != null) &&
+        (compressorBmp     != null)) {
+      compressor.setBitmaps(compressorHeadBmp, compressorBmp);
+    }
+    if ((malusBar != null) && (banana != null) && (tomato != null)) {
+      malusBar.setBitmaps(banana, tomato);
     }
   }
 
