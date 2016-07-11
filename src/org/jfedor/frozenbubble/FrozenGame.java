@@ -667,13 +667,13 @@ public class FrozenGame extends GameScreen {
 
   public void paint(Canvas c, double scale, int dx, int dy) {
     if (FrozenBubble.getMode() == FrozenBubble.GAME_NORMAL) {
-      nextBubble.changeImage(bubbles[nextColor]);
+        nextBubble.changeImage(bubbles[nextColor]);
     }
     else {
       nextBubble.changeImage(bubblesBlind[nextColor]);
     }
-    super.paint(c, scale, dx, dy);
     compressor.paint(c, scale, dx, dy);
+    super     .paint(c, scale, dx, dy);
   }
 
   public void pause() {
@@ -1577,20 +1577,6 @@ public class FrozenGame extends GameScreen {
       for (int i = 0; i < jumping.size(); i++) {
         this.addSprite(jumping.elementAt(i));
       }
-    }
-  }
-
-  public void updateBitmaps(BmpWrap compressorHeadBmp,
-                            BmpWrap compressorBmp,
-                            BmpWrap banana,
-                            BmpWrap tomato) {
-    if ((compressor        != null) &&
-        (compressorHeadBmp != null) &&
-        (compressorBmp     != null)) {
-      compressor.setBitmaps(compressorHeadBmp, compressorBmp);
-    }
-    if ((malusBar != null) && (banana != null) && (tomato != null)) {
-      malusBar.setBitmaps(banana, tomato);
     }
   }
 
