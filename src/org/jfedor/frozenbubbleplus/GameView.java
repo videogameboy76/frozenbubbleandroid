@@ -1893,18 +1893,6 @@ public class GameView extends SurfaceView
       if ((mTomato != null) && (mTomatoOrig != null)) {
         scaleFrom(mTomato, mTomatoOrig);
       }
-      if (mFrozenGame1 != null) {
-        mFrozenGame1.updateBitmaps(mCompressorHead,
-                                   mCompressor,
-                                   mBanana,
-                                   mTomato);
-      }
-      if (mFrozenGame2 != null) {
-        mFrozenGame2.updateBitmaps(mCompressorHead,
-                                   mCompressor,
-                                   mBanana,
-                                   mTomato);
-      }
       //Log.i("frozen-bubble", "resizeBitmaps done.");
       mImagesReady = true;
     }
