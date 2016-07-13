@@ -52,19 +52,13 @@
 
 package com.efortin.frozenbubble;
 
-import java.util.ArrayList;
-
 import org.jfedor.frozenbubble.BubbleSprite;
 import org.jfedor.frozenbubble.FrozenBubble;
 import org.jfedor.frozenbubble.LevelManager;
 import org.jfedor.frozenbubble.R;
 
-import android.bluetooth.BluetoothDevice;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.ListPreference;
-import android.preference.Preference;
-import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 import android.view.KeyEvent;

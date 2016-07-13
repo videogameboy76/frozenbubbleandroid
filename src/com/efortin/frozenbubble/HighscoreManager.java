@@ -70,14 +70,15 @@ public class HighscoreManager {
   public static final String MULTIPLAYER_DATABASE_NAME = "multiplayer";
   public static final String ARCADE_DATABASE_NAME      = "arcade";
 
-  private boolean isPaused = true;
-  private int currentLevel = 0;
-  private long startTime   = 0;
-  private long pausedTime  = 0;
-  private long lastScoreId = -1;
-  private final HighscoreDB db;
+  private boolean     isPaused     = true;
+  private int         currentLevel = 0;
+  private long        startTime    = 0;
+  private long        pausedTime   = 0;
+  private long        lastScoreId  = -1;
+  private HighscoreDO lastScoreDO  = null;
+
   private final Context     ctx;
-  String name = null;
+  private final HighscoreDB db;
 
   public HighscoreManager(Context context, String databaseName) {
     ctx = context;
@@ -129,13 +130,14 @@ public class HighscoreManager {
                                                     Context.MODE_PRIVATE);
     name = sp.getString("highscorename", "anon");
     */
-    lastScoreId = db.insert(new HighscoreDO(currentLevel, "anon",
-                            nbBubbles, duration));
+    lastScoreDO = new HighscoreDO(currentLevel, "anon", nbBubbles, duration);
+    lastScoreId = db.insert(lastScoreDO);
     //Log.i("FrozenBubble-highscore", "endLevel() " + (duration / 1000F) +
     //  " seconds and " + nbBubbles + " shots used for level " + currentLevel);
   }
 
   public void lostLevel() {
+    lastScoreDO = null;
     lastScoreId = -1;
   }
 
@@ -196,6 +198,10 @@ public class HighscoreManager {
 
   public int getLevel() {
     return currentLevel;
+  }
+
+  public HighscoreDO getLastScoreDO() {
+    return lastScoreDO;
   }
 
   public long getLastScoreId() {

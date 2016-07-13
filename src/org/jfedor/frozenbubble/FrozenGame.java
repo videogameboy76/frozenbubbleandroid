@@ -643,8 +643,9 @@ public class FrozenGame extends GameScreen {
             this.addSprite(new ImageSprite(new Rect(152, 190,
                                                     152 + 337,
                                                     190 + 116), gameWon));
-            if (highscoreManager != null)
+            if (highscoreManager != null) {
               highscoreManager.endLevel(nbBubbles);
+            }
             playResult = gameEnum.WON;
             endOfGame = true;
             soundManager.playSound("applause", R.raw.applause);
