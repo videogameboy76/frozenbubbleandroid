@@ -98,16 +98,14 @@ public class PreferencesActivity extends PreferenceActivity{
   @Override
   protected void onCreate(Bundle savedInstanceState) {
      super.onCreate(savedInstanceState);
-
      addPreferencesFromResource(R.layout.activity_preferences_screen);
-     collisionSlider     = (SeekBarPreference) findPreference("collision_option" );
-     difficultySlider    = (SeekBarPreference) findPreference("difficulty_option");
+     collisionSlider  = (SeekBarPreference) findPreference("collision_option" );
+     difficultySlider = (SeekBarPreference) findPreference("difficulty_option");
   }
 
   @Override
   protected void onDestroy() {
     super.onDestroy();
-
     cleanUp();
   }
 
@@ -131,15 +129,15 @@ public class PreferencesActivity extends PreferenceActivity{
   public static void saveDefaultPreferences(Preferences prefs,
                                             SharedPreferences sp) {
     SharedPreferences.Editor editor = sp.edit();
-    editor.putInt    ("bluetooth",            prefs.bluetooth  );
-    editor.putInt    ("collision_option",     prefs.collision  );
-    editor.putBoolean("compressor_option",    prefs.compressor );
-    editor.putInt    ("difficulty_option",    prefs.difficulty );
-    editor.putBoolean("rush_me_option",      !prefs.dontRushMe );
-    editor.putBoolean("fullscreen_option",    prefs.fullscreen );
-    editor.putBoolean("colorblind_option",    prefs.colorMode  );
-    editor.putBoolean("play_music_option",    prefs.musicOn    );
-    editor.putBoolean("sound_effects_option", prefs.soundOn    );
+    editor.putInt    ("bluetooth",            prefs.bluetooth );
+    editor.putInt    ("collision_option",     prefs.collision );
+    editor.putBoolean("compressor_option",    prefs.compressor);
+    editor.putInt    ("difficulty_option",    prefs.difficulty);
+    editor.putBoolean("rush_me_option",      !prefs.dontRushMe);
+    editor.putBoolean("fullscreen_option",    prefs.fullscreen);
+    editor.putBoolean("colorblind_option",    prefs.colorMode );
+    editor.putBoolean("play_music_option",    prefs.musicOn   );
+    editor.putBoolean("sound_effects_option", prefs.soundOn   );
     editor.putString ("targeting_option",     Integer.toString(prefs.targetMode));
     editor.commit();
   }

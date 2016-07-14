@@ -643,8 +643,9 @@ public class FrozenGame extends GameScreen {
             this.addSprite(new ImageSprite(new Rect(152, 190,
                                                     152 + 337,
                                                     190 + 116), gameWon));
-            if (highscoreManager != null)
+            if (highscoreManager != null) {
               highscoreManager.endLevel(nbBubbles);
+            }
             playResult = gameEnum.WON;
             endOfGame = true;
             soundManager.playSound("applause", R.raw.applause);
@@ -667,7 +668,7 @@ public class FrozenGame extends GameScreen {
 
   public void paint(Canvas c, double scale, int dx, int dy) {
     if (FrozenBubble.getMode() == FrozenBubble.GAME_NORMAL) {
-      nextBubble.changeImage(bubbles[nextColor]);
+        nextBubble.changeImage(bubbles[nextColor]);
     }
     else {
       nextBubble.changeImage(bubblesBlind[nextColor]);

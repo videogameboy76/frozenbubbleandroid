@@ -1448,22 +1448,25 @@ public class GameView extends SurfaceView
       }
 
       canvas.drawRGB(0, 0, 0);
-      int x      = drawTextOffsetX();
-      int y      = 20;
-      int ysp    = 26;
-      int indent = 10;
+      int         x      = drawTextOffsetX();
+      int         y      = 10;
+      int         ysp    = 26;
+      int         indent = 10;
+      HighscoreDO myDO   = null;
 
       mFont.print("highscore for level " + (level + 1), x, y, canvas,
                   mDisplayScale, mDisplayDX, mDisplayDY);
-      y += 2 * ysp;
+      y += 1.5f * ysp;
 
       List<HighscoreDO> hlist = mHighScoreManager.getHighScore(level, 15);
       long lastScoreId = mHighScoreManager.getLastScoreId();
-      int i = 1;
+      int  i           = 1;
+
       for (HighscoreDO hdo : hlist) {
         String you = "";
         if (lastScoreId == hdo.getId()) {
-          you = "|";
+          myDO = hdo;
+          you  = "|";
         }
         // TODO: Add player name support.
         // mFont.print(you + i++ + " - " + hdo.getName().toLowerCase()
@@ -1481,6 +1484,19 @@ public class GameView extends SurfaceView
           y, canvas,
           mDisplayScale, mDisplayDX, mDisplayDY);
         y += ysp;
+      }
+
+      if (myDO == null) {
+        myDO = mHighScoreManager.getLastScoreDO();
+        if (myDO != null) {
+          mFont.print("|" + "  - "
+              + myDO.getShots()
+              + " shots - "
+              + (myDO.getTime() / 1000)
+              + " sec", x + indent,
+              y, canvas,
+              mDisplayScale, mDisplayDX, mDisplayDY);
+        }
       }
     }
 
@@ -1528,23 +1544,26 @@ public class GameView extends SurfaceView
       }
 
       canvas.drawRGB(0, 0, 0);
-      int x      = drawTextOffsetX();
-      int y      = 20;
-      int ysp    = 26;
-      int indent = 10;
+      int         x      = drawTextOffsetX();
+      int         y      = 10;
+      int         ysp    = 26;
+      int         indent = 10;
+      HighscoreDO myDO   = null;
 
       mFont.print("highscore for " +
                   LevelManager.DifficultyStrings[mHighScoreManager.getLevel()],
                   x, y, canvas, mDisplayScale, mDisplayDX, mDisplayDY);
-      y += 2 * ysp;
+      y += 1.5f * ysp;
 
       List<HighscoreDO> hlist = mHighScoreManager.getLowScore(level, 15);
       long lastScoreId = mHighScoreManager.getLastScoreId();
-      int i = 1;
+      int  i           = 1;
+
       for (HighscoreDO hdo : hlist) {
         String you = "";
         if (lastScoreId == hdo.getId()) {
-          you = "|";
+          myDO = hdo;
+          you  = "|";
         }
         // TODO: Add player name support.
         // mFont.print(you + i++ + " - " + hdo.getName().toLowerCase()
@@ -1562,6 +1581,19 @@ public class GameView extends SurfaceView
           y, canvas,
           mDisplayScale, mDisplayDX, mDisplayDY);
         y += ysp;
+      }
+
+      if (myDO == null) {
+        myDO = mHighScoreManager.getLastScoreDO();
+        if (myDO != null) {
+          mFont.print("|" + "  - "
+              + myDO.getShots()
+              + " shots - "
+              + (myDO.getTime() / 1000)
+              + " sec", x + indent,
+              y, canvas,
+              mDisplayScale, mDisplayDX, mDisplayDY);
+        }
       }
     }
 

@@ -57,6 +57,12 @@ import android.os.Bundle;
 
 public class Compressor {
   private static final int SCROLL_START = 6;
+  private static final int BAR_L_X      = 235;
+  private static final int BAR_R_X      = 391;
+  private static final int BAR_Y        = 28;
+  private static final int BAR_Y_ADJ    = -4;
+  private static final int HEAD_X       = 160;
+  private static final int HEAD_Y_ADJ   = -7;
 
   private BmpWrap compressor;
   private BmpWrap compressorHead;
@@ -105,15 +111,15 @@ public class Compressor {
   public void paint(Canvas c, double scale, int dx, int dy) {
     for (int i = 0; i < steps; i++) {
       c.drawBitmap(compressor.bmp,
-                   (float)(235 * scale + dx),
-                   (float)((28 * i - 4) * scale + dy), null);
+                   (float)(BAR_L_X * scale + dx),
+                   (float)((BAR_Y * i + BAR_Y_ADJ) * scale + dy), null);
       c.drawBitmap(compressor.bmp,
-                   (float)(391 * scale + dx),
-                   (float)((28 * i - 4) * scale + dy), null);
+                   (float)(BAR_R_X * scale + dx),
+                   (float)((BAR_Y * i + BAR_Y_ADJ) * scale + dy), null);
     }
     c.drawBitmap(compressorHead.bmp,
-                 (float)(160 * scale + dx),
-                 (float)((-7 + 28 * steps) * scale + dy), null);
+                 (float)(HEAD_X * scale + dx),
+                 (float)((BAR_Y * steps + HEAD_Y_ADJ) * scale + dy), null);
   }
 
   public void restoreState(Bundle map, int id) {
