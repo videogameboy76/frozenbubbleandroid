@@ -100,6 +100,7 @@ import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.AttributeSet;
+import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -1223,24 +1224,50 @@ public class GameView extends SurfaceView
     boolean doKeyDown(int keyCode, KeyEvent msg) {
       boolean handled = false;
       /*
-       * Only update the game state if this is a fresh key press.
+       * If this input didn't come from a second connected gamepad, then
+       * it came from player 1.
        */
-      if (mLocalInput.checkNewActionKeyPress(keyCode))
-        updateStateOnEvent(null);
-
-      /*
-       * Process the key press if it is a function key.
-       */
-      toggleKeyPress(keyCode, true, true);
-
-      /*
-       * Process the key press if it is a game input key.
-       */
-      synchronized(mSurfaceHolder) {
-          handled = mLocalInput.setKeyDown(keyCode);
+      if (!isPlayer2LocalInput(msg)) { 
+        /*
+         * Only update the game state if this is a fresh key press.
+         */
+        if (mLocalInput.checkNewActionKeyPress(keyCode))
+          updateStateOnEvent(null);
+  
+        /*
+         * Process the key press if it is a function key.
+         */
+        toggleKeyPress(keyCode, true, true);
+  
+        /*
+         * Process the key press if it is a game input key.
+         */
+        synchronized(mSurfaceHolder) {
+            handled = mLocalInput.setKeyDown(keyCode);
+        }
+      }
+      else {
+        /*
+         * Only update the game state if this is a fresh key press.
+         */
+        if (mRemoteInput.checkNewActionKeyPress(keyCode))
+          updateStateOnEvent(null);
+  
+        /*
+         * Process the key press if it is a function key.
+         */
+        toggleKeyPress(keyCode, true, true);
+  
+        /*
+         * Process the key press if it is a game input key.
+         */
+        synchronized(mSurfaceHolder) {
+            handled = mRemoteInput.setKeyDown(keyCode);
+        }
       }
       return handled;
     }
+
     /**
      * Process key releases.  This must be allowed to run regardless of
      * the game state in order to properly clear key presses.
@@ -1254,8 +1281,15 @@ public class GameView extends SurfaceView
       /*
        * Process the key release if it is a game input key.
        */
-      synchronized(mSurfaceHolder) {
-        handled = mLocalInput.setKeyUp(keyCode);
+      if (isPlayer2LocalInput(msg)) {
+        synchronized(mSurfaceHolder) {
+          handled = mRemoteInput.setKeyUp(keyCode);
+        }
+      }
+      else {
+        synchronized(mSurfaceHolder) {
+          handled = mLocalInput.setKeyUp(keyCode);
+        }
       }
       return handled;
     }
@@ -1704,7 +1738,7 @@ public class GameView extends SurfaceView
       int orientation = getScreenOrientation();
 
       if (numPlayers == 2) {
-        if ((orientation == FrozenBubble.SCREEN_ORIENTATION_REVERSE_PORTRAIT) ||
+        if ((orientation == ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT) ||
             (orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)) {
           if (mLocalInput.playerID == VirtualInput.PLAYER2) {
             x = (int) -((float) mDisplayDX / mDisplayScale) + 5;
@@ -1781,6 +1815,44 @@ public class GameView extends SurfaceView
     private int getScreenOrientation() {
       return FrozenBubble.getScreenOrientation(((Activity) mContext).
                                                getWindowManager());
+    }
+
+    private boolean isPlayer2LocalInput(KeyEvent msg) {
+      boolean gamepad2Found = false;
+      /*
+       * If this is a local 2 player game, check if this input came from
+       * the second connected gamepad for player 2.
+       *
+       * Currently, local 2 player games can only be played via having
+       * two attached gamepads.
+       *
+       * NOTE: The InputDevice SOURCE_GAMEPAD input type was added in
+       * API 12.
+       */
+      if ((numPlayers == 2) && (gameLocale == FrozenBubble.LOCALE_LOCAL)) {
+        int[] deviceIds   = InputDevice.getDeviceIds();
+        int   numGamepads = 0;
+        for (int id : deviceIds) {
+          InputDevice device = InputDevice.getDevice(id);
+          if ((device.getSources() & InputDevice.SOURCE_GAMEPAD) ==
+              InputDevice.SOURCE_GAMEPAD) {
+            /*
+             * Skip the first gamepad in the list, as it is always used
+             * to provide player 1 input.  Only return true if any of
+             * the subsequent gamepad identifiers match the event source
+             * identifier.
+             */
+            if (numGamepads > 0) {
+              if (msg.getDeviceId() == device.getId()) {
+                gamepad2Found = true;
+              }
+              break;
+            }
+            numGamepads++;
+          }
+        }
+      }
+      return gamepad2Found;
     }
 
     private BmpWrap NewBmpWrap() {
@@ -2257,7 +2329,7 @@ public class GameView extends SurfaceView
           }
           else {
             int orientation = getScreenOrientation();
-            if ((orientation == FrozenBubble.SCREEN_ORIENTATION_REVERSE_PORTRAIT) ||
+            if ((orientation == ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT) ||
                 (orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)) {
               if (mLocalInput.playerID == VirtualInput.PLAYER2) {
                 mDisplayDX = (int)(-mDisplayScale * gameWidth);

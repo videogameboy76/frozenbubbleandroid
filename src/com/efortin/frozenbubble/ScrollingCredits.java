@@ -139,15 +139,15 @@ public class ScrollingCredits extends Activity implements Runnable {
     // Construct a new LinearLayout programmatically. 
     LinearLayout linearLayout = new LinearLayout(this);
     linearLayout.setOrientation(LinearLayout.VERTICAL);
-    linearLayout.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT,
-                                                  LayoutParams.FILL_PARENT));
+    linearLayout.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT,
+                                                  LayoutParams.MATCH_PARENT));
     // ImageView setup for the image.
     ImageView imageView = new ImageView(this);
     // Set image resource.
     imageView.setImageResource(id);
     // Set image position and scaling.
-    imageView.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT,
-                                               LayoutParams.FILL_PARENT));
+    imageView.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT,
+                                               LayoutParams.MATCH_PARENT));
     // Add view to layout.
     linearLayout.addView(imageView);
     // Set the content view to this layout and display the image.

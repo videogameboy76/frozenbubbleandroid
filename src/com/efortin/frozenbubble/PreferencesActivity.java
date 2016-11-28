@@ -95,6 +95,7 @@ public class PreferencesActivity extends PreferenceActivity{
     return prefs;
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   protected void onCreate(Bundle savedInstanceState) {
      super.onCreate(savedInstanceState);

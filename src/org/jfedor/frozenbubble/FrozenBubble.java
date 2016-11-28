@@ -121,15 +121,6 @@ import com.efortin.frozenbubble.VirtualInput;
 public class FrozenBubble extends Activity
   implements GameView.GameListener,
              AccelerometerManager.AccelerometerListener {
-  /*
-   * The following screen orientation definitions were added to
-   * ActivityInfo in API level 9.
-   */
-  public final static int SCREEN_ORIENTATION_SENSOR_LANDSCAPE  = 6;
-  public final static int SCREEN_ORIENTATION_SENSOR_PORTRAIT   = 7;
-  public final static int SCREEN_ORIENTATION_REVERSE_LANDSCAPE = 8;
-  public final static int SCREEN_ORIENTATION_REVERSE_PORTRAIT  = 9;
-
   public final static int GAME_NORMAL     = 0;
   public final static int GAME_COLORBLIND = 1;
 
@@ -675,7 +666,7 @@ public class FrozenBubble extends Activity
      *
      * For API level 8 or greater, use getRotation().
      */
-    int rotation = windowManager.getDefaultDisplay().getOrientation();
+    int rotation = windowManager.getDefaultDisplay().getRotation();
     DisplayMetrics dm = new DisplayMetrics();
     windowManager.getDefaultDisplay().getMetrics(dm);
     int width  = dm.widthPixels;
@@ -704,10 +695,10 @@ public class FrozenBubble extends Activity
           orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
           break;
         case Surface.ROTATION_180:
-          orientation = SCREEN_ORIENTATION_REVERSE_PORTRAIT;
+          orientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT;
           break;
         case Surface.ROTATION_270:
-          orientation = SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
+          orientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
           break;
         default:
           orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
@@ -726,10 +717,10 @@ public class FrozenBubble extends Activity
           orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
           break;
         case Surface.ROTATION_180:
-          orientation = SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
+          orientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
           break;
         case Surface.ROTATION_270:
-          orientation = SCREEN_ORIENTATION_REVERSE_PORTRAIT;
+          orientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT;
           break;
         default:
           orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
@@ -827,12 +818,12 @@ public class FrozenBubble extends Activity
       if (numPlayers > 1) {
         if (currentOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
           x = -y;
-        else if (currentOrientation == SCREEN_ORIENTATION_REVERSE_LANDSCAPE)
+        else if (currentOrientation == ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE)
           x = y;
-        else if (currentOrientation == SCREEN_ORIENTATION_REVERSE_PORTRAIT)
+        else if (currentOrientation == ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT)
           x = -x;
       }
-      else if (currentOrientation == SCREEN_ORIENTATION_REVERSE_PORTRAIT) {
+      else if (currentOrientation == ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT) {
         x = -x;
       }
       mGameThread.setPosition(20.0f+x*2.0f);
@@ -1136,10 +1127,10 @@ public class FrozenBubble extends Activity
        * set the orientation to sensor portrait.
        */
       if (numPlayers > 1) {
-        setRequestedOrientation(SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
       }
       else {
-        setRequestedOrientation(SCREEN_ORIENTATION_SENSOR_PORTRAIT);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
       }
     }
 
