@@ -1224,29 +1224,10 @@ public class GameView extends SurfaceView
     boolean doKeyDown(int keyCode, KeyEvent msg) {
       boolean handled = false;
       /*
-       * If this input didn't come from a second connected gamepad, then
-       * it came from player 1.
+       * If this input came from a second connected gamepad, then it
+       * came from player 2.
        */
-      if (!isPlayer2LocalInput(msg)) { 
-        /*
-         * Only update the game state if this is a fresh key press.
-         */
-        if (mLocalInput.checkNewActionKeyPress(keyCode))
-          updateStateOnEvent(null);
-  
-        /*
-         * Process the key press if it is a function key.
-         */
-        toggleKeyPress(keyCode, true, true);
-  
-        /*
-         * Process the key press if it is a game input key.
-         */
-        synchronized(mSurfaceHolder) {
-            handled = mLocalInput.setKeyDown(keyCode);
-        }
-      }
-      else {
+      if (isPlayer2LocalInput(msg)) {
         /*
          * Only update the game state if this is a fresh key press.
          */
@@ -1262,7 +1243,26 @@ public class GameView extends SurfaceView
          * Process the key press if it is a game input key.
          */
         synchronized(mSurfaceHolder) {
-            handled = mRemoteInput.setKeyDown(keyCode);
+          handled = mRemoteInput.setKeyDown(keyCode);
+        }
+      }
+      else {
+        /*
+         * Only update the game state if this is a fresh key press.
+         */
+        if (mLocalInput.checkNewActionKeyPress(keyCode))
+          updateStateOnEvent(null);
+  
+        /*
+         * Process the key press if it is a function key.
+         */
+        toggleKeyPress(keyCode, true, true);
+  
+        /*
+         * Process the key press if it is a game input key.
+         */
+        synchronized(mSurfaceHolder) {
+          handled = mLocalInput.setKeyDown(keyCode);
         }
       }
       return handled;

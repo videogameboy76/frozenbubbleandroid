@@ -57,6 +57,7 @@ import org.gsanson.frozenbubble.Freile.eventEnum;
 import org.jfedor.frozenbubble.FrozenGame;
 import org.jfedor.frozenbubble.GameScreen.gameEnum;
 
+import android.os.Looper;
 import android.view.KeyEvent;
 
 public class ComputerAI extends Thread implements Freile.OpponentListener {
@@ -152,6 +153,7 @@ public class ComputerAI extends Thread implements Freile.OpponentListener {
 
   @Override
   public void run() {
+    Looper.prepare();
     while(running) {
       try {
         /*

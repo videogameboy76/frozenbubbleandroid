@@ -66,6 +66,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
+import android.os.Looper;
 import android.os.ParcelUuid;
 import android.util.Log;
 
@@ -470,6 +471,7 @@ public class BluetoothManager {
      */
     @Override
     public void run() {
+      Looper.prepare();
       while (running) {
         if (mySocket == null) {
           configureBluetoothSocket();
@@ -505,6 +507,7 @@ public class BluetoothManager {
      */
     @Override
     public void run() {
+      Looper.prepare();
       while (running) {
         if (mySocket != null) {
           if (paused) try {

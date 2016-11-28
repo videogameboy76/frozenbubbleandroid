@@ -67,6 +67,7 @@ import com.efortin.frozenbubble.NetworkManager.connectEnum;
 
 import android.content.Context;
 import android.net.wifi.WifiManager;
+import android.os.Looper;
 import android.util.Log;
 
 /**
@@ -356,6 +357,8 @@ public class UDPSocket {
     public void run() {
       paused  = false;
       running = true;
+
+      Looper.prepare();
 
       while (running) {
         if (paused) try {
