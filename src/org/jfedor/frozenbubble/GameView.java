@@ -1836,8 +1836,8 @@ public class GameView extends SurfaceView
         int   numGamepads = 0;
         for (int id : deviceIds) {
           InputDevice device = InputDevice.getDevice(id);
-          if ((device.getSources() & InputDevice.SOURCE_CLASS_BUTTON) ==
-              InputDevice.SOURCE_CLASS_BUTTON) {
+          if ((device.getSources() & InputDevice.SOURCE_GAMEPAD) ==
+              InputDevice.SOURCE_GAMEPAD) {
             /*
              * Skip the first gamepad in the list, as it is always used
              * to provide player 1 input.  Only return true if any of
