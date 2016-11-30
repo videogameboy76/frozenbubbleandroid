@@ -129,16 +129,17 @@ public class GameView extends SurfaceView
   private int             numPlayers;
   private int             numPlayer1GamesWon;
   private int             numPlayer2GamesWon;
+  private ComputerAI      mOpponent;
   private Context         mContext;
   private gameEnum        game1Status;
   private GameThread      mGameThread;
   private NetworkManager  mNetworkManager;
-  private RemoteInterface remoteInterface;
-  private ComputerAI      mOpponent;
-  private VirtualInput    mLocalInput;
-  private VirtualInput    mRemoteInput;
+  private Object          inputLock;
   private PlayerInput     mPlayer1;
   private PlayerInput     mPlayer2;
+  private RemoteInterface remoteInterface;
+  private VirtualInput    mLocalInput;
+  private VirtualInput    mRemoteInput;
 
   //********************************************************************
   // Listener interface for various events
@@ -1242,7 +1243,7 @@ public class GameView extends SurfaceView
         /*
          * Process the key press if it is a game input key.
          */
-        synchronized(mSurfaceHolder) {
+        synchronized(inputLock) {
           handled = mRemoteInput.setKeyDown(keyCode);
         }
       }
@@ -1261,7 +1262,7 @@ public class GameView extends SurfaceView
         /*
          * Process the key press if it is a game input key.
          */
-        synchronized(mSurfaceHolder) {
+        synchronized(inputLock) {
           handled = mLocalInput.setKeyDown(keyCode);
         }
       }
@@ -1282,12 +1283,12 @@ public class GameView extends SurfaceView
        * Process the key release if it is a game input key.
        */
       if (isPlayer2LocalInput(msg)) {
-        synchronized(mSurfaceHolder) {
+        synchronized(inputLock) {
           handled = mRemoteInput.setKeyUp(keyCode);
         }
       }
       else {
-        synchronized(mSurfaceHolder) {
+        synchronized(inputLock) {
           handled = mLocalInput.setKeyUp(keyCode);
         }
       }
@@ -1363,7 +1364,7 @@ public class GameView extends SurfaceView
       /*
        * Process the screen touch event.
        */
-      synchronized(mSurfaceHolder) {
+      synchronized(inputLock) {
         handled = mLocalInput.setTouchEvent(event.getAction(), x + x_offset, y);
       }
       return handled;
@@ -1384,7 +1385,7 @@ public class GameView extends SurfaceView
       boolean handled = false;
       if (mMode == stateEnum.RUNNING) {
         if (event.getAction() == MotionEvent.ACTION_MOVE) {
-          synchronized(mSurfaceHolder) {
+          synchronized(inputLock) {
             mLocalInput.setTrackBallDx(event.getX() * TRACKBALL_COEFFICIENT);
           }
           handled = true;
@@ -1827,15 +1828,16 @@ public class GameView extends SurfaceView
        * two attached gamepads.
        *
        * NOTE: The InputDevice SOURCE_GAMEPAD input type was added in
-       * API 12.
+       * API 12.  It is a derivative of the input source class
+       * SOURCE_CLASS_BUTTON.
        */
       if ((numPlayers == 2) && (gameLocale == FrozenBubble.LOCALE_LOCAL)) {
         int[] deviceIds   = InputDevice.getDeviceIds();
         int   numGamepads = 0;
         for (int id : deviceIds) {
           InputDevice device = InputDevice.getDevice(id);
-          if ((device.getSources() & InputDevice.SOURCE_GAMEPAD) ==
-              InputDevice.SOURCE_GAMEPAD) {
+          if ((device.getSources() & InputDevice.SOURCE_CLASS_BUTTON) ==
+              InputDevice.SOURCE_CLASS_BUTTON) {
             /*
              * Skip the first gamepad in the list, as it is always used
              * to provide player 1 input.  Only return true if any of
@@ -2513,28 +2515,65 @@ public class GameView extends SurfaceView
         return;
       }
 
-      gameEnum game1State = mFrozenGame1.play(mPlayer1.actionLeft(),
-                                              mPlayer1.actionRight(),
-                                              mPlayer1.actionUp(),
-                                              mPlayer1.actionDown(),
-                                              mPlayer1.getTrackBallDx(),
-                                              mPlayer1.actionTouchFire(),
-                                              mPlayer1.getTouchX(),
-                                              mPlayer1.getTouchY(),
-                                              mPlayer1.actionTouchFireATS(),
-                                              mPlayer1.getTouchDxATS());
+      boolean actionLeft;
+      boolean actionRight;
+      boolean actionUp;
+      boolean actionDown;
+      boolean actionTouchFire;
+      boolean actionToucheFireATS;
+      double  trackBallDx;
+      double  touchX;
+      double  touchY;
+      double  touchDxATS;
+
+      synchronized(inputLock) {
+        actionLeft          = mPlayer1.actionLeft();
+        actionRight         = mPlayer1.actionRight();
+        actionUp            = mPlayer1.actionUp();
+        actionDown          = mPlayer1.actionDown();
+        actionTouchFire     = mPlayer1.actionTouchFire();
+        actionToucheFireATS = mPlayer1.actionTouchFireATS();
+        trackBallDx         = mPlayer1.getTrackBallDx();
+        touchX              = mPlayer1.getTouchX();
+        touchY              = mPlayer1.getTouchY();
+        touchDxATS          = mPlayer1.getTouchDxATS();
+      }
+
+      gameEnum game1State = mFrozenGame1.play(actionLeft,
+                                              actionRight,
+                                              actionUp,
+                                              actionDown,
+                                              trackBallDx,
+                                              actionTouchFire,
+                                              touchX,
+                                              touchY,
+                                              actionToucheFireATS,
+                                              touchDxATS);
 
       if (numPlayers > 1) {
-        gameEnum game2State = mFrozenGame2.play(mPlayer2.actionLeft(),
-                                                mPlayer2.actionRight(),
-                                                mPlayer2.actionUp(),
-                                                mPlayer2.actionDown(),
-                                                mPlayer2.getTrackBallDx(),
-                                                mPlayer2.actionTouchFire(),
-                                                mPlayer2.getTouchX(),
-                                                mPlayer2.getTouchY(),
-                                                mPlayer2.actionTouchFireATS(),
-                                                mPlayer2.getTouchDxATS());
+        synchronized(inputLock) {
+          actionLeft          = mPlayer2.actionLeft();
+          actionRight         = mPlayer2.actionRight();
+          actionUp            = mPlayer2.actionUp();
+          actionDown          = mPlayer2.actionDown();
+          actionTouchFire     = mPlayer2.actionTouchFire();
+          actionToucheFireATS = mPlayer2.actionTouchFireATS();
+          trackBallDx         = mPlayer2.getTrackBallDx();
+          touchX              = mPlayer2.getTouchX();
+          touchY              = mPlayer2.getTouchY();
+          touchDxATS          = mPlayer2.getTouchDxATS();
+        }
+
+        gameEnum game2State = mFrozenGame2.play(actionLeft,
+                                                actionRight,
+                                                actionUp,
+                                                actionDown,
+                                                trackBallDx,
+                                                actionTouchFire,
+                                                touchX,
+                                                touchY,
+                                                actionToucheFireATS,
+                                                touchDxATS);
 
         /*
          * If playing a network game, update the bubble grid checksums.
@@ -2833,6 +2872,11 @@ public class GameView extends SurfaceView
       mLocalInput = mPlayer2;
       mRemoteInput = mPlayer1;
     }
+
+    /*
+     * Create the player input mutex.
+     */
+    inputLock = new Object();
 
     /*
      * Create a network game manager if this is a network game.
