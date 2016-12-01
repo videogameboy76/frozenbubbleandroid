@@ -895,6 +895,12 @@ public class HomeScreen extends Activity {
     builder.show();
   }
 
+  /**
+   * NOTE: The InputDevice SOURCE_GAMEPAD input type was added in API
+   * 12.  It is a derivative of the input source class
+   * SOURCE_CLASS_BUTTON.
+   * @return the total number of gamepad input devices.
+   */
   private int numGamepadsConnected() {
     int[] deviceIds   = InputDevice.getDeviceIds();
     int   numGamepads = 0;
