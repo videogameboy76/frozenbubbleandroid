@@ -1064,7 +1064,6 @@ public class NetworkManager extends Thread
    * @return the local WiFi IP address.
    * @see WifiManager
    */
-  @SuppressWarnings("deprecation")
   public InetAddress getLocalIPaddress() {
     WifiManager wifiManager =
         (WifiManager) myContext.getSystemService(Context.WIFI_SERVICE);

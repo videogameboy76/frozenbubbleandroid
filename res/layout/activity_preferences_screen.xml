@@ -50,6 +50,7 @@
     android:title="Hurry Mode" />
 
   <ListPreference
+    android:defaultValue="1"
     android:entries="@array/shoot_mode_array"
     android:entryValues="@array/targeting_values_array"
     android:key="targeting_option"

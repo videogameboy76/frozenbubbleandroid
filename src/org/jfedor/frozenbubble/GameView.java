@@ -2370,28 +2370,19 @@ public class GameView extends SurfaceView
         }
         if (numPlayers > 1) {
           /*
-           * When rotate to shoot targeting mode is selected during a
-           * multiplayer game, then the screen orientation is forced
-           * to landscape.
-           *
            * In portrait mode during a multiplayer game, display just
            * one game field.  Depending on which player is the local
            * player, display the game field for just that player. This
            * is useful for devices with small screens.
            */
-          if (FrozenBubble.getTargetMode() == FrozenBubble.ROTATE_TO_SHOOT) {
-            mDisplayDX = 0;
-          }
-          else {
-            int orientation = getScreenOrientation();
-            if ((orientation == ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT) ||
-                (orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)) {
-              if (mLocalInput.playerID == VirtualInput.PLAYER2) {
-                mDisplayDX = (int)(-mDisplayScale * gameWidth);
-              }
-              else {
-                mDisplayDX = 0;
-              }
+          int orientation = getScreenOrientation();
+          if ((orientation == ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT) ||
+              (orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)) {
+            if (mLocalInput.playerID == VirtualInput.PLAYER2) {
+              mDisplayDX = (int)(-mDisplayScale * gameWidth);
+            }
+            else {
+              mDisplayDX = 0;
             }
           }
         }
