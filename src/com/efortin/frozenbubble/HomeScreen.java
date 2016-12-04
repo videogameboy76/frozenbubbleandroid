@@ -67,6 +67,7 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.TypedValue;
+import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -101,11 +102,12 @@ public class HomeScreen extends Activity {
   private final static int BTN9_ID   = 110;
   private final static int BTN10_ID  = 111;
   private final static int BTN11_ID  = 112;
+  private final static int BTN12_ID  = 113;
 
   private static int buttonSelPage1 = BTN1_ID;
   private static int buttonSelPage2 = BTN5_ID;
-  private static int buttonSelPage3 = BTN8_ID;
-  private static int buttonSelPage4 = BTN10_ID;
+  private static int buttonSelPage3 = BTN9_ID;
+  private static int buttonSelPage4 = BTN11_ID;
   private static int pageSelected   = 1;
 
   private boolean        finished      = false;
@@ -183,7 +185,7 @@ public class HomeScreen extends Activity {
     Button optionsButton = new Button(this);
     optionsButton.setOnClickListener(new Button.OnClickListener(){
       public void onClick(View v){
-        buttonSelPage4 = BTN11_ID;
+        buttonSelPage4 = BTN12_ID;
         mSoundManager.playSound("stick", R.raw.stick);
         /*
          * Process the button tap and start the preferences activity.
@@ -214,7 +216,7 @@ public class HomeScreen extends Activity {
     optionsButton.setHorizontalFadingEdgeEnabled(true);
     optionsButton.setFadingEdgeLength(5);
     optionsButton.setShadowLayer(5, 5, 5, R.color.black);
-    optionsButton.setId(BTN11_ID);
+    optionsButton.setId(BTN12_ID);
     optionsButton.setFocusable(true);
     optionsButton.setFocusableInTouchMode(true);
     LayoutParams myParams1 = new LayoutParams(LayoutParams.WRAP_CONTENT,
@@ -232,7 +234,7 @@ public class HomeScreen extends Activity {
     Button continueButton = new Button(this);
     continueButton.setOnClickListener(new Button.OnClickListener(){
       public void onClick(View v){
-        buttonSelPage4 = BTN10_ID;
+        buttonSelPage4 = BTN11_ID;
         mSoundManager.playSound("stick", R.raw.stick);
         /*
          * Process the button tap and load the saved game.
@@ -265,7 +267,7 @@ public class HomeScreen extends Activity {
     continueButton.setHorizontalFadingEdgeEnabled(true);
     continueButton.setFadingEdgeLength(5);
     continueButton.setShadowLayer(5, 5, 5, R.color.black);
-    continueButton.setId(BTN10_ID);
+    continueButton.setId(BTN11_ID);
     continueButton.setFocusable(true);
     continueButton.setFocusableInTouchMode(true);
     continueButton.setEnabled(playerSave);
@@ -595,6 +597,59 @@ public class HomeScreen extends Activity {
      * Add view to layout.
      */
     myLayout.addView(startBluetoothGameButton, myParams3);
+    /*
+     * Construct the local 2 player game button.
+     */
+    Button startLocal2PlayerGameButton = new Button(this);
+    startLocal2PlayerGameButton.setOnClickListener(new Button.OnClickListener(){
+      public void onClick(View v){
+        int numGamepads = numGamepadsConnected();
+        buttonSelPage2 = BTN8_ID;
+        mSoundManager.playSound("stick", R.raw.stick);
+        /*
+         * Only start a local 2 player game if at least two gamepads are
+         * connected.
+         */
+        if (numGamepads >= 2) {
+          /*
+           * Process the button tap and start a 2 player game.
+           */
+          startFrozenBubble(VirtualInput.PLAYER1, 2,
+                            FrozenBubble.HUMAN,
+                            FrozenBubble.LOCALE_LOCAL, false, false);
+        }
+        else {
+          numGamepadsDialog(numGamepads);
+        }
+      }
+    });
+    startLocal2PlayerGameButton.setOnTouchListener(new Button.OnTouchListener(){
+      public boolean onTouch(View v, MotionEvent event){
+        if (event.getAction() == MotionEvent.ACTION_DOWN)
+          v.requestFocus();
+        return false;
+      }
+    });
+    startLocal2PlayerGameButton.setText("Local");
+    startLocal2PlayerGameButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
+    startLocal2PlayerGameButton.setWidth((int) (startLocal2PlayerGameButton.getTextSize() * 9));
+    startLocal2PlayerGameButton.setTypeface(null, Typeface.BOLD);
+    startLocal2PlayerGameButton.setHorizontalFadingEdgeEnabled(true);
+    startLocal2PlayerGameButton.setFadingEdgeLength(5);
+    startLocal2PlayerGameButton.setShadowLayer(5, 5, 5, R.color.black);
+    startLocal2PlayerGameButton.setId(BTN8_ID);
+    startLocal2PlayerGameButton.setFocusable(true);
+    startLocal2PlayerGameButton.setFocusableInTouchMode(true);
+    LayoutParams myParams4 = new LayoutParams(LayoutParams.WRAP_CONTENT,
+                                              LayoutParams.WRAP_CONTENT);
+    myParams4.addRule(RelativeLayout.CENTER_IN_PARENT);
+    myParams4.addRule(RelativeLayout.BELOW, startBluetoothGameButton.getId());
+    myParams4.topMargin = 15;
+    myParams4.bottomMargin = 15;
+    /*
+     * Add view to layout.
+     */
+    myLayout.addView(startLocal2PlayerGameButton, myParams4);
   }
 
   /**
@@ -613,7 +668,7 @@ public class HomeScreen extends Activity {
     Button player2Button = new Button(this);
     player2Button.setOnClickListener(new Button.OnClickListener(){
       public void onClick(View v){
-        buttonSelPage3 = BTN9_ID;
+        buttonSelPage3 = BTN10_ID;
         mSoundManager.playSound("stick", R.raw.stick);
         /*
          * Process the button tap and start a 2 player game.
@@ -644,7 +699,7 @@ public class HomeScreen extends Activity {
     player2Button.setHorizontalFadingEdgeEnabled(true);
     player2Button.setFadingEdgeLength(5);
     player2Button.setShadowLayer(5, 5, 5, R.color.black);
-    player2Button.setId(BTN9_ID);
+    player2Button.setId(BTN10_ID);
     player2Button.setFocusable(true);
     player2Button.setFocusableInTouchMode(true);
     LayoutParams myParams1 = new LayoutParams(LayoutParams.WRAP_CONTENT,
@@ -662,7 +717,7 @@ public class HomeScreen extends Activity {
     Button player1Button = new Button(this);
     player1Button.setOnClickListener(new Button.OnClickListener(){
       public void onClick(View v){
-        buttonSelPage3 = BTN8_ID;
+        buttonSelPage3 = BTN9_ID;
         mSoundManager.playSound("stick", R.raw.stick);
         /*
          * Process the button tap and start a 2 player game.
@@ -693,7 +748,7 @@ public class HomeScreen extends Activity {
     player1Button.setHorizontalFadingEdgeEnabled(true);
     player1Button.setFadingEdgeLength(5);
     player1Button.setShadowLayer(5, 5, 5, R.color.black);
-    player1Button.setId(BTN8_ID);
+    player1Button.setId(BTN9_ID);
     player1Button.setFocusable(true);
     player1Button.setFocusableInTouchMode(true);
     LayoutParams myParams2 = new LayoutParams(LayoutParams.WRAP_CONTENT,
@@ -817,6 +872,48 @@ public class HomeScreen extends Activity {
     }
   }
 
+  private void numGamepadsDialog(int numGamepads) {
+    AlertDialog.Builder builder = new AlertDialog.Builder(HomeScreen.this);
+    /*
+     * Set the dialog title.
+     */
+    builder.setTitle("Input Not Found");
+    /*
+     * Set the dialog message.
+     */
+    builder.setMessage(numGamepads + " gamepads found, 2 needed.")
+    /*
+     * Set the action buttons.
+     */
+    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+      @Override
+      public void onClick(DialogInterface dialog, int id) {
+        // User clicked OK.  Do nothing - the dialog will be closed.
+      }
+    });
+    builder.create();
+    builder.show();
+  }
+
+  /**
+   * NOTE: The InputDevice SOURCE_GAMEPAD input type was added in API
+   * 12.  It is a derivative of the input source class
+   * SOURCE_CLASS_BUTTON.
+   * @return the total number of gamepad input devices.
+   */
+  private int numGamepadsConnected() {
+    int[] deviceIds   = InputDevice.getDeviceIds();
+    int   numGamepads = 0;
+    for (int id : deviceIds) {
+      InputDevice device = InputDevice.getDevice(id);
+      if ((device.getSources() & InputDevice.SOURCE_GAMEPAD) ==
+          InputDevice.SOURCE_GAMEPAD) {
+        numGamepads++;
+      }
+    }
+    return numGamepads;
+  }
+
   private void removeDynamicViews() {
     removeViewByID(BTN1_ID);
     removeViewByID(BTN2_ID);
@@ -829,6 +926,7 @@ public class HomeScreen extends Activity {
     removeViewByID(BTN9_ID);
     removeViewByID(BTN10_ID);
     removeViewByID(BTN11_ID);
+    removeViewByID(BTN12_ID);
   }
 
   @Override
@@ -856,8 +954,8 @@ public class HomeScreen extends Activity {
      */
     requestWindowFeature(Window.FEATURE_NO_TITLE);
     myLayout = new RelativeLayout(this);
-    myLayout.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT,
-                                              LayoutParams.FILL_PARENT));
+    myLayout.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT,
+                                              LayoutParams.MATCH_PARENT));
     myImageView = new ImageView(this);
 
     /*
@@ -988,8 +1086,8 @@ public class HomeScreen extends Activity {
       myLayout.removeView(myImageView);
 
     myImageView.setBackgroundColor(getResources().getColor(R.color.black));
-    myImageView.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT,
-                                                 LayoutParams.FILL_PARENT));
+    myImageView.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT,
+                                                 LayoutParams.MATCH_PARENT));
     myImageView.setImageResource(resId);
     myImageView.setId(SCREEN_ID);
     myLayout.addView(myImageView);
@@ -1032,6 +1130,7 @@ public class HomeScreen extends Activity {
    * network using multicasting, and an internet opponent will be played
    * using TCP.
    * @param arcadeGame - endless arcade game that scrolls new bubbles.
+   * @param playerSave - load saved game information.
    */
   private void startFrozenBubble(int     myPlayerId,
                                  int     numPlayers,

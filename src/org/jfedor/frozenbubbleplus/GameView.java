@@ -100,6 +100,7 @@ import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.AttributeSet;
+import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -128,16 +129,18 @@ public class GameView extends SurfaceView
   private int             numPlayers;
   private int             numPlayer1GamesWon;
   private int             numPlayer2GamesWon;
+  private ComputerAI      mOpponent;
   private Context         mContext;
   private gameEnum        game1Status;
   private GameThread      mGameThread;
   private NetworkManager  mNetworkManager;
-  private RemoteInterface remoteInterface;
-  private ComputerAI      mOpponent;
-  private VirtualInput    mLocalInput;
-  private VirtualInput    mRemoteInput;
+  private Object          input1Lock;
+  private Object          input2Lock;
   private PlayerInput     mPlayer1;
   private PlayerInput     mPlayer2;
+  private RemoteInterface remoteInterface;
+  private VirtualInput    mLocalInput;
+  private VirtualInput    mRemoteInput;
 
   //********************************************************************
   // Listener interface for various events
@@ -1223,24 +1226,64 @@ public class GameView extends SurfaceView
     boolean doKeyDown(int keyCode, KeyEvent msg) {
       boolean handled = false;
       /*
-       * Only update the game state if this is a fresh key press.
+       * If this input came from a second connected gamepad, then it
+       * came from player 2.
        */
-      if (mLocalInput.checkNewActionKeyPress(keyCode))
-        updateStateOnEvent(null);
+      if (isRemoteInput(msg)) {
+        /*
+         * Only update the game state if this is a fresh key press.
+         */
+        if (mRemoteInput.checkNewActionKeyPress(keyCode))
+          updateStateOnEvent(null);
 
-      /*
-       * Process the key press if it is a function key.
-       */
-      toggleKeyPress(keyCode, true, true);
+        /*
+         * Process the key press if it is a function key.
+         */
+        toggleKeyPress(keyCode, true, true);
 
-      /*
-       * Process the key press if it is a game input key.
-       */
-      synchronized(mSurfaceHolder) {
-          handled = mLocalInput.setKeyDown(keyCode);
+        /*
+         * Process the key press if it is a game input key.
+         */
+        if (mRemoteInput.playerID == VirtualInput.PLAYER1) {
+          synchronized(input1Lock) {
+            handled = mRemoteInput.setKeyDown(keyCode);
+          }
+        }
+        else {
+          synchronized(input2Lock) {
+            handled = mRemoteInput.setKeyDown(keyCode);
+          }
+        }
+      }
+      else {
+        /*
+         * Only update the game state if this is a fresh key press.
+         */
+        if (mLocalInput.checkNewActionKeyPress(keyCode))
+          updateStateOnEvent(null);
+
+        /*
+         * Process the key press if it is a function key.
+         */
+        toggleKeyPress(keyCode, true, true);
+
+        /*
+         * Process the key press if it is a game input key.
+         */
+        if (mLocalInput.playerID == VirtualInput.PLAYER1) {
+          synchronized(input1Lock) {
+            handled = mLocalInput.setKeyDown(keyCode);
+          }
+        }
+        else {
+          synchronized(input2Lock) {
+            handled = mLocalInput.setKeyDown(keyCode);
+          }
+        }
       }
       return handled;
     }
+
     /**
      * Process key releases.  This must be allowed to run regardless of
      * the game state in order to properly clear key presses.
@@ -1254,8 +1297,29 @@ public class GameView extends SurfaceView
       /*
        * Process the key release if it is a game input key.
        */
-      synchronized(mSurfaceHolder) {
-        handled = mLocalInput.setKeyUp(keyCode);
+      if (isRemoteInput(msg)) {
+        if (mRemoteInput.playerID == VirtualInput.PLAYER1) {
+          synchronized(input1Lock) {
+            handled = mRemoteInput.setKeyUp(keyCode);
+          }
+        }
+        else {
+          synchronized(input2Lock) {
+            handled = mRemoteInput.setKeyUp(keyCode);
+          }
+        }
+      }
+      else {
+        if (mLocalInput.playerID == VirtualInput.PLAYER1) {
+          synchronized(input1Lock) {
+            handled = mLocalInput.setKeyUp(keyCode);
+          }
+        }
+        else {
+          synchronized(input2Lock) {
+            handled = mLocalInput.setKeyUp(keyCode);
+          }
+        }
       }
       return handled;
     }
@@ -1329,8 +1393,15 @@ public class GameView extends SurfaceView
       /*
        * Process the screen touch event.
        */
-      synchronized(mSurfaceHolder) {
-        handled = mLocalInput.setTouchEvent(event.getAction(), x + x_offset, y);
+      if (mLocalInput.playerID == VirtualInput.PLAYER1) {
+        synchronized(input1Lock) {
+          handled = mLocalInput.setTouchEvent(event.getAction(), x + x_offset, y);
+        }
+      }
+      else {
+        synchronized(input2Lock) {
+          handled = mLocalInput.setTouchEvent(event.getAction(), x + x_offset, y);
+        }
       }
       return handled;
     }
@@ -1350,8 +1421,15 @@ public class GameView extends SurfaceView
       boolean handled = false;
       if (mMode == stateEnum.RUNNING) {
         if (event.getAction() == MotionEvent.ACTION_MOVE) {
-          synchronized(mSurfaceHolder) {
-            mLocalInput.setTrackBallDx(event.getX() * TRACKBALL_COEFFICIENT);
+          if (mLocalInput.playerID == VirtualInput.PLAYER1) {
+            synchronized(input1Lock) {
+              mLocalInput.setTrackBallDx(event.getX() * TRACKBALL_COEFFICIENT);
+            }
+          }
+          else {
+            synchronized(input2Lock) {
+              mLocalInput.setTrackBallDx(event.getX() * TRACKBALL_COEFFICIENT);
+            }
           }
           handled = true;
         }
@@ -1704,7 +1782,7 @@ public class GameView extends SurfaceView
       int orientation = getScreenOrientation();
 
       if (numPlayers == 2) {
-        if ((orientation == FrozenBubble.SCREEN_ORIENTATION_REVERSE_PORTRAIT) ||
+        if ((orientation == ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT) ||
             (orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)) {
           if (mLocalInput.playerID == VirtualInput.PLAYER2) {
             x = (int) -((float) mDisplayDX / mDisplayScale) + 5;
@@ -1781,6 +1859,55 @@ public class GameView extends SurfaceView
     private int getScreenOrientation() {
       return FrozenBubble.getScreenOrientation(((Activity) mContext).
                                                getWindowManager());
+    }
+
+    /**
+     * <p>Determine if the input came from the remote player.  The
+     * second attached gamepad always belongs to the remote player. 
+     * @param msg - the <code>KeyEvent</code> from which to obtain the
+     * input device ID.
+     * @return <code>true</code> if this input came from the remote
+     * player.
+     */
+    private boolean isRemoteInput(KeyEvent msg) {
+      boolean gamepad2Found = false;
+      /*
+       * If this is a local 2 player game, check if this input came from
+       * the second connected gamepad for the remote player.
+       *
+       * Currently, local 2 player games can only be played via having
+       * two attached gamepads.
+       *
+       * NOTE: The InputDevice SOURCE_GAMEPAD input type was added in
+       * API 12.  It is a derivative of the input source class
+       * SOURCE_CLASS_BUTTON.
+       */
+      if ((numPlayers == 2) &&
+          (gameLocale == FrozenBubble.LOCALE_LOCAL) &&
+          !mRemoteInput.isCPU) {
+        int[] deviceIds   = InputDevice.getDeviceIds();
+        int   numGamepads = 0;
+        for (int id : deviceIds) {
+          InputDevice device = InputDevice.getDevice(id);
+          if ((device.getSources() & InputDevice.SOURCE_GAMEPAD) ==
+              InputDevice.SOURCE_GAMEPAD) {
+            /*
+             * Skip the first gamepad in the list, as it is always used
+             * to provide player 1 input.  Only return true if any of
+             * the subsequent gamepad identifiers match the event source
+             * identifier.
+             */
+            if (numGamepads > 0) {
+              if (msg.getDeviceId() == device.getId()) {
+                gamepad2Found = true;
+                break;
+              }
+            }
+            numGamepads++;
+          }
+        }
+      }
+      return gamepad2Found;
     }
 
     private BmpWrap NewBmpWrap() {
@@ -2243,28 +2370,19 @@ public class GameView extends SurfaceView
         }
         if (numPlayers > 1) {
           /*
-           * When rotate to shoot targeting mode is selected during a
-           * multiplayer game, then the screen orientation is forced
-           * to landscape.
-           *
            * In portrait mode during a multiplayer game, display just
            * one game field.  Depending on which player is the local
            * player, display the game field for just that player. This
            * is useful for devices with small screens.
            */
-          if (FrozenBubble.getTargetMode() == FrozenBubble.ROTATE_TO_SHOOT) {
-            mDisplayDX = 0;
-          }
-          else {
-            int orientation = getScreenOrientation();
-            if ((orientation == FrozenBubble.SCREEN_ORIENTATION_REVERSE_PORTRAIT) ||
-                (orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)) {
-              if (mLocalInput.playerID == VirtualInput.PLAYER2) {
-                mDisplayDX = (int)(-mDisplayScale * gameWidth);
-              }
-              else {
-                mDisplayDX = 0;
-              }
+          int orientation = getScreenOrientation();
+          if ((orientation == ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT) ||
+              (orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)) {
+            if (mLocalInput.playerID == VirtualInput.PLAYER2) {
+              mDisplayDX = (int)(-mDisplayScale * gameWidth);
+            }
+            else {
+              mDisplayDX = 0;
             }
           }
         }
@@ -2441,28 +2559,65 @@ public class GameView extends SurfaceView
         return;
       }
 
-      gameEnum game1State = mFrozenGame1.play(mPlayer1.actionLeft(),
-                                              mPlayer1.actionRight(),
-                                              mPlayer1.actionUp(),
-                                              mPlayer1.actionDown(),
-                                              mPlayer1.getTrackBallDx(),
-                                              mPlayer1.actionTouchFire(),
-                                              mPlayer1.getTouchX(),
-                                              mPlayer1.getTouchY(),
-                                              mPlayer1.actionTouchFireATS(),
-                                              mPlayer1.getTouchDxATS());
+      boolean actionLeft;
+      boolean actionRight;
+      boolean actionUp;
+      boolean actionDown;
+      boolean actionTouchFire;
+      boolean actionToucheFireATS;
+      double  trackBallDx;
+      double  touchX;
+      double  touchY;
+      double  touchDxATS;
+
+      synchronized(input1Lock) {
+        actionLeft          = mPlayer1.actionLeft();
+        actionRight         = mPlayer1.actionRight();
+        actionUp            = mPlayer1.actionUp();
+        actionDown          = mPlayer1.actionDown();
+        actionTouchFire     = mPlayer1.actionTouchFire();
+        actionToucheFireATS = mPlayer1.actionTouchFireATS();
+        trackBallDx         = mPlayer1.getTrackBallDx();
+        touchX              = mPlayer1.getTouchX();
+        touchY              = mPlayer1.getTouchY();
+        touchDxATS          = mPlayer1.getTouchDxATS();
+      }
+
+      gameEnum game1State = mFrozenGame1.play(actionLeft,
+                                              actionRight,
+                                              actionUp,
+                                              actionDown,
+                                              trackBallDx,
+                                              actionTouchFire,
+                                              touchX,
+                                              touchY,
+                                              actionToucheFireATS,
+                                              touchDxATS);
 
       if (numPlayers > 1) {
-        gameEnum game2State = mFrozenGame2.play(mPlayer2.actionLeft(),
-                                                mPlayer2.actionRight(),
-                                                mPlayer2.actionUp(),
-                                                mPlayer2.actionDown(),
-                                                mPlayer2.getTrackBallDx(),
-                                                mPlayer2.actionTouchFire(),
-                                                mPlayer2.getTouchX(),
-                                                mPlayer2.getTouchY(),
-                                                mPlayer2.actionTouchFireATS(),
-                                                mPlayer2.getTouchDxATS());
+        synchronized(input2Lock) {
+          actionLeft          = mPlayer2.actionLeft();
+          actionRight         = mPlayer2.actionRight();
+          actionUp            = mPlayer2.actionUp();
+          actionDown          = mPlayer2.actionDown();
+          actionTouchFire     = mPlayer2.actionTouchFire();
+          actionToucheFireATS = mPlayer2.actionTouchFireATS();
+          trackBallDx         = mPlayer2.getTrackBallDx();
+          touchX              = mPlayer2.getTouchX();
+          touchY              = mPlayer2.getTouchY();
+          touchDxATS          = mPlayer2.getTouchDxATS();
+        }
+
+        gameEnum game2State = mFrozenGame2.play(actionLeft,
+                                                actionRight,
+                                                actionUp,
+                                                actionDown,
+                                                trackBallDx,
+                                                actionTouchFire,
+                                                touchX,
+                                                touchY,
+                                                actionToucheFireATS,
+                                                touchDxATS);
 
         /*
          * If playing a network game, update the bubble grid checksums.
@@ -2752,15 +2907,21 @@ public class GameView extends SurfaceView
     if (myPlayerId == VirtualInput.PLAYER1) {
       mPlayer1 = new PlayerInput(VirtualInput.PLAYER1, false, false);
       mPlayer2 = new PlayerInput(VirtualInput.PLAYER2, isCPU, isRemote);
-      mLocalInput = mPlayer1;
+      mLocalInput  = mPlayer1;
       mRemoteInput = mPlayer2;
     }
     else {
       mPlayer1 = new PlayerInput(VirtualInput.PLAYER1, isCPU, isRemote);
       mPlayer2 = new PlayerInput(VirtualInput.PLAYER2, false, false);
-      mLocalInput = mPlayer2;
+      mLocalInput  = mPlayer2;
       mRemoteInput = mPlayer1;
     }
+
+    /*
+     * Create the player input mutexes.
+     */
+    input1Lock = new Object();
+    input2Lock = new Object();
 
     /*
      * Create a network game manager if this is a network game.

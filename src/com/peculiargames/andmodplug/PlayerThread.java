@@ -385,11 +385,11 @@ public class PlayerThread extends Thread {
       while (!success && (rateIndex < NUM_RATES)) {
         try {
           mMinbuffer = AudioTrack.getMinBufferSize(try_rates[rateIndex],
-            AudioFormat.CHANNEL_CONFIGURATION_STEREO,
+            AudioFormat.CHANNEL_OUT_STEREO,
             AudioFormat.ENCODING_PCM_16BIT);
           mMyTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
                                     try_rates[rateIndex],
-                                    AudioFormat.CHANNEL_CONFIGURATION_STEREO,
+                                    AudioFormat.CHANNEL_OUT_STEREO,
                                     AudioFormat.ENCODING_PCM_16BIT,
                                     mMinbuffer, AudioTrack.MODE_STREAM);
           /*
@@ -404,10 +404,10 @@ public class PlayerThread extends Thread {
     }
     else {
       mMinbuffer = AudioTrack.getMinBufferSize(desiredRate,
-        AudioFormat.CHANNEL_CONFIGURATION_STEREO,
+        AudioFormat.CHANNEL_OUT_STEREO,
         AudioFormat.ENCODING_PCM_16BIT);
       mMyTrack = new AudioTrack(AudioManager.STREAM_MUSIC, desiredRate,
-                                AudioFormat.CHANNEL_CONFIGURATION_STEREO,
+                                AudioFormat.CHANNEL_OUT_STEREO,
                                 AudioFormat.ENCODING_PCM_16BIT,
                                 mMinbuffer, AudioTrack.MODE_STREAM);
       /*
@@ -446,7 +446,7 @@ public class PlayerThread extends Thread {
            break;
         default:
           mMyTrack = new AudioTrack(AudioManager.STREAM_MUSIC, mRate,
-                                    AudioFormat.CHANNEL_CONFIGURATION_STEREO,
+                                    AudioFormat.CHANNEL_OUT_STEREO,
                                     AudioFormat.ENCODING_PCM_16BIT,
                                     mMinbuffer*2, AudioTrack.MODE_STREAM);
           break;

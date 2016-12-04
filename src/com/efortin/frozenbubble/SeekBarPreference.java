@@ -135,7 +135,7 @@ public class SeekBarPreference extends Preference
           }
           // remove the existing seekbar (there may not be one) and add ours
           newContainer.removeAllViews();
-          newContainer.addView(mSeekBar, ViewGroup.LayoutParams.FILL_PARENT,
+          newContainer.addView(mSeekBar, ViewGroup.LayoutParams.MATCH_PARENT,
                                ViewGroup.LayoutParams.WRAP_CONTENT);
         }
       } catch(Exception ex) {
