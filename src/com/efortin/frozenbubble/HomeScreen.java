@@ -219,15 +219,15 @@ public class HomeScreen extends Activity {
     optionsButton.setId(BTN12_ID);
     optionsButton.setFocusable(true);
     optionsButton.setFocusableInTouchMode(true);
-    LayoutParams myParams1 = new LayoutParams(LayoutParams.WRAP_CONTENT,
-                                              LayoutParams.WRAP_CONTENT);
-    myParams1.addRule(RelativeLayout.CENTER_IN_PARENT);
-    myParams1.topMargin    = 15;
-    myParams1.bottomMargin = 15;
+    LayoutParams myParams = new LayoutParams(LayoutParams.WRAP_CONTENT,
+                                             LayoutParams.WRAP_CONTENT);
+    myParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+    myParams.topMargin    = 15;
+    myParams.bottomMargin = 15;
     /*
      * Add view to layout.
      */
-    myLayout.addView(optionsButton, myParams1);
+    myLayout.addView(optionsButton, myParams);
     /*
      * Construct the continue button.
      */
@@ -271,16 +271,16 @@ public class HomeScreen extends Activity {
     continueButton.setFocusable(true);
     continueButton.setFocusableInTouchMode(true);
     continueButton.setEnabled(playerSave);
-    LayoutParams myParams2 = new LayoutParams(LayoutParams.WRAP_CONTENT,
-                                              LayoutParams.WRAP_CONTENT);
-    myParams2.addRule(RelativeLayout.CENTER_IN_PARENT);
-    myParams2.addRule(RelativeLayout.ABOVE, optionsButton.getId());
-    myParams2.topMargin    = 15;
-    myParams2.bottomMargin = 15;
+    myParams = new LayoutParams(LayoutParams.WRAP_CONTENT,
+                                LayoutParams.WRAP_CONTENT);
+    myParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+    myParams.addRule(RelativeLayout.ABOVE, optionsButton.getId());
+    myParams.topMargin    = 15;
+    myParams.bottomMargin = 15;
     /*
      * Add view to layout.
      */
-    myLayout.addView(continueButton, myParams2);
+    myLayout.addView(continueButton, myParams);
   }
 
   /**
@@ -324,15 +324,15 @@ public class HomeScreen extends Activity {
     start2pGameButton.setId(BTN3_ID);
     start2pGameButton.setFocusable(true);
     start2pGameButton.setFocusableInTouchMode(true);
-    LayoutParams myParams1 = new LayoutParams(LayoutParams.WRAP_CONTENT,
-                                              LayoutParams.WRAP_CONTENT);
-    myParams1.addRule(RelativeLayout.CENTER_IN_PARENT);
-    myParams1.topMargin = 15;
-    myParams1.bottomMargin = 15;
+    LayoutParams myParams = new LayoutParams(LayoutParams.WRAP_CONTENT,
+                                             LayoutParams.WRAP_CONTENT);
+    myParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+    myParams.topMargin = 15;
+    myParams.bottomMargin = 15;
     /*
      * Add view to layout.
      */
-    myLayout.addView(start2pGameButton, myParams1);
+    myLayout.addView(start2pGameButton, myParams);
     /*
      * Construct the 1 player game button.
      */
@@ -366,16 +366,16 @@ public class HomeScreen extends Activity {
     start1pGameButton.setId(BTN2_ID);
     start1pGameButton.setFocusable(true);
     start1pGameButton.setFocusableInTouchMode(true);
-    LayoutParams myParams2 = new LayoutParams(LayoutParams.WRAP_CONTENT,
-                                              LayoutParams.WRAP_CONTENT);
-    myParams2.addRule(RelativeLayout.CENTER_IN_PARENT);
-    myParams2.addRule(RelativeLayout.ABOVE, start2pGameButton.getId());
-    myParams2.topMargin = 15;
-    myParams2.bottomMargin = 15;
+    myParams = new LayoutParams(LayoutParams.WRAP_CONTENT,
+                                LayoutParams.WRAP_CONTENT);
+    myParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+    myParams.addRule(RelativeLayout.ABOVE, start2pGameButton.getId());
+    myParams.topMargin = 15;
+    myParams.bottomMargin = 15;
     /*
      * Add view to layout.
      */
-    myLayout.addView(start1pGameButton, myParams2);
+    myLayout.addView(start1pGameButton, myParams);
     /*
      * Construct the 1 player arcade game button.
      */
@@ -410,16 +410,16 @@ public class HomeScreen extends Activity {
     startArcadeGameButton.setId(BTN1_ID);
     startArcadeGameButton.setFocusable(true);
     startArcadeGameButton.setFocusableInTouchMode(true);
-    LayoutParams myParams3 = new LayoutParams(LayoutParams.WRAP_CONTENT,
-                                              LayoutParams.WRAP_CONTENT);
-    myParams3.addRule(RelativeLayout.CENTER_IN_PARENT);
-    myParams3.addRule(RelativeLayout.ABOVE, start1pGameButton.getId());
-    myParams3.topMargin = 15;
-    myParams3.bottomMargin = 15;
+    myParams = new LayoutParams(LayoutParams.WRAP_CONTENT,
+                                LayoutParams.WRAP_CONTENT);
+    myParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+    myParams.addRule(RelativeLayout.ABOVE, start1pGameButton.getId());
+    myParams.topMargin = 15;
+    myParams.bottomMargin = 15;
     /*
      * Add view to layout.
      */
-    myLayout.addView(startArcadeGameButton, myParams3);
+    myLayout.addView(startArcadeGameButton, myParams);
     /*
      * Construct the game extras button.
      */
@@ -451,16 +451,16 @@ public class HomeScreen extends Activity {
     gameExtrasButton.setId(BTN4_ID);
     gameExtrasButton.setFocusable(true);
     gameExtrasButton.setFocusableInTouchMode(true);
-    LayoutParams myParams4 = new LayoutParams(LayoutParams.WRAP_CONTENT,
-                                              LayoutParams.WRAP_CONTENT);
-    myParams4.addRule(RelativeLayout.CENTER_IN_PARENT);
-    myParams4.addRule(RelativeLayout.BELOW, start2pGameButton.getId());
-    myParams4.topMargin = 15;
-    myParams4.bottomMargin = 15;
+    myParams = new LayoutParams(LayoutParams.WRAP_CONTENT,
+                                LayoutParams.WRAP_CONTENT);
+    myParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+    myParams.addRule(RelativeLayout.BELOW, start2pGameButton.getId());
+    myParams.topMargin = 15;
+    myParams.bottomMargin = 15;
     /*
      * Add view to layout.
      */
-    myLayout.addView(gameExtrasButton, myParams4);
+    myLayout.addView(gameExtrasButton, myParams);
   }
 
   /**
@@ -479,7 +479,7 @@ public class HomeScreen extends Activity {
     Button startWiFiGameButton = new Button(this);
     startWiFiGameButton.setOnClickListener(new Button.OnClickListener(){
       public void onClick(View v){
-        buttonSelPage2 = BTN6_ID;
+        buttonSelPage2 = BTN7_ID;
         mSoundManager.playSound("stick", R.raw.stick);
         /*
          * Display the player ID buttons page.
@@ -501,18 +501,59 @@ public class HomeScreen extends Activity {
     startWiFiGameButton.setHorizontalFadingEdgeEnabled(true);
     startWiFiGameButton.setFadingEdgeLength(5);
     startWiFiGameButton.setShadowLayer(5, 5, 5, R.color.black);
-    startWiFiGameButton.setId(BTN6_ID);
+    startWiFiGameButton.setId(BTN7_ID);
     startWiFiGameButton.setFocusable(true);
     startWiFiGameButton.setFocusableInTouchMode(true);
-    LayoutParams myParams1 = new LayoutParams(LayoutParams.WRAP_CONTENT,
-                                              LayoutParams.WRAP_CONTENT);
-    myParams1.addRule(RelativeLayout.CENTER_IN_PARENT);
-    myParams1.topMargin = 15;
-    myParams1.bottomMargin = 15;
+    LayoutParams myParams = new LayoutParams(LayoutParams.WRAP_CONTENT,
+                                             LayoutParams.WRAP_CONTENT);
+    myParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+    myParams.topMargin = 15;
+    myParams.bottomMargin = 15;
     /*
      * Add view to layout.
      */
-    myLayout.addView(startWiFiGameButton, myParams1);
+    myLayout.addView(startWiFiGameButton, myParams);
+    /*
+     * Construct the Bluetooth network game button.
+     */
+    Button startBluetoothGameButton = new Button(this);
+    startBluetoothGameButton.setOnClickListener(new Button.OnClickListener(){
+      public void onClick(View v){
+        buttonSelPage2 = BTN6_ID;
+        mSoundManager.playSound("stick", R.raw.stick);
+        displayBluetoothDevicesList();
+      }
+    });
+    startBluetoothGameButton.setOnTouchListener(new Button.OnTouchListener(){
+      public boolean onTouch(View v, MotionEvent event){
+        if (event.getAction() == MotionEvent.ACTION_DOWN)
+          v.requestFocus();
+        return false;
+      }
+    });
+    startBluetoothGameButton.setText("Bluetooth");
+    startBluetoothGameButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
+    startBluetoothGameButton.setWidth((int) (startBluetoothGameButton.getTextSize() * 9));
+    startBluetoothGameButton.setTypeface(null, Typeface.BOLD);
+    startBluetoothGameButton.setHorizontalFadingEdgeEnabled(true);
+    startBluetoothGameButton.setFadingEdgeLength(5);
+    startBluetoothGameButton.setShadowLayer(5, 5, 5, R.color.black);
+    startBluetoothGameButton.setId(BTN6_ID);
+    startBluetoothGameButton.setFocusable(true);
+    startBluetoothGameButton.setFocusableInTouchMode(true);
+    if (BluetoothManager.getPairedDevices() == null) {
+      startBluetoothGameButton.setEnabled(false);
+    }
+    myParams = new LayoutParams(LayoutParams.WRAP_CONTENT,
+                                LayoutParams.WRAP_CONTENT);
+    myParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+    myParams.addRule(RelativeLayout.ABOVE, startWiFiGameButton.getId());
+    myParams.topMargin = 15;
+    myParams.bottomMargin = 15;
+    /*
+     * Add view to layout.
+     */
+    myLayout.addView(startBluetoothGameButton, myParams);
     /*
      * Construct the Player vs. CPU game button.
      */
@@ -546,57 +587,16 @@ public class HomeScreen extends Activity {
     startCPUGameButton.setId(BTN5_ID);
     startCPUGameButton.setFocusable(true);
     startCPUGameButton.setFocusableInTouchMode(true);
-    LayoutParams myParams2 = new LayoutParams(LayoutParams.WRAP_CONTENT,
-                                              LayoutParams.WRAP_CONTENT);
-    myParams2.addRule(RelativeLayout.CENTER_IN_PARENT);
-    myParams2.addRule(RelativeLayout.ABOVE, startWiFiGameButton.getId());
-    myParams2.topMargin = 15;
-    myParams2.bottomMargin = 15;
+    myParams = new LayoutParams(LayoutParams.WRAP_CONTENT,
+                                LayoutParams.WRAP_CONTENT);
+    myParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+    myParams.addRule(RelativeLayout.ABOVE, startBluetoothGameButton.getId());
+    myParams.topMargin = 15;
+    myParams.bottomMargin = 15;
     /*
      * Add view to layout.
      */
-    myLayout.addView(startCPUGameButton, myParams2);
-    /*
-     * Construct the Bluetooth network game button.
-     */
-    Button startBluetoothGameButton = new Button(this);
-    startBluetoothGameButton.setOnClickListener(new Button.OnClickListener(){
-      public void onClick(View v){
-        buttonSelPage2 = BTN7_ID;
-        mSoundManager.playSound("stick", R.raw.stick);
-        displayBluetoothDevicesList();
-      }
-    });
-    startBluetoothGameButton.setOnTouchListener(new Button.OnTouchListener(){
-      public boolean onTouch(View v, MotionEvent event){
-        if (event.getAction() == MotionEvent.ACTION_DOWN)
-          v.requestFocus();
-        return false;
-      }
-    });
-    startBluetoothGameButton.setText("Bluetooth");
-    startBluetoothGameButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
-    startBluetoothGameButton.setWidth((int) (startBluetoothGameButton.getTextSize() * 9));
-    startBluetoothGameButton.setTypeface(null, Typeface.BOLD);
-    startBluetoothGameButton.setHorizontalFadingEdgeEnabled(true);
-    startBluetoothGameButton.setFadingEdgeLength(5);
-    startBluetoothGameButton.setShadowLayer(5, 5, 5, R.color.black);
-    startBluetoothGameButton.setId(BTN7_ID);
-    startBluetoothGameButton.setFocusable(true);
-    startBluetoothGameButton.setFocusableInTouchMode(true);
-    if (BluetoothManager.getPairedDevices() == null) {
-      startBluetoothGameButton.setEnabled(false);
-    }
-    LayoutParams myParams3 = new LayoutParams(LayoutParams.WRAP_CONTENT,
-                                              LayoutParams.WRAP_CONTENT);
-    myParams3.addRule(RelativeLayout.CENTER_IN_PARENT);
-    myParams3.addRule(RelativeLayout.BELOW, startWiFiGameButton.getId());
-    myParams3.topMargin = 15;
-    myParams3.bottomMargin = 15;
-    /*
-     * Add view to layout.
-     */
-    myLayout.addView(startBluetoothGameButton, myParams3);
+    myLayout.addView(startCPUGameButton, myParams);
     /*
      * Construct the local 2 player game button.
      */
@@ -640,16 +640,16 @@ public class HomeScreen extends Activity {
     startLocal2PlayerGameButton.setId(BTN8_ID);
     startLocal2PlayerGameButton.setFocusable(true);
     startLocal2PlayerGameButton.setFocusableInTouchMode(true);
-    LayoutParams myParams4 = new LayoutParams(LayoutParams.WRAP_CONTENT,
-                                              LayoutParams.WRAP_CONTENT);
-    myParams4.addRule(RelativeLayout.CENTER_IN_PARENT);
-    myParams4.addRule(RelativeLayout.BELOW, startBluetoothGameButton.getId());
-    myParams4.topMargin = 15;
-    myParams4.bottomMargin = 15;
+    myParams = new LayoutParams(LayoutParams.WRAP_CONTENT,
+                                LayoutParams.WRAP_CONTENT);
+    myParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+    myParams.addRule(RelativeLayout.BELOW, startWiFiGameButton.getId());
+    myParams.topMargin = 15;
+    myParams.bottomMargin = 15;
     /*
      * Add view to layout.
      */
-    myLayout.addView(startLocal2PlayerGameButton, myParams4);
+    myLayout.addView(startLocal2PlayerGameButton, myParams);
   }
 
   /**
@@ -673,12 +673,12 @@ public class HomeScreen extends Activity {
         /*
          * Process the button tap and start a 2 player game.
          */
-        if (buttonSelPage2 == BTN7_ID) {
+        if (buttonSelPage2 == BTN6_ID) {
           startFrozenBubble(VirtualInput.PLAYER2, 2,
                             FrozenBubble.HUMAN,
                             FrozenBubble.LOCALE_BLUETOOTH, false, false);
         }
-        else {
+        else if (buttonSelPage2 == BTN7_ID) {
           startFrozenBubble(VirtualInput.PLAYER2, 2,
                             FrozenBubble.HUMAN,
                             FrozenBubble.LOCALE_WIFI, false, false);
@@ -702,15 +702,15 @@ public class HomeScreen extends Activity {
     player2Button.setId(BTN10_ID);
     player2Button.setFocusable(true);
     player2Button.setFocusableInTouchMode(true);
-    LayoutParams myParams1 = new LayoutParams(LayoutParams.WRAP_CONTENT,
-                                              LayoutParams.WRAP_CONTENT);
-    myParams1.addRule(RelativeLayout.CENTER_IN_PARENT);
-    myParams1.topMargin = 15;
-    myParams1.bottomMargin = 15;
+    LayoutParams myParams = new LayoutParams(LayoutParams.WRAP_CONTENT,
+                                             LayoutParams.WRAP_CONTENT);
+    myParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+    myParams.topMargin = 15;
+    myParams.bottomMargin = 15;
     /*
      * Add view to layout.
      */
-    myLayout.addView(player2Button, myParams1);
+    myLayout.addView(player2Button, myParams);
     /*
      * Construct the player 1 button.
      */
@@ -722,12 +722,12 @@ public class HomeScreen extends Activity {
         /*
          * Process the button tap and start a 2 player game.
          */
-        if (buttonSelPage2 == BTN7_ID) {
+        if (buttonSelPage2 == BTN6_ID) {
           startFrozenBubble(VirtualInput.PLAYER1, 2,
                             FrozenBubble.HUMAN,
                             FrozenBubble.LOCALE_BLUETOOTH, false, false);
         }
-        else {
+        else if (buttonSelPage2 == BTN7_ID) {
           startFrozenBubble(VirtualInput.PLAYER1, 2,
                             FrozenBubble.HUMAN,
                             FrozenBubble.LOCALE_WIFI, false, false);
@@ -751,16 +751,16 @@ public class HomeScreen extends Activity {
     player1Button.setId(BTN9_ID);
     player1Button.setFocusable(true);
     player1Button.setFocusableInTouchMode(true);
-    LayoutParams myParams2 = new LayoutParams(LayoutParams.WRAP_CONTENT,
-                                              LayoutParams.WRAP_CONTENT);
-    myParams2.addRule(RelativeLayout.CENTER_IN_PARENT);
-    myParams2.addRule(RelativeLayout.ABOVE, player2Button.getId());
-    myParams2.topMargin = 15;
-    myParams2.bottomMargin = 15;
+    myParams = new LayoutParams(LayoutParams.WRAP_CONTENT,
+                                LayoutParams.WRAP_CONTENT);
+    myParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+    myParams.addRule(RelativeLayout.ABOVE, player2Button.getId());
+    myParams.topMargin = 15;
+    myParams.bottomMargin = 15;
     /*
      * Add view to layout.
      */
-    myLayout.addView(player1Button, myParams2);
+    myLayout.addView(player1Button, myParams);
   }
 
   private void backKeyPress() {
@@ -904,13 +904,17 @@ public class HomeScreen extends Activity {
   private int numGamepadsConnected() {
     int[] deviceIds   = InputDevice.getDeviceIds();
     int   numGamepads = 0;
+
     for (int id : deviceIds) {
       InputDevice device = InputDevice.getDevice(id);
-      if ((device.getSources() & InputDevice.SOURCE_GAMEPAD) ==
-          InputDevice.SOURCE_GAMEPAD) {
+      if (((device.getSources() & InputDevice.SOURCE_GAMEPAD) ==
+          InputDevice.SOURCE_GAMEPAD) ||
+          ((device.getSources() & InputDevice.SOURCE_JOYSTICK) ==
+          InputDevice.SOURCE_JOYSTICK)) {
         numGamepads++;
       }
     }
+
     return numGamepads;
   }
 

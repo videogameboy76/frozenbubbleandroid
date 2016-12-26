@@ -95,6 +95,7 @@ public abstract class VirtualInput {
    * descendants to handle all the various input events.
    */
   public abstract boolean checkNewActionKeyPress(int keyCode);
+  public abstract int     getLastKeyCode();
   public abstract boolean setKeyDown(int keyCode);
   public abstract boolean setKeyUp(int keyCode);
   public abstract boolean setTouchEvent(int event, double x, double y);

@@ -382,6 +382,28 @@ public class GameView extends SurfaceView
               (keyCode == KeyEvent.KEYCODE_DPAD_DOWN));
     }
 
+    public int getLastKeyCode() {
+      int keyCode = KeyEvent.KEYCODE_UNKNOWN;
+
+      if (mLeft) {
+        keyCode = KeyEvent.KEYCODE_DPAD_LEFT;
+      }
+      else if (mRight) {
+        keyCode = KeyEvent.KEYCODE_DPAD_RIGHT;
+      }
+      else if (mCenter) {
+        keyCode = KeyEvent.KEYCODE_DPAD_CENTER;
+      }
+      else if (mUp) {
+        keyCode = KeyEvent.KEYCODE_DPAD_UP;
+      }
+      else if (mDown) {
+        keyCode = KeyEvent.KEYCODE_DPAD_DOWN;
+      }
+
+      return keyCode;
+    }
+
     /**
      * Obtain the ATS (aim-then-shoot) touch horizontal position change.
      * @return The horizontal touch change in position.
@@ -430,7 +452,8 @@ public class GameView extends SurfaceView
     /**
      * Process key presses.
      * @param keyCode
-     * @return True if the key press was processed, false if not.
+     * @return <code>true</code> if the key press was processed,
+     * <code>false</code> if not.
      */
     public boolean setKeyDown(int keyCode) {
       boolean handled = false;
@@ -1218,18 +1241,26 @@ public class GameView extends SurfaceView
     /**
      * Process key presses.  This must be allowed to run regardless of
      * the game state to correctly handle initial game conditions.
+     * <p>TODO: Early versions of Android have a bug related to handling
+     * key events from multiple inputs, in that it does not check the
+     * input source upon an <code>onKeyDown</code> event and it does not
+     * issue an <code>onKeyDown</code> event if a separate input
+     * source a key press with the same key code as the previous input
+     * without an intervening <code>onKeyUp</code> event.  At some
+     * point, a workaround needs to be implemented, or the application
+     * should be migrated to a version of Android without the bug.
      * @param keyCode - the static KeyEvent key identifier.
-     * @param msg - the key action message.
+     * @param deviceId - the source device ID.
      * @return - <code>true</code> if the key action is processed.
      * @see android.view.View#onKeyDown(int, android.view.KeyEvent)
      */
-    boolean doKeyDown(int keyCode, KeyEvent msg) {
+    boolean doKeyDown(int keyCode, int deviceId) {
       boolean handled = false;
       /*
        * If this input came from a second connected gamepad, then it
        * came from player 2.
        */
-      if (isRemoteInput(msg)) {
+      if (isRemoteInput(deviceId)) {
         /*
          * Only update the game state if this is a fresh key press.
          */
@@ -1246,11 +1277,13 @@ public class GameView extends SurfaceView
          */
         if (mRemoteInput.playerID == VirtualInput.PLAYER1) {
           synchronized(input1Lock) {
+            mRemoteInput.setKeyUp(mRemoteInput.getLastKeyCode());
             handled = mRemoteInput.setKeyDown(keyCode);
           }
         }
         else {
           synchronized(input2Lock) {
+            mRemoteInput.setKeyUp(mRemoteInput.getLastKeyCode());
             handled = mRemoteInput.setKeyDown(keyCode);
           }
         }
@@ -1272,55 +1305,68 @@ public class GameView extends SurfaceView
          */
         if (mLocalInput.playerID == VirtualInput.PLAYER1) {
           synchronized(input1Lock) {
+            mLocalInput.setKeyUp(mLocalInput.getLastKeyCode());
             handled = mLocalInput.setKeyDown(keyCode);
           }
         }
         else {
           synchronized(input2Lock) {
+            mLocalInput.setKeyUp(mLocalInput.getLastKeyCode());
             handled = mLocalInput.setKeyDown(keyCode);
           }
         }
       }
+
       return handled;
     }
 
     /**
      * Process key releases.  This must be allowed to run regardless of
      * the game state in order to properly clear key presses.
-     * @param keyCode - the static KeyEvent key identifier.
-     * @param msg - the key action message.
+     * @param deviceId - the input source device identifier.
      * @return - <code>true</code> if the key action is processed.
      * @see android.view.View#onKeyUp(int, android.view.KeyEvent)
      */
-    boolean doKeyUp(int keyCode, KeyEvent msg) {
+    boolean doKeyUp(int deviceId) {
       boolean handled = false;
       /*
-       * Process the key release if it is a game input key.
+       * Process a key up event by simply clearing the last key pressed.
+       * TODO: Early versions of Android have a bug related to handling
+       * key events from multiple inputs, in that it does not check the
+       * input source upon an <code>onKeyUp</code> event and clears all
+       * <code>onKeyDown</code> event occurrences.  Thus the only
+       * recourse is to clear all local key presses upon a key up event.
+       * When multiple keys are pressed simultaneously, we we only get
+       * an <code>onKeyUp</code> event after the first key release.  At
+       * some point, a proper workaround needs to be implemented, or the
+       * application should be migrated to a version of Android without
+       * the bug.
        */
-      if (isRemoteInput(msg)) {
+      if (isRemoteInput(deviceId)) {
         if (mRemoteInput.playerID == VirtualInput.PLAYER1) {
           synchronized(input1Lock) {
-            handled = mRemoteInput.setKeyUp(keyCode);
+            handled = mRemoteInput.setKeyUp(mRemoteInput.getLastKeyCode());
           }
         }
         else {
           synchronized(input2Lock) {
-            handled = mRemoteInput.setKeyUp(keyCode);
+            handled = mRemoteInput.setKeyUp(mRemoteInput.getLastKeyCode());
           }
         }
       }
       else {
         if (mLocalInput.playerID == VirtualInput.PLAYER1) {
           synchronized(input1Lock) {
-            handled = mLocalInput.setKeyUp(keyCode);
+            handled = mLocalInput.setKeyUp(mLocalInput.getLastKeyCode());
           }
         }
         else {
           synchronized(input2Lock) {
-            handled = mLocalInput.setKeyUp(keyCode);
+            handled = mLocalInput.setKeyUp(mLocalInput.getLastKeyCode());
           }
         }
       }
+
       return handled;
     }
 
@@ -1869,7 +1915,7 @@ public class GameView extends SurfaceView
      * @return <code>true</code> if this input came from the remote
      * player.
      */
-    private boolean isRemoteInput(KeyEvent msg) {
+    private boolean isRemoteInput(int deviceId) {
       boolean gamepad2Found = false;
       /*
        * If this is a local 2 player game, check if this input came from
@@ -1889,8 +1935,10 @@ public class GameView extends SurfaceView
         int   numGamepads = 0;
         for (int id : deviceIds) {
           InputDevice device = InputDevice.getDevice(id);
-          if ((device.getSources() & InputDevice.SOURCE_GAMEPAD) ==
-              InputDevice.SOURCE_GAMEPAD) {
+          if (((device.getSources() & InputDevice.SOURCE_GAMEPAD) ==
+              InputDevice.SOURCE_GAMEPAD) ||
+              ((device.getSources() & InputDevice.SOURCE_JOYSTICK) ==
+              InputDevice.SOURCE_JOYSTICK)) {
             /*
              * Skip the first gamepad in the list, as it is always used
              * to provide player 1 input.  Only return true if any of
@@ -1898,7 +1946,7 @@ public class GameView extends SurfaceView
              * identifier.
              */
             if (numGamepads > 0) {
-              if (msg.getDeviceId() == device.getId()) {
+              if (deviceId == device.getId()) {
                 gamepad2Found = true;
                 break;
               }
@@ -3007,16 +3055,53 @@ public class GameView extends SurfaceView
   }
 
   @Override
+  public boolean onGenericMotionEvent(MotionEvent event) {
+    boolean handled = false;
+    float   x       = event.getAxisValue(MotionEvent.AXIS_HAT_X);
+    float   y       = event.getAxisValue(MotionEvent.AXIS_HAT_Y);
+    int     keyCode = KeyEvent.KEYCODE_UNKNOWN;
+
+    if (event.getAction() == MotionEvent.ACTION_MOVE) {
+      if (y != 0.0f) {
+        if (y < 0.0f) {
+          keyCode = KeyEvent.KEYCODE_DPAD_UP;
+        }
+        else {
+          keyCode = KeyEvent.KEYCODE_DPAD_DOWN;
+        }
+      }
+  
+      if (x != 0.0f) {
+        if (x > 0.0f) {
+          keyCode = KeyEvent.KEYCODE_DPAD_RIGHT;
+        }
+        else {
+          keyCode = KeyEvent.KEYCODE_DPAD_LEFT;
+        }
+      }
+  
+      if (keyCode != KeyEvent.KEYCODE_UNKNOWN) {
+        handled = mGameThread.doKeyDown(keyCode, event.getDeviceId());
+      }
+      else {
+        handled = mGameThread.doKeyUp(event.getDeviceId());
+      }
+    }
+
+    return handled || super.onGenericMotionEvent(event);
+  }
+
+  @Override
   public boolean onKeyDown(int keyCode, KeyEvent event) {
     //Log.i("frozen-bubble", "GameView.onKeyDown()");
-    return mGameThread.doKeyDown(keyCode, event) ||
+    return mGameThread.doKeyDown(keyCode, event.getDeviceId()) ||
            super.onKeyDown(keyCode, event);
   }
 
   @Override
   public boolean onKeyUp(int keyCode, KeyEvent event) {
     //Log.i("frozen-bubble", "GameView.onKeyUp()");
-    return mGameThread.doKeyUp(keyCode, event) ||
+    return mGameThread.doKeyUp(event.getDeviceId()) ||
            super.onKeyUp(keyCode, event);
   }
 
