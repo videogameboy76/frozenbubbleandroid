@@ -123,11 +123,10 @@ public class BluetoothManager {
     this.deviceIndex = deviceIndex;
     myInputStream    = null;
     myOutputStream   = null;
-    myRxThread       = null;
-    myTxThread       = null;
-    txList           = null;
     txList           = new ArrayList<byte[]>();
+    txList.clear();
     listenerList     = new ArrayList<BluetoothListener>();
+    listenerList.clear();
     paused           = false;
     running          = true;
     myRxThread       = new Thread(new BluetoothRxThread(), "myRxThread");

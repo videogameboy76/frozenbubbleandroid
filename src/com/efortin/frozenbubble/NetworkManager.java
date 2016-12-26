@@ -98,11 +98,14 @@ public class NetworkManager extends Thread
   public static enum connectEnum {
     BLUETOOTH,
     UDP_UNICAST,
-    UDP_MULTICAST;
+    UDP_MULTICAST,
+    UDP_BROADCAST;
   }
 
-  private static final String HOST = "225.0.0.15";
-  private static final int    PORT = 5500;
+  private static final String BCAST_HOST  = "192.168.255.255";
+  private static final String MCAST_HOST  = "225.0.0.15";
+  private static final int    PORT_CLIENT = 5499;
+  private static final int    PORT_SERVER = 5500;
 
   private static boolean hasBluetooth = false;
 
@@ -164,26 +167,33 @@ public class NetworkManager extends Thread
 
   /**
    * Class constructor.
-   * @param myContext - the context from which to obtain the application
+   * @param context - the context from which to obtain the application
    * context to pass to the transport layer.
    * @param mode - the connection type.
    * @param localPlayer - reference to the local player input object.
    * @param remotePlayer - reference to the remote player input object.
    * transport layer to create a socket connection.
    */
-  public NetworkManager(Context      myContext,
+  public NetworkManager(Context      context,
                         connectEnum  mode,
                         VirtualInput localPlayer,
                         VirtualInput remotePlayer) {
-    this.myContext      = myContext.getApplicationContext();
+    this.myContext      = context.getApplicationContext();
     this.mode           = mode;
     this.localPlayer    = localPlayer;
     this.remotePlayer   = remotePlayer;
     missedAction        = false;
     newGameStarted      = false;
-    localIpAddress      = getLocalIPaddress();
+    localIpAddress      = getLocalIpAddress(myContext);
     opponentAddress     = null;
-    remoteIpAddress     = HOST;
+    if ( mode == connectEnum.UDP_MULTICAST )
+    {
+      remoteIpAddress = MCAST_HOST;
+    }
+    else
+    {
+      remoteIpAddress = BCAST_HOST;
+    }
     localPrefs          = new Preferences();
     remotePrefs         = new Preferences();
     localStatus         = null;
@@ -244,7 +254,7 @@ public class NetworkManager extends Thread
       if (session != null) {
         session.cleanUp();
       }
-      createUDPsocketSession();
+      createUDPsocketSession(localPlayer.playerID == VirtualInput.PLAYER1);
       return null;
     }
   }
@@ -903,9 +913,39 @@ public class NetworkManager extends Thread
     remoteActionList = null;
   }
 
-  private void createUDPsocketSession() {
+  private void createUDPsocketSession(boolean isServer) {
+    boolean broadcast;
+    int     rxPort;
+    int     txPort;
+
+    if (isServer) {
+      rxPort = PORT_CLIENT;
+      txPort = PORT_SERVER;
+    }
+    else {
+      rxPort = PORT_SERVER;
+      txPort = PORT_CLIENT;
+    }
+
+    switch (mode) {
+      case UDP_BROADCAST:
+        broadcast = true;
+        break;
+      case UDP_MULTICAST:
+      case UDP_UNICAST:
+      default:
+        broadcast = false;
+        break;
+    }
+
     try {
-      session = new UDPSocket(myContext, mode, remoteIpAddress, PORT);
+      session = new UDPSocket(myContext,
+                              mode,
+                              getLocalIpAddress(myContext),
+                              remoteIpAddress,
+                              rxPort,
+                              txPort,
+                              broadcast);
     } catch (UnknownHostException uhe) {
       uhe.printStackTrace();
     } catch (IOException ioe) {
@@ -913,7 +953,7 @@ public class NetworkManager extends Thread
     }
     if (session != null) {
       session.setUDPListener(this);
-      session.setLocalIPaddress(getLocalIPaddress());
+      session.setLocalIPaddress(getLocalIpAddress(myContext));
     }
   }
 
@@ -1061,17 +1101,18 @@ public class NetworkManager extends Thread
    * the Android project manifest to obtain the network connection
    * status:<br>
    * <code>ACCESS_WIFI_STATE</code>
+   * @param context - the application context.
    * @return the local WiFi IP address.
    * @see WifiManager
    */
-  public InetAddress getLocalIPaddress() {
+  public static final InetAddress getLocalIpAddress(Context context) {
     WifiManager wifiManager =
-        (WifiManager) myContext.getSystemService(Context.WIFI_SERVICE);
-    WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-    InetAddress address = null;
+        (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+    WifiInfo    wifiInfo = wifiManager.getConnectionInfo();
+    InetAddress address  = null;
     try {
-      address =
-          InetAddress.getByName(Formatter.formatIpAddress(wifiInfo.getIpAddress()));
+      address = InetAddress.getByName(
+          Formatter.formatIpAddress(wifiInfo.getIpAddress()));
     } catch (UnknownHostException e) {
       /*
        * Auto-generated catch block.
@@ -1079,6 +1120,23 @@ public class NetworkManager extends Thread
       e.printStackTrace();
     }
     return address;
+  }
+  
+  /**
+   * Obtain the local IP address from the <code>WiFiManager</code>.
+   * <p>The following <code>uses</code> permission must be addeded to
+   * the Android project manifest to obtain the network connection
+   * status:<br>
+   * <code>ACCESS_WIFI_STATE</code>
+   * @param context - the application context.
+   * @return the local WiFi IP address.
+   * @see WifiManager
+   */
+  public static final int getLocalIpInt(Context context) {
+    WifiManager wifiManager =
+        (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+    WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+    return wifiInfo.getIpAddress();
   }
 
   /**
@@ -1257,13 +1315,14 @@ public class NetworkManager extends Thread
      */
     if (statusTimerExpired()) {
       /*
-       * The UDP socket connection mode is set to multicast until an
-       * opponent has been identified.  Until then, transmit the network
-       * peer discovery message.
+       * The UDP socket connection mode is set to broadcast or
+       * multicast until an opponent has been identified, at which point
+       * the socket is reconnected in unicast mode.  Transmit the
+       * network peer discovery message until we are ready to play to
+       * ensure both peers are in UDP socket unicast mode.
        */
       if (mode != connectEnum.BLUETOOTH) {
-        if ((mode == connectEnum.UDP_MULTICAST) ||
-            (remoteStatus == null)) {
+        if (!localStatus.readyToPlay) {
           transmitHello();
         }
       }
@@ -1337,10 +1396,11 @@ public class NetworkManager extends Thread
      * If a UDP session has not yet been created, create a new one and
      * start the <code>NetworkGameManager</code> thread.
      */
-    if (((mode == connectEnum.UDP_MULTICAST) ||
+    if (((mode == connectEnum.UDP_BROADCAST) ||
+         (mode == connectEnum.UDP_MULTICAST) ||
          (mode == connectEnum.UDP_UNICAST  )) &&
         (session == null)) {
-      createUDPsocketSession();
+      createUDPsocketSession(localPlayer.playerID == VirtualInput.PLAYER1);
 
       /*
        * Start the network manager thread.
@@ -1447,7 +1507,8 @@ public class NetworkManager extends Thread
       byte msgId    = buffer[0];
       byte playerId = buffer[1];
 
-      if ((mode == connectEnum.UDP_MULTICAST) &&
+      if (((mode == connectEnum.UDP_BROADCAST) ||
+           (mode == connectEnum.UDP_MULTICAST)) &&
           (playerId == remotePlayer.playerID) &&
           (msgId == MSG_ID_HELLO) && (length >= HELLO_BYTES)) {
         opponentAddress = address;
@@ -2013,14 +2074,16 @@ public class NetworkManager extends Thread
 
   public void updateNetworkStatus(NetworkStatus status) {
     if (localIpAddress == null) {
-      localIpAddress = getLocalIPaddress();
+      localIpAddress = getLocalIpAddress(myContext);
       if (session != null) {
         session.setLocalIPaddress(localIpAddress);
       }
     }
     status.localPlayerId  = localPlayer .playerID;
     status.remotePlayerId = remotePlayer.playerID;
-    if ((mode == connectEnum.UDP_MULTICAST) || (mode == connectEnum.UDP_UNICAST)) {
+    if ((mode == connectEnum.UDP_BROADCAST) ||
+        (mode == connectEnum.UDP_MULTICAST) ||
+        (mode == connectEnum.UDP_UNICAST)) {
       status.isConnected     = hasInternetConnection();
       status.localIpAddress  = localIpAddress.getHostAddress();
       status.remoteIpAddress = remoteIpAddress;
