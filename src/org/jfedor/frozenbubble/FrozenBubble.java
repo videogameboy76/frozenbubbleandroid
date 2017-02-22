@@ -939,7 +939,7 @@ public class FrozenBubble extends Activity
     else
     {
       Random rand = new Random();
-      modNow = rand.nextInt(MODlist.length - 1);
+      modNow = rand.nextInt(MODlist.length);
     }
     /*
      * Determine whether to create a music player or load the song.
