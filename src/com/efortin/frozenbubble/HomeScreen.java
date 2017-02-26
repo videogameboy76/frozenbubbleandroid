@@ -79,6 +79,8 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.RelativeLayout.LayoutParams;
 
+import com.peculiargames.andmodplug.PlayerThread;
+
 public class HomeScreen extends Activity {
   /*
    * Provide unique IDs for the views associated with the relative
@@ -1213,7 +1215,11 @@ public class HomeScreen extends Activity {
        * Create a new music player to play the home screen music.
        */
       myModPlayer =
-          new ModPlayer(this, R.raw.introzik, myPreferences.musicOn, false);
+          new ModPlayer(this,
+                        R.raw.introzik,
+                        PlayerThread.LOOP_SONG_FOREVER,
+                        myPreferences.musicOn,
+                        false);
     }
   }
 

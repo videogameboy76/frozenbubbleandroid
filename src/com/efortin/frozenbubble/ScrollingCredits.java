@@ -69,6 +69,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 
+import com.peculiargames.andmodplug.PlayerThread;
+
 public class ScrollingCredits extends Activity implements Runnable {
   private boolean victoryScreenShown = false;
   private ScrollingTextView credits;
@@ -87,8 +89,11 @@ public class ScrollingCredits extends Activity implements Runnable {
     credits.setScrollDirection(ScrollingTextView.SCROLL_UP);
     credits.setTextSize(18.0f);
     // Start the credits music.
-    myModPlayer = new ModPlayer(this, R.raw.worldofpeace,
-                                FrozenBubble.getMusicOn(), false);
+    myModPlayer = new ModPlayer(this,
+                                R.raw.worldofpeace,
+                                PlayerThread.LOOP_SONG_FOREVER,
+                                FrozenBubble.getMusicOn(),
+                                false);
     // Post this runnable instance to the scrolling text view.
     credits.postDelayed(this, 100);
   }

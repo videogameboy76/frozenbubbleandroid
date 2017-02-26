@@ -82,6 +82,7 @@ import java.util.Random;
 
 import org.jfedor.frozenbubble.GameScreen.eventEnum;
 import org.jfedor.frozenbubble.GameScreen.stateEnum;
+import org.jfedor.frozenbubble.GameView.GameListener;
 import org.jfedor.frozenbubble.GameView.GameThread;
 
 import android.app.Activity;
@@ -111,16 +112,20 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.efortin.frozenbubble.AccelerometerManager;
+import com.efortin.frozenbubble.AccelerometerManager.AccelerometerListener;
 import com.efortin.frozenbubble.HomeScreen;
 import com.efortin.frozenbubble.ModPlayer;
 import com.efortin.frozenbubble.Preferences;
 import com.efortin.frozenbubble.PreferencesActivity;
 import com.efortin.frozenbubble.ScrollingCredits;
 import com.efortin.frozenbubble.VirtualInput;
+import com.peculiargames.andmodplug.PlayerThread;
+import com.peculiargames.andmodplug.PlayerThread.PlayerListener;
 
 public class FrozenBubble extends Activity
-  implements GameView.GameListener,
-             AccelerometerManager.AccelerometerListener {
+  implements GameListener,
+             AccelerometerListener,
+             PlayerListener{
   public final static int GAME_NORMAL     = 0;
   public final static int GAME_COLORBLIND = 1;
 
@@ -813,6 +818,7 @@ public class FrozenBubble extends Activity
     mGameView.requestFocus();
   }
 
+  @Override
   public void onAccelerationChanged(float x, float y, float z) {
     if (mGameThread != null) {
       if (numPlayers > 1) {
@@ -830,6 +836,7 @@ public class FrozenBubble extends Activity
     }
   }
 
+  @Override
   public void onGameEvent(eventEnum event) {
     switch (event) {
       case GAME_EXIT:
@@ -901,6 +908,24 @@ public class FrozenBubble extends Activity
     }
   }
 
+  @Override
+  public void onPlayerEvent(
+      com.peculiargames.andmodplug.PlayerThread.eventEnum event) {
+      switch (event) {
+      case SONG_COMPLETED:
+        if (myModPlayer != null) {
+          if (!songsSequential()) {
+            playMusic(true);
+          }
+        }
+        break;
+      case PATTERN_CHANGE:
+      case PLAYER_STARTED:
+      default:
+        break;
+    }
+  }
+
   /**
    * Pause the game.
    */
@@ -926,6 +951,7 @@ public class FrozenBubble extends Activity
    */
   private void playMusic(boolean startPlaying)
   {
+    int loopCount;
     int modNow;
     /*
      * Ascertain which song to play.  For a single player game, the song
@@ -933,20 +959,25 @@ public class FrozenBubble extends Activity
      * game, or if the game thread has been destroyed, the song is
      * selected at random.
      */
-    if (!arcadeGame && (mGameThread != null) && (numPlayers == 1)) {
-      modNow = mGameThread.getCurrentLevelIndex() % MODlist.length;
+    if (songsSequential()) {
+      loopCount = PlayerThread.LOOP_SONG_FOREVER;
+      modNow    = mGameThread.getCurrentLevelIndex() % MODlist.length;
     }
     else
     {
-      Random rand = new Random();
-      modNow = rand.nextInt(MODlist.length);
+      loopCount = PlayerThread.LOOP_SONG_FOREVER;
+      modNow = new Random().nextInt(MODlist.length);
     }
     /*
      * Determine whether to create a music player or load the song.
      */
     if (myModPlayer == null) {
-      myModPlayer = new ModPlayer(this, MODlist[modNow],
-                                  getMusicOn(), !startPlaying);
+      myModPlayer = new ModPlayer(this,
+                                  MODlist[modNow],
+                                  loopCount,
+                                  getMusicOn(),
+                                 !startPlaying);
+      myModPlayer.setPlayerListener(this);
     }
     else {
       myModPlayer.loadNewSong(MODlist[modNow], startPlaying);
@@ -1139,6 +1170,16 @@ public class FrozenBubble extends Activity
       AccelerometerManager.stopListening();
       setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
     }
+  }
+
+  /**
+   * For a Puzzle game, there are consecutive levels.  Each level will
+   * have a corresponding song.
+   * @return <code>true</code> if the song index should be selected
+   * based on the current game level.
+   */
+  private boolean songsSequential() {
+    return(!arcadeGame && (mGameThread != null) && (numPlayers == 1));
   }
 
   private void soundOptionsDialog() {

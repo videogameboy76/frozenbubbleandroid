@@ -55,16 +55,17 @@ package com.efortin.frozenbubble;
 import android.content.Context;
 
 import com.peculiargames.andmodplug.MODResourcePlayer;
-import com.peculiargames.andmodplug.PlayerThread;
+import com.peculiargames.andmodplug.PlayerThread.PlayerListener;
 
 public class ModPlayer {
   private MODResourcePlayer resPlayer = null;
 
   public ModPlayer(Context context,
                    int songId,
+                   int loopCount,
                    boolean musicOn,
                    boolean startPaused) {
-    newMusicPlayer(context, songId, musicOn, startPaused);
+    newMusicPlayer(context, songId, loopCount, musicOn, startPaused);
   }
 
   /**
@@ -101,12 +102,16 @@ public class ModPlayer {
    * Create a new music player.
    * @param context - The application context.
    * @param songId - The song resource ID.
+   * @param loopCount - The number of times to replay the song.  Use
+   * <code>PlayerThread.LOOP_SONG_FOREVER</code> to loop the song
+   * forever, and 0 to only play once, 1 to play twice, etc.
    * @param startPaused - If <code>false</code>, the song starts playing
    * immediately.  Otherwise it is paused and must be unpaused to start
    * playing.
    */
   private void newMusicPlayer(Context context,
                               int songId,
+                              int loopCount,
                               boolean musicOn,
                               boolean startPaused) {
     // Create a new music player.
@@ -114,7 +119,7 @@ public class ModPlayer {
     // Load the MOD file.
     resPlayer.loadModuleResource(songId);
     // Loop the song forever.
-    resPlayer.setLoopCount(PlayerThread.LOOP_SONG_FOREVER);
+    resPlayer.setLoopCount(loopCount);
     // Turn the music on or off.
     setMusicOn(musicOn);
     // Start the music thread.
@@ -133,6 +138,12 @@ public class ModPlayer {
     }
     else {
       resPlayer.setVolume(0);
+    }
+  }
+
+  public void setPlayerListener(PlayerListener pl) {
+    if (resPlayer != null) {
+      resPlayer.setPlayerListener(pl);
     }
   }
 
