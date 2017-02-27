@@ -1,5 +1,5 @@
-The Android port of the Frozen Bubble game.  Developed with SDK v21.1.0, using
-API level 4 (version 1.6 - Donut).
+The Android port of the Frozen Bubble game.  Originally developed with SDK
+v21.1.0, using API level 4 (version 1.6 - Donut).
 
 The code is based on the Java version of Frozen Bubble created by Glenn Sanson.
 The original Frozen Bubble was created by Guillaume Cottenceau (programming),

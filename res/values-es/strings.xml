@@ -21,7 +21,7 @@
   <string name="ok">OK</string>
   <string name="play_level_music">Tocar Música</string>
   <string name="play_sound_effects">Tocar Efectos Sonoros</string>
-  <string name="save_and_exit">Ahorrar e Salir</string>
+  <string name="save_and_exit">Guardar y Salir</string>
   <string name="title_activity_frozen_bubble">Frozen Bubble</string>
   <string name="title_activity_home_screen">Frozen Bubble</string>
   <string name="scrolling_credits">"Original Development\n"
@@ -53,7 +53,8 @@
     "\nCélim Hanifi - French\n\n"
     "\nUwe Walschus - German\n\n"
     "\nAndré Marcelo Alvarenga - Brazilian Portuguese\n\n"
-    "\nJuan Aguado - Spanish\n\n\n"
+    "\nJuan Aguado - Spanish\n\n"
+    "\nPjetur G Hjaltason - Icelandic\n\n\n"
     "\nMusic Credits\n"
     "------------------------\n"
     "\nAfter the Rain\nby Unknown Artist\n\n"
