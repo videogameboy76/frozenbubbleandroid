@@ -1909,20 +1909,20 @@ public class GameView extends SurfaceView
 
     /**
      * <p>Determine if the input came from the remote player.  The
-     * second attached gamepad always belongs to the remote player. 
+     * last attached gamepad always belongs to the remote player.
      * @param msg - the <code>KeyEvent</code> from which to obtain the
      * input device ID.
      * @return <code>true</code> if this input came from the remote
      * player.
      */
     private boolean isRemoteInput(int deviceId) {
-      boolean gamepad2Found = false;
+      boolean remoteInputFound = false;
       /*
        * If this is a local 2 player game, check if this input came from
-       * the second connected gamepad for the remote player.
+       * a connected gamepad for the remote player.
        *
-       * Currently, local 2 player games can only be played via having
-       * two attached gamepads.
+       * Local 2 player games can only be played by having one or more
+       * attached gamepads.
        *
        * NOTE: The InputDevice SOURCE_GAMEPAD input type was added in
        * API 12.  It is a derivative of the input source class
@@ -1931,31 +1931,26 @@ public class GameView extends SurfaceView
       if ((numPlayers == 2) &&
           (gameLocale == FrozenBubble.LOCALE_LOCAL) &&
           !mRemoteInput.isCPU) {
-        int[] deviceIds   = InputDevice.getDeviceIds();
-        int   numGamepads = 0;
+        int[] deviceIds     = InputDevice.getDeviceIds();
+        int   lastGamepadId = 0;
+        int   numGamepads   = 0;
         for (int id : deviceIds) {
           InputDevice device = InputDevice.getDevice(id);
           if (((device.getSources() & InputDevice.SOURCE_GAMEPAD) ==
               InputDevice.SOURCE_GAMEPAD) ||
               ((device.getSources() & InputDevice.SOURCE_JOYSTICK) ==
               InputDevice.SOURCE_JOYSTICK)) {
-            /*
-             * Skip the first gamepad in the list, as it is always used
-             * to provide player 1 input.  Only return true if any of
-             * the subsequent gamepad identifiers match the event source
-             * identifier.
-             */
-            if (numGamepads > 0) {
-              if (deviceId == device.getId()) {
-                gamepad2Found = true;
-                break;
-              }
-            }
+            lastGamepadId = device.getId();
             numGamepads++;
           }
         }
+
+        if ((numGamepads > 0) && (deviceId == lastGamepadId)) {
+          remoteInputFound = true;
+        }
       }
-      return gamepad2Found;
+
+      return remoteInputFound;
     }
 
     private BmpWrap NewBmpWrap() {

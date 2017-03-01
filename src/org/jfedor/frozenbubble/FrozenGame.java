@@ -77,9 +77,11 @@ public class FrozenGame extends GameScreen {
   public final static int HORIZONTAL_MOVE = 0;
   public final static int FIRE            = 1;
 
-  public final static double MIN_LAUNCH_DIRECTION   = 1.0;
-  public final static double START_LAUNCH_DIRECTION = 20.0;
-  public final static double MAX_LAUNCH_DIRECTION   = 39.0;
+  public final static double LAUNCH_DIRECTION_MIN_STEP = 0.25d;
+  public final static double LAUNCH_DIRECTION_STEP     = 0.5d;
+  public final static double MIN_LAUNCH_DIRECTION      = 1.0d;
+  public final static double START_LAUNCH_DIRECTION    = 20.0d;
+  public final static double MAX_LAUNCH_DIRECTION      = 39.0d;
 
   public final static int KEY_UP    = 38;
   public final static int KEY_LEFT  = 37;
@@ -844,10 +846,10 @@ public class FrozenGame extends GameScreen {
       else {
         double dx = 0;
         if (move[HORIZONTAL_MOVE] == KEY_LEFT) {
-          dx -= 1;
+          dx -= LAUNCH_DIRECTION_STEP;
         }
         if (move[HORIZONTAL_MOVE] == KEY_RIGHT) {
-          dx += 1;
+          dx += LAUNCH_DIRECTION_STEP;
         }
         dx += trackball_dx;
         if (ats) {
@@ -1483,7 +1485,8 @@ public class FrozenGame extends GameScreen {
       /*
        * For small position changes, don't update the penguin state.
        */
-      if ((dx < 0.25) && (dx > -0.25))
+      if ((dx <  LAUNCH_DIRECTION_MIN_STEP) &&
+          (dx > -LAUNCH_DIRECTION_MIN_STEP))
         dx = 0;
       launchBubblePosition = value;
       clampLaunchPosition();
