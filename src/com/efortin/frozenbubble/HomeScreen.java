@@ -153,6 +153,9 @@ public class HomeScreen extends Activity {
      */
     backButton.setText("\u21B6");
     backButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 30);
+    backButton.setMinimumHeight(0);
+    backButton.setMinimumWidth(0);
+    backButton.setHeight((int) backButton.getTextSize() * 2);
     backButton.setWidth((int) backButton.getTextSize() * 2);
     backButton.setTypeface(null, Typeface.BOLD);
     backButton.setBackgroundResource(R.drawable.round_button);
@@ -609,10 +612,10 @@ public class HomeScreen extends Activity {
         buttonSelPage2 = BTN8_ID;
         mSoundManager.playSound("stick", R.raw.stick);
         /*
-         * Only start a local 2 player game if at least two gamepads are
+         * Only start a local 2 player game if at least one gamepad is
          * connected.
          */
-        if (numGamepads >= 2) {
+        if (numGamepads > 0) {
           /*
            * Process the button tap and start a 2 player game.
            */
@@ -883,7 +886,7 @@ public class HomeScreen extends Activity {
     /*
      * Set the dialog message.
      */
-    builder.setMessage(numGamepads + " gamepads found, 2 needed.")
+    builder.setMessage(numGamepads + " gamepads found, 1 or more needed.")
     /*
      * Set the action buttons.
      */
