@@ -277,7 +277,7 @@ public class FrozenGame extends GameScreen {
     currentColor = bubbleManager.nextBubbleIndex(random);
     nextColor    = bubbleManager.nextBubbleIndex(random);
 
-    if (FrozenBubble.getMode() == FrozenBubble.GAME_NORMAL) {
+    if (FrozenBubble.getColorMode() == FrozenBubble.GAME_NORMAL) {
       nextBubble = new ImageSprite(new Rect(302, 440, 302 + 32, 440 + 32),
                                    bubbles[nextColor]);
     }
@@ -669,7 +669,7 @@ public class FrozenGame extends GameScreen {
   }
 
   public void paint(Canvas c, double scale, int dx, int dy) {
-    if (FrozenBubble.getMode() == FrozenBubble.GAME_NORMAL) {
+    if (FrozenBubble.getColorMode() == FrozenBubble.GAME_NORMAL) {
         nextBubble.changeImage(bubbles[nextColor]);
     }
     else {
@@ -820,7 +820,7 @@ public class FrozenGame extends GameScreen {
             nextColor = bubbleManager.nextBubbleIndex(random);
           }
 
-          if (FrozenBubble.getMode() == FrozenBubble.GAME_NORMAL) {
+          if (FrozenBubble.getColorMode() == FrozenBubble.GAME_NORMAL) {
             nextBubble.changeImage(bubbles[nextColor]);
           }
           else {
@@ -1473,7 +1473,7 @@ public class FrozenGame extends GameScreen {
     newNextColor = newNext;
     launchBubble.changeColor(currentColor);
 
-    if (FrozenBubble.getMode() == FrozenBubble.GAME_NORMAL)
+    if (FrozenBubble.getColorMode() == FrozenBubble.GAME_NORMAL)
       nextBubble.changeImage(bubbles[nextColor]);
     else
       nextBubble.changeImage(bubblesBlind[nextColor]);
@@ -1502,7 +1502,7 @@ public class FrozenGame extends GameScreen {
       nextColor     = tempColor;
       launchBubble.changeColor(currentColor);
 
-      if (FrozenBubble.getMode() == FrozenBubble.GAME_NORMAL)
+      if (FrozenBubble.getColorMode() == FrozenBubble.GAME_NORMAL)
         nextBubble.changeImage(bubbles[nextColor]);
       else
         nextBubble.changeImage(bubblesBlind[nextColor]);

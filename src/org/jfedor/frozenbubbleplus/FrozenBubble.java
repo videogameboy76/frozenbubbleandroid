@@ -126,8 +126,8 @@ public class FrozenBubble extends Activity
   implements GameListener,
              AccelerometerListener,
              PlayerListener{
-  public final static int GAME_NORMAL     = 0;
-  public final static int GAME_COLORBLIND = 1;
+  public final static boolean GAME_NORMAL     = false;
+  public final static boolean GAME_COLORBLIND = true;
 
   public final static int MENU_COLORBLIND_ON  = 1;
   public final static int MENU_COLORBLIND_OFF = 2;
@@ -312,13 +312,11 @@ public class FrozenBubble extends Activity
         newGameDialog();
         return true;
       case MENU_COLORBLIND_ON:
-        prefs.colorMode = true;
-        prefs.gameMode  = GAME_COLORBLIND;
+        prefs.colorMode = GAME_COLORBLIND;
         prefsUpdated = true;
         break;
       case MENU_COLORBLIND_OFF:
-        prefs.colorMode = false;
-        prefs.gameMode  = GAME_NORMAL;
+        prefs.colorMode = GAME_NORMAL;
         prefsUpdated = true;
         break;
       case MENU_FULLSCREEN_ON:
@@ -383,8 +381,8 @@ public class FrozenBubble extends Activity
   public boolean onPrepareOptionsMenu(Menu menu) {
     super.onPrepareOptionsMenu(menu);
     allowUnpause = false;
-    menu.findItem(MENU_COLORBLIND_ON ).setVisible(prefs.gameMode == GAME_NORMAL);
-    menu.findItem(MENU_COLORBLIND_OFF).setVisible(prefs.gameMode != GAME_NORMAL);
+    menu.findItem(MENU_COLORBLIND_ON ).setVisible(prefs.colorMode == GAME_NORMAL);
+    menu.findItem(MENU_COLORBLIND_OFF).setVisible(prefs.colorMode != GAME_NORMAL);
     menu.findItem(MENU_FULLSCREEN_ON ).setVisible(!prefs.fullscreen);
     menu.findItem(MENU_FULLSCREEN_OFF).setVisible(prefs.fullscreen);
     menu.findItem(MENU_SOUND_OPTIONS ).setVisible(true);
@@ -453,6 +451,14 @@ public class FrozenBubble extends Activity
     BubbleSprite.setCollisionThreshold(prefs.collision);
   }
 
+  public static boolean getColorMode() {
+    return prefs.colorMode;
+  }
+
+  public static void setColorMode(boolean newMode) {
+    prefs.colorMode = newMode;
+  }
+
   public static boolean getCompressor() {
     return prefs.compressor;
   }
@@ -483,14 +489,6 @@ public class FrozenBubble extends Activity
 
   public static void setFullscreen(boolean newFullscreen) {
     prefs.fullscreen = newFullscreen;
-  }
-
-  public static int getMode() {
-    return prefs.gameMode;
-  }
-
-  public static void setMode(int newMode) {
-    prefs.gameMode = newMode;
   }
 
   public static boolean getMusicOn() {
@@ -1242,7 +1240,7 @@ public class FrozenBubble extends Activity
   public static void setPrefs(Preferences prefs) {
     FrozenBubble.setBluetooth (prefs.bluetooth );
     FrozenBubble.setCollision (prefs.collision );
-    FrozenBubble.setMode      (prefs.gameMode  );
+    FrozenBubble.setColorMode (prefs.colorMode );
     FrozenBubble.setCompressor(prefs.compressor);
     FrozenBubble.setDifficulty(prefs.difficulty);
     FrozenBubble.setDontRushMe(prefs.dontRushMe);

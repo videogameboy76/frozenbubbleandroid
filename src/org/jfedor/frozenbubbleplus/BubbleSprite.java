@@ -560,7 +560,7 @@ public class BubbleSprite extends Sprite {
       drawImage(bubbleBlink, p.x, p.y, c, scale, dx, dy);
     }
     else {
-      if (FrozenBubble.getMode() == FrozenBubble.GAME_NORMAL ||
+      if (FrozenBubble.getColorMode() == FrozenBubble.GAME_NORMAL ||
           bubbleFace == frozenFace) {
         drawImage(bubbleFace, p.x, p.y, c, scale, dx, dy);
       }

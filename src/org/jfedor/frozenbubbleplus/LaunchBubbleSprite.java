@@ -103,7 +103,7 @@ public class LaunchBubbleSprite extends Sprite {
   }
 
   public final void paint(Canvas c, double scale, int dx, int dy) {
-    if (FrozenBubble.getMode() == FrozenBubble.GAME_NORMAL) {
+    if (FrozenBubble.getColorMode() == FrozenBubble.GAME_NORMAL) {
       drawImage(bubbles[currentColor], 302, 390, c, scale, dx, dy);
     }
     else {

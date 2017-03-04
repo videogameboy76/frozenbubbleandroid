@@ -57,7 +57,7 @@ import org.jfedor.frozenbubbleplus.FrozenBubble;
 import org.jfedor.frozenbubbleplus.LevelManager;
 
 public class Preferences {
-  public static final int PREFS_BYTES = 22;
+  public static final int PREFS_BYTES = 18;
 
   public int     bluetooth;
   public int     collision;
@@ -66,7 +66,6 @@ public class Preferences {
   public int     difficulty;
   public boolean dontRushMe;
   public boolean fullscreen;
-  public int     gameMode;
   public boolean musicOn;
   public boolean soundOn;
   public int     targetMode;
@@ -78,12 +77,11 @@ public class Preferences {
   public Preferences() {
     bluetooth  = 0;
     collision  = BubbleSprite.MIN_PIX;
-    colorMode  = false;
+    colorMode  = FrozenBubble.GAME_COLORBLIND;
     compressor = false;
-    difficulty = LevelManager.MODERATE;
+    difficulty = LevelManager.NORMAL;
     dontRushMe = false;
     fullscreen = true;
-    gameMode   = FrozenBubble.GAME_NORMAL;
     musicOn    = true;
     soundOn    = true;
     targetMode = FrozenBubble.POINT_TO_SHOOT;
@@ -111,7 +109,6 @@ public class Preferences {
       this.difficulty = prefs.difficulty;
       this.dontRushMe = prefs.dontRushMe;
       this.fullscreen = prefs.fullscreen;
-      this.gameMode   = prefs.gameMode;
       this.musicOn    = prefs.musicOn;
       this.soundOn    = prefs.soundOn;
       this.targetMode = prefs.targetMode;

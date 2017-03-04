@@ -70,14 +70,9 @@
 
   <PreferenceCategory
     android:summary="Frozen Bubble Game Options"
-    android:title="2 Player Game Options" >
-  <CheckBoxPreference
-    android:defaultValue="false"
-    android:key="compressor_option"
-    android:summary="On/Off"
-    android:title="Compressor Option" />
+    android:title="Arcade/2 Player Game Options" >
   <com.efortin.frozenbubble.SeekBarPreference
-    android:defaultValue="6"
+    android:defaultValue="5"
     android:key="difficulty_option"
     android:max="8"
     android:summary="Choose difficulty"
@@ -85,6 +80,16 @@
     efortin:min="4"
     efortin:unitsLeft=""
     efortin:unitsRight=" colors" />
+  </PreferenceCategory>
+
+  <PreferenceCategory
+    android:summary="Frozen Bubble Game Options"
+    android:title="2 Player Game Options" >
+  <CheckBoxPreference
+    android:defaultValue="false"
+    android:key="compressor_option"
+    android:summary="On/Off"
+    android:title="Compressor Option" />
   </PreferenceCategory>
 
 </PreferenceScreen>
