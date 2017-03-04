@@ -973,6 +973,7 @@ public class NetworkManager extends Thread
       intBytes[2]      = buffer[startIndex++];
       intBytes[3]      = buffer[startIndex++];
       prefs.collision  = toInt(intBytes);
+      prefs.colorMode  = buffer[startIndex++] == 1;
       prefs.compressor = buffer[startIndex++] == 1;
       intBytes[0]      = buffer[startIndex++];
       intBytes[1]      = buffer[startIndex++];
@@ -981,11 +982,6 @@ public class NetworkManager extends Thread
       prefs.difficulty = toInt(intBytes);
       prefs.dontRushMe = buffer[startIndex++] == 1;
       prefs.fullscreen = buffer[startIndex++] == 1;
-      intBytes[0]      = buffer[startIndex++];
-      intBytes[1]      = buffer[startIndex++];
-      intBytes[2]      = buffer[startIndex++];
-      intBytes[3]      = buffer[startIndex++];
-      prefs.gameMode   = toInt(intBytes);
       prefs.musicOn    = buffer[startIndex++] == 1;
       prefs.soundOn    = buffer[startIndex++] == 1;
       intBytes[0]      = buffer[startIndex++];
@@ -1012,6 +1008,7 @@ public class NetworkManager extends Thread
       buffer[startIndex++] = intBytes[1];
       buffer[startIndex++] = intBytes[2];
       buffer[startIndex++] = intBytes[3];
+      buffer[startIndex++] = (byte) ((prefs.colorMode == true)?1:0);
       buffer[startIndex++] = (byte) ((prefs.compressor == true)?1:0);
       toByteArray(prefs.difficulty, intBytes);
       buffer[startIndex++] = intBytes[0];
@@ -1020,11 +1017,6 @@ public class NetworkManager extends Thread
       buffer[startIndex++] = intBytes[3];
       buffer[startIndex++] = (byte) ((prefs.dontRushMe == true)?1:0);
       buffer[startIndex++] = (byte) ((prefs.fullscreen == true)?1:0);
-      toByteArray(prefs.gameMode, intBytes);
-      buffer[startIndex++] = intBytes[0];
-      buffer[startIndex++] = intBytes[1];
-      buffer[startIndex++] = intBytes[2];
-      buffer[startIndex++] = intBytes[3];
       buffer[startIndex++] = (byte) ((prefs.musicOn == true)?1:0);
       buffer[startIndex++] = (byte) ((prefs.soundOn == true)?1:0);
       toByteArray(prefs.targetMode, intBytes);

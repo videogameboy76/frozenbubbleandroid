@@ -122,6 +122,7 @@ public class GameView extends SurfaceView
   public static final int  GAMEFIELD_HEIGHT         = 480;
   public static final int  EXTENDED_GAMEFIELD_WIDTH = 640;
 
+  private boolean         levelStarted   = false;
   private boolean         mBlankScreen   = false;
   private boolean         muteKeyToggle  = false;
   private boolean         pauseKeyToggle = false;
@@ -1255,7 +1256,8 @@ public class GameView extends SurfaceView
      * @see android.view.View#onKeyDown(int, android.view.KeyEvent)
      */
     boolean doKeyDown(int keyCode, int deviceId) {
-      boolean handled = false;
+      boolean handled         = false;
+      boolean levelStartedWas = levelStarted;
       /*
        * If this input came from a second connected gamepad, then it
        * came from player 2.
@@ -1273,18 +1275,23 @@ public class GameView extends SurfaceView
         toggleKeyPress(keyCode, true, true);
 
         /*
-         * Process the key press if it is a game input key.
+         * Process the key press if it is a game input key, except if a
+         * level is being started.  This is so we do not get an
+         * inadvertent bubble launch, especially if we are transitioning
+         * from a different screen.
          */
-        if (mRemoteInput.playerID == VirtualInput.PLAYER1) {
-          synchronized(input1Lock) {
-            mRemoteInput.setKeyUp(mRemoteInput.getLastKeyCode());
-            handled = mRemoteInput.setKeyDown(keyCode);
+        if (!levelStartedWas) {
+          if (mRemoteInput.playerID == VirtualInput.PLAYER1) {
+            synchronized(input1Lock) {
+              mRemoteInput.setKeyUp(mRemoteInput.getLastKeyCode());
+              handled = mRemoteInput.setKeyDown(keyCode);
+            }
           }
-        }
-        else {
-          synchronized(input2Lock) {
-            mRemoteInput.setKeyUp(mRemoteInput.getLastKeyCode());
-            handled = mRemoteInput.setKeyDown(keyCode);
+          else {
+            synchronized(input2Lock) {
+              mRemoteInput.setKeyUp(mRemoteInput.getLastKeyCode());
+              handled = mRemoteInput.setKeyDown(keyCode);
+            }
           }
         }
       }
@@ -1301,18 +1308,23 @@ public class GameView extends SurfaceView
         toggleKeyPress(keyCode, true, true);
 
         /*
-         * Process the key press if it is a game input key.
+         * Process the key press if it is a game input key, except if a
+         * level is being started.  This is so we do not get an
+         * inadvertent bubble launch, especially if we are transitioning
+         * from a different screen.
          */
-        if (mLocalInput.playerID == VirtualInput.PLAYER1) {
-          synchronized(input1Lock) {
-            mLocalInput.setKeyUp(mLocalInput.getLastKeyCode());
-            handled = mLocalInput.setKeyDown(keyCode);
+        if (!levelStartedWas) {
+          if (mLocalInput.playerID == VirtualInput.PLAYER1) {
+            synchronized(input1Lock) {
+              mLocalInput.setKeyUp(mLocalInput.getLastKeyCode());
+              handled = mLocalInput.setKeyDown(keyCode);
+            }
           }
-        }
-        else {
-          synchronized(input2Lock) {
-            mLocalInput.setKeyUp(mLocalInput.getLastKeyCode());
-            handled = mLocalInput.setKeyDown(keyCode);
+          else {
+            synchronized(input2Lock) {
+              mLocalInput.setKeyUp(mLocalInput.getLastKeyCode());
+              handled = mLocalInput.setKeyDown(keyCode);
+            }
           }
         }
       }
@@ -1966,7 +1978,9 @@ public class GameView extends SurfaceView
      * puzzle mode beginning at the first level. 
      */
     public void newGame(boolean firstLevel) {
-      game1Status = gameEnum.PLAYING;
+      game1Status  = gameEnum.PLAYING;
+      levelStarted = true;
+
       synchronized(mSurfaceHolder) {
         if (numPlayers > 1) {
           malusBar1 = new MalusBar(GameView.GAMEFIELD_WIDTH - 164, 40,
@@ -2588,6 +2602,7 @@ public class GameView extends SurfaceView
 
           case RUNNING:
           default:
+            levelStarted = false;
             break;
         }
       }

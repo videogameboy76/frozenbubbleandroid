@@ -78,19 +78,14 @@ public class PreferencesActivity extends PreferenceActivity{
     prefs.bluetooth  =  sp.getInt("bluetooth", 0);
     prefs.collision  =  sp.getInt("collision_option", BubbleSprite.MIN_PIX);
     prefs.compressor =  sp.getBoolean("compressor_option", false);
-    prefs.difficulty =  sp.getInt("difficulty_option", LevelManager.MODERATE);
+    prefs.difficulty =  sp.getInt("difficulty_option", LevelManager.NORMAL);
     prefs.dontRushMe = !sp.getBoolean("rush_me_option", true);
     prefs.fullscreen =  sp.getBoolean("fullscreen_option", true);
-    prefs.colorMode  =  sp.getBoolean("colorblind_option", false);
+    prefs.colorMode  =  sp.getBoolean("colorblind_option", FrozenBubble.GAME_COLORBLIND);
     prefs.musicOn    =  sp.getBoolean("play_music_option", true);
     prefs.soundOn    =  sp.getBoolean("sound_effects_option", true);
     prefs.targetMode =  Integer.valueOf(sp.getString("targeting_option",
         Integer.toString(FrozenBubble.POINT_TO_SHOOT)));
-
-    if (!prefs.colorMode)
-      prefs.gameMode = FrozenBubble.GAME_NORMAL;
-    else
-      prefs.gameMode = FrozenBubble.GAME_COLORBLIND;
 
     return prefs;
   }
