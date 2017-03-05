@@ -1256,8 +1256,7 @@ public class GameView extends SurfaceView
      * @see android.view.View#onKeyDown(int, android.view.KeyEvent)
      */
     boolean doKeyDown(int keyCode, int deviceId) {
-      boolean handled         = false;
-      boolean levelStartedWas = levelStarted;
+      boolean handled = false;
       /*
        * If this input came from a second connected gamepad, then it
        * came from player 2.
@@ -1280,7 +1279,7 @@ public class GameView extends SurfaceView
          * inadvertent bubble launch, especially if we are transitioning
          * from a different screen.
          */
-        if (!levelStartedWas) {
+        if (!levelStarted) {
           if (mRemoteInput.playerID == VirtualInput.PLAYER1) {
             synchronized(input1Lock) {
               mRemoteInput.setKeyUp(mRemoteInput.getLastKeyCode());
@@ -1313,7 +1312,7 @@ public class GameView extends SurfaceView
          * inadvertent bubble launch, especially if we are transitioning
          * from a different screen.
          */
-        if (!levelStartedWas) {
+        if (!levelStarted) {
           if (mLocalInput.playerID == VirtualInput.PLAYER1) {
             synchronized(input1Lock) {
               mLocalInput.setKeyUp(mLocalInput.getLastKeyCode());
@@ -1392,9 +1391,9 @@ public class GameView extends SurfaceView
      */
     boolean doTouchEvent(MotionEvent event) {
       boolean handled = false;
-      double x_offset;
-      double x = xFromScr(event.getX());
-      double y = yFromScr(event.getY());
+      double  x_offset;
+      double  x       = xFromScr(event.getX());
+      double  y       = yFromScr(event.getY());
 
       if (mLocalInput.playerID == VirtualInput.PLAYER2) {
         x_offset = -318;
@@ -1477,6 +1476,7 @@ public class GameView extends SurfaceView
      */
     boolean doTrackballEvent(MotionEvent event) {
       boolean handled = false;
+
       if (mMode == stateEnum.RUNNING) {
         if (event.getAction() == MotionEvent.ACTION_MOVE) {
           if (mLocalInput.playerID == VirtualInput.PLAYER1) {
@@ -1492,6 +1492,7 @@ public class GameView extends SurfaceView
           handled = true;
         }
       }
+
       return handled;
     }
 
@@ -1978,8 +1979,7 @@ public class GameView extends SurfaceView
      * puzzle mode beginning at the first level. 
      */
     public void newGame(boolean firstLevel) {
-      game1Status  = gameEnum.PLAYING;
-      levelStarted = true;
+      game1Status = gameEnum.PLAYING;
 
       synchronized(mSurfaceHolder) {
         if (numPlayers > 1) {
@@ -2580,7 +2580,8 @@ public class GameView extends SurfaceView
               }
             }
             else if (mShowScores) {
-              mShowScores = false;
+              levelStarted = true;
+              mShowScores  = false;
               if (numPlayers > 1) {
                 setState(stateEnum.RUNNING);
               }
@@ -2601,8 +2602,8 @@ public class GameView extends SurfaceView
             break;
 
           case RUNNING:
-          default:
             levelStarted = false;
+          default:
             break;
         }
       }
