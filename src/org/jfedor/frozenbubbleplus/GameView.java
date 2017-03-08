@@ -1276,8 +1276,7 @@ public class GameView extends SurfaceView
         /*
          * Process the key press if it is a game input key, except if a
          * level is being started.  This is so we do not get an
-         * inadvertent bubble launch, especially if we are transitioning
-         * from a different screen.
+         * inadvertent bubble launch.
          */
         if (!levelStarted) {
           if (mRemoteInput.playerID == VirtualInput.PLAYER1) {
@@ -1309,8 +1308,7 @@ public class GameView extends SurfaceView
         /*
          * Process the key press if it is a game input key, except if a
          * level is being started.  This is so we do not get an
-         * inadvertent bubble launch, especially if we are transitioning
-         * from a different screen.
+         * inadvertent bubble launch.
          */
         if (!levelStarted) {
           if (mLocalInput.playerID == VirtualInput.PLAYER1) {
@@ -1979,7 +1977,8 @@ public class GameView extends SurfaceView
      * puzzle mode beginning at the first level. 
      */
     public void newGame(boolean firstLevel) {
-      game1Status = gameEnum.PLAYING;
+      game1Status  = gameEnum.PLAYING;
+      levelStarted = true;
 
       synchronized(mSurfaceHolder) {
         if (numPlayers > 1) {
@@ -2554,6 +2553,7 @@ public class GameView extends SurfaceView
       if (event_action_down) {
         switch (mMode) {
           case ABOUT:
+            levelStarted = true;
             if (numPlayers > 1) {
               setState(stateEnum.RUNNING);
               return true;
@@ -2567,6 +2567,7 @@ public class GameView extends SurfaceView
             break;
 
           case PAUSED:
+            levelStarted = true;
             if (mNetworkManager != null) {
               if (mShowNetwork) {
                 if (mNetworkManager.gameIsReadyForAction()) {
@@ -2580,8 +2581,7 @@ public class GameView extends SurfaceView
               }
             }
             else if (mShowScores) {
-              levelStarted = true;
-              mShowScores  = false;
+              mShowScores = false;
               if (numPlayers > 1) {
                 setState(stateEnum.RUNNING);
               }
