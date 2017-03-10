@@ -6,11 +6,11 @@
 
   <PreferenceCategory
     android:summary="Frozen Bubble Game Options"
-    android:title="Player information" >
+    android:title="@string/menu_player_information" >
   <EditTextPreference
     android:key="player_name"
-    android:summary="Please enter your name"
-    android:title="Player Name" />
+    android:summary="@string/player_name_summary"
+    android:title="@string/player_name" />
   </PreferenceCategory>
 
   <PreferenceCategory
@@ -35,61 +35,61 @@
     android:defaultValue="true"
     android:key="colorblind_option"
     android:summary="On/Off"
-    android:title="Colorblind Mode" />
+    android:title="@string/colorblind_mode" />
 
   <CheckBoxPreference
     android:defaultValue="true"
     android:key="fullscreen_option"
     android:summary="On/Off"
-    android:title="Fullscreen Mode" />
+    android:title="@string/fullscreen_mode" />
 
   <CheckBoxPreference
     android:defaultValue="true"
     android:key="rush_me_option"
     android:summary="On/Off"
-    android:title="Hurry Mode" />
+    android:title="@string/hurry_mode" />
 
   <ListPreference
     android:defaultValue="1"
     android:entries="@array/shoot_mode_array"
     android:entryValues="@array/targeting_values_array"
     android:key="targeting_option"
-    android:summary="Choose targeting mode"
+    android:summary="@string/menu_target_mode_summary"
     android:title="@string/menu_target_mode" />
 
   <com.efortin.frozenbubble.SeekBarPreference
     android:defaultValue="20"
     android:key="collision_option"
     android:max="29"
-    android:summary="Select bubble sensitivity"
-    android:title="Bubble Sensitivity"
+    android:summary="@string/bubble_sensitivity_summary"
+    android:title="@string/bubble_sensitivity"
     efortin:min="20"
     efortin:unitsLeft=""
-    efortin:unitsRight=" pixels" />
+    efortin:unitsRight="@string/pixelsright" />
   </PreferenceCategory>
 
   <PreferenceCategory
     android:summary="Frozen Bubble Game Options"
-    android:title="Arcade/2 Player Game Options" >
+    android:title="@string/arcade_2_player_options" >
   <com.efortin.frozenbubble.SeekBarPreference
     android:defaultValue="5"
     android:key="difficulty_option"
     android:max="8"
-    android:summary="Choose difficulty"
-    android:title="Difficulty"
+    android:summary="@string/difficulty_summary"
+    android:title="@string/difficulty"
     efortin:min="4"
     efortin:unitsLeft=""
-    efortin:unitsRight=" colors" />
+    efortin:unitsRight="@string/colorsright" />
   </PreferenceCategory>
 
   <PreferenceCategory
     android:summary="Frozen Bubble Game Options"
-    android:title="2 Player Game Options" >
+    android:title="@string/2_player_options" >
   <CheckBoxPreference
     android:defaultValue="false"
     android:key="compressor_option"
     android:summary="On/Off"
-    android:title="Compressor Option" />
+    android:title="@string/compressor_option" />
   </PreferenceCategory>
 
 </PreferenceScreen>
