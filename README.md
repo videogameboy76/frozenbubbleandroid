@@ -1,6 +1,11 @@
 The Android port of the Frozen Bubble game.  Originally developed with SDK
 v21.1.0, using API level 4 (version 1.6 - Donut).
 
+<a href="https://f-droid.org/repository/browse/?fdid=org.jfedor.frozenbubble" target="_blank">
+<img src="https://f-droid.org/badge/get-it-on.png" alt="Get it on F-Droid" height="80"/></a>
+<a href="https://play.google.com/store/apps/details?id=org.jfedor.frozenbubble" target="_blank">
+<img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png" alt="Get it on Google Play" height="80"/></a>
+
 The code is based on the Java version of Frozen Bubble created by Glenn Sanson.
 The original Frozen Bubble was created by Guillaume Cottenceau (programming),
 Alexis Younes and Amaury Amblard-Ladurantie (artwork) and Matthias Le Bidan
