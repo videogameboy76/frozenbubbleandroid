@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:efortin="https://code.google.com/p/frozenbubbleandroid"
+    xmlns:efortin="http://code.google.com/p/frozenbubbleandroid"
     android:layout_height="fill_parent"
     android:layout_width="fill_parent" >
 
