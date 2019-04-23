@@ -132,12 +132,24 @@ public abstract class Sprite {
 
   public static void drawImageClipped(BmpWrap image, int x, int y, Rect clipr,
                                       Canvas c, double scale, int dx, int dy) {
-    c.save(Canvas.CLIP_SAVE_FLAG);
+    //
+    //   NOTE 1: Canvas.CLIP_SAVE_FLAG was deprecated in API 26.  Previously the canvas save
+    //           appeared as follows: c.save(Canvas.CLIP_SAVE_FLAG);
+    //
+    //           The parameter was removed for API 26 compatibility.
+    //
+    //   NOTE 2: Region.Op values other than Region.Op.INTERSECT and Region.Op.DIFFERENCE were
+    //           deprecated in API 26.  Previously the rectangle clipping operation used the
+    //           following parameter: Region.Op.REPLACE
+    //
+    //           The parameter was changed for API 26 compatibility to: Region.Op.INTERSECT
+    //
+    c.save();
     c.clipRect((float)(clipr.left * scale + dx),
                (float)(clipr.top * scale + dy),
                (float)(clipr.right * scale + dx),
                (float)(clipr.bottom * scale + dy),
-               Region.Op.REPLACE);
+               Region.Op.INTERSECT);
     c.drawBitmap(image.bmp, (float)(x * scale + dx), (float)(y * scale + dy),
                  null);
     c.restore();
