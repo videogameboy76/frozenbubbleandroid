@@ -157,10 +157,10 @@ public class SoundManager {
       android.media.AudioManager audioManager =
           (android.media.AudioManager) context.
           getSystemService(Context.AUDIO_SERVICE);
-      final int streamVolume =
-          audioManager.
-          getStreamVolume(android.media.AudioManager.STREAM_MUSIC);
-      Integer   soundId      = soundMap.get(id);
+      final float streamVolume =
+          (float)audioManager.getStreamVolume(android.media.AudioManager.STREAM_MUSIC) /
+          (float)audioManager.getStreamMaxVolume(android.media.AudioManager.STREAM_MUSIC);
+      Integer soundId = soundMap.get(id);
 
       if (soundId != null) try {
         soundPool.play(soundId, streamVolume, streamVolume, 1, 0, 1f);
