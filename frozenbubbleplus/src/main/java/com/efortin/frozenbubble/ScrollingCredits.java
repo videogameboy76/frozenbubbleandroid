@@ -88,6 +88,7 @@ public class ScrollingCredits extends Activity implements Runnable {
     credits.setSpeed(50.0f);
     credits.setScrollDirection(ScrollingTextView.SCROLL_UP);
     credits.setTextSize(18.0f);
+    credits.setTextColor(Color.WHITE);
     // Start the credits music.
     myModPlayer = new ModPlayer(this,
                                 R.raw.worldofpeace,
