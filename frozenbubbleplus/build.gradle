@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 12
+    compileSdkVersion 28
 
     defaultConfig {
         applicationId "org.jfedor.frozenbubbleplus"
