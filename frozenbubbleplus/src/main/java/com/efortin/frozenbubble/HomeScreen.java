@@ -105,6 +105,7 @@ public class HomeScreen extends Activity {
   private final static int BTN10_ID  = 111;
   private final static int BTN11_ID  = 112;
   private final static int BTN12_ID  = 113;
+  private final static int BTN13_ID  = 114;
 
   private static int buttonSelPage1 = BTN1_ID;
   private static int buttonSelPage2 = BTN5_ID;
@@ -286,6 +287,59 @@ public class HomeScreen extends Activity {
      * Add view to layout.
      */
     myLayout.addView(continueButton, myParams);
+    /*
+     * Construct the about button.
+     */
+    Button aboutButton = new Button(this);
+    aboutButton.setOnClickListener(new Button.OnClickListener(){
+        public void onClick(View v){
+        buttonSelPage4 = BTN13_ID;
+        mSoundManager.playSound("stick", R.raw.stick);
+        /*
+         * Process the button tap and load the saved game.
+         */
+        startFrozenBubble(VirtualInput.PLAYER1, 0,
+                          FrozenBubble.HUMAN,
+                          FrozenBubble.LOCALE_LOCAL, false, false);
+        }
+    });
+    aboutButton.setOnTouchListener(new Button.OnTouchListener(){
+        public boolean onTouch(View v, MotionEvent event){
+        boolean result = false;
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                v.requestFocus();
+                break;
+            case MotionEvent.ACTION_UP:
+                result = v.performClick();
+                break;
+            default:
+                break;
+        }
+        return result;
+        }
+    });
+    aboutButton.setText("About");
+    aboutButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
+    aboutButton.setWidth((int) (aboutButton.getTextSize() * 9));
+    aboutButton.setTypeface(null, Typeface.BOLD);
+    aboutButton.setHorizontalFadingEdgeEnabled(true);
+    aboutButton.setFadingEdgeLength(5);
+    aboutButton.setShadowLayer(5, 5, 5, R.color.black);
+    aboutButton.setId(BTN13_ID);
+    aboutButton.setFocusable(true);
+    aboutButton.setFocusableInTouchMode(true);
+    aboutButton.setEnabled(true);
+    myParams = new LayoutParams(LayoutParams.WRAP_CONTENT,
+                                LayoutParams.WRAP_CONTENT);
+    myParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+    myParams.addRule(RelativeLayout.BELOW, optionsButton.getId());
+    myParams.topMargin    = 15;
+    myParams.bottomMargin = 15;
+    /*
+     * Add view to layout.
+     */
+    myLayout.addView(aboutButton, myParams);
   }
 
   /**
@@ -936,6 +990,7 @@ public class HomeScreen extends Activity {
     removeViewByID(BTN10_ID);
     removeViewByID(BTN11_ID);
     removeViewByID(BTN12_ID);
+    removeViewByID(BTN13_ID);
   }
 
   @Override

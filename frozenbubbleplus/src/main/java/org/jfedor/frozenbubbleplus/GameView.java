@@ -658,11 +658,11 @@ public class GameView extends SurfaceView
 
     Vector<BmpWrap> mImageList;
 
-    public GameThread(SurfaceHolder surfaceHolder) {
+    public GameThread(SurfaceHolder surfaceHolder, stateEnum state) {
       //Log.i("frozen-bubble", "GameThread()");
       mSurfaceHolder = surfaceHolder;
       Resources res = mContext.getResources();
-      setState(stateEnum.PAUSED);
+      setState(state);
 
       BitmapFactory.Options options = new BitmapFactory.Options();
 
@@ -1498,7 +1498,7 @@ public class GameView extends SurfaceView
       canvas.drawRGB(0, 0, 0);
       if (!mBlankScreen) {
         int x      = drawTextOffsetX();
-        int y      = 20;
+        int y      = 10;
         int ysp    = 26;
         int indent = 10;
         mFont.print("original frozen bubble:", x, y, canvas,
@@ -1539,10 +1539,13 @@ public class GameView extends SurfaceView
         mFont.print("is available at:", x, y, canvas,
                     mDisplayScale, mDisplayDX, mDisplayDY);
         y += ysp;
-        mFont.print("http://code.google.com", x, y, canvas,
+        mFont.print("https://github.com", x + indent, y, canvas,
                     mDisplayScale, mDisplayDX, mDisplayDY);
         y += ysp;
-        mFont.print("/p/frozenbubbleandroid", x, y, canvas,
+        mFont.print("/videogameboy76", x + indent, y, canvas,
+                    mDisplayScale, mDisplayDX, mDisplayDY);
+        y += ysp;
+        mFont.print("/frozenbubbleandroid", x + indent, y, canvas,
                     mDisplayScale, mDisplayDX, mDisplayDY);
       }
     }
@@ -2553,15 +2556,23 @@ public class GameView extends SurfaceView
       if (event_action_down) {
         switch (mMode) {
           case ABOUT:
-            levelStarted = true;
-            if (numPlayers > 1) {
-              setState(stateEnum.RUNNING);
-              return true;
+            if (numPlayers == 0) {
+              if (mGameListener != null) {
+                mShowNetwork = true;
+                mGameListener.onGameEvent(eventEnum.GAME_EXIT);
+                return true;
+              }
             }
             else {
-              if (!mBlankScreen) {
+              levelStarted = true;
+              if (numPlayers > 1) {
                 setState(stateEnum.RUNNING);
                 return true;
+              } else {
+                if (!mBlankScreen) {
+                  setState(stateEnum.RUNNING);
+                  return true;
+                }
               }
             }
             break;
@@ -3012,8 +3023,11 @@ public class GameView extends SurfaceView
     /*
      * Create and start the game thread.
      */
-    if (numPlayers > 1) {
-      mGameThread = new GameThread(holder);
+    if (numPlayers == 0) {
+      mGameThread = new GameThread(holder, stateEnum.ABOUT);
+    }
+    else if (numPlayers > 1) {
+      mGameThread = new GameThread(holder, stateEnum.PAUSED);
     }
     else {
       mGameThread = new GameThread(holder, levels, startingLevel, arcadeGame);
