@@ -214,7 +214,7 @@ public class HomeScreen extends Activity {
         return result;
       }
     });
-    optionsButton.setText("Options");
+    optionsButton.setText(R.string.options);
     optionsButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
     optionsButton.setWidth((int) (optionsButton.getTextSize() * 9));
     optionsButton.setTypeface(null, Typeface.BOLD);
@@ -265,7 +265,7 @@ public class HomeScreen extends Activity {
         return result;
       }
     });
-    continueButton.setText("Saved Game");
+    continueButton.setText(R.string.saved_game);
     continueButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
     continueButton.setWidth((int) (continueButton.getTextSize() * 9));
     continueButton.setTypeface(null, Typeface.BOLD);
@@ -319,7 +319,7 @@ public class HomeScreen extends Activity {
         return false;
       }
     });
-    start2pGameButton.setText("2 Player");
+    start2pGameButton.setText(R.string.twoplayer);
     start2pGameButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
     start2pGameButton.setWidth((int) (start2pGameButton.getTextSize() * 9));
     start2pGameButton.setTypeface(null, Typeface.BOLD);
@@ -361,7 +361,7 @@ public class HomeScreen extends Activity {
         return false;
       }
     });
-    start1pGameButton.setText("Puzzle");
+    start1pGameButton.setText(R.string.puzzle);
     start1pGameButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
     start1pGameButton.setWidth((int) (start1pGameButton.getTextSize() * 9));
     start1pGameButton.setTypeface(null, Typeface.BOLD);
@@ -405,7 +405,7 @@ public class HomeScreen extends Activity {
         return false;
       }
     });
-    startArcadeGameButton.setText("Arcade");
+    startArcadeGameButton.setText(R.string.arcade);
     startArcadeGameButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
     startArcadeGameButton.setWidth((int) (startArcadeGameButton.getTextSize() * 9));
     startArcadeGameButton.setTypeface(null, Typeface.BOLD);
@@ -446,7 +446,7 @@ public class HomeScreen extends Activity {
         return false;
       }
     });
-    gameExtrasButton.setText("Extras");
+    gameExtrasButton.setText(R.string.extras);
     gameExtrasButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
     gameExtrasButton.setWidth((int) (gameExtrasButton.getTextSize() * 9));
     gameExtrasButton.setTypeface(null, Typeface.BOLD);
@@ -499,7 +499,7 @@ public class HomeScreen extends Activity {
         return false;
       }
     });
-    startWiFiGameButton.setText("WiFi");
+    startWiFiGameButton.setText(R.string.wifi);
     startWiFiGameButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
     startWiFiGameButton.setWidth((int) (startWiFiGameButton.getTextSize() * 9));
     startWiFiGameButton.setTypeface(null, Typeface.BOLD);
@@ -536,7 +536,7 @@ public class HomeScreen extends Activity {
         return false;
       }
     });
-    startBluetoothGameButton.setText("Bluetooth");
+    startBluetoothGameButton.setText(R.string.bluetooth);
     startBluetoothGameButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
     startBluetoothGameButton.setWidth((int) (startBluetoothGameButton.getTextSize() * 9));
     startBluetoothGameButton.setTypeface(null, Typeface.BOLD);
@@ -582,7 +582,7 @@ public class HomeScreen extends Activity {
         return false;
       }
     });
-    startCPUGameButton.setText("Player vs. CPU");
+    startCPUGameButton.setText(R.string.player_vs_cpu);
     startCPUGameButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
     startCPUGameButton.setWidth((int) (startCPUGameButton.getTextSize() * 9));
     startCPUGameButton.setTypeface(null, Typeface.BOLD);
@@ -635,7 +635,7 @@ public class HomeScreen extends Activity {
         return false;
       }
     });
-    startLocal2PlayerGameButton.setText("Local");
+    startLocal2PlayerGameButton.setText(R.string.local);
     startLocal2PlayerGameButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
     startLocal2PlayerGameButton.setWidth((int) (startLocal2PlayerGameButton.getTextSize() * 9));
     startLocal2PlayerGameButton.setTypeface(null, Typeface.BOLD);
@@ -697,7 +697,7 @@ public class HomeScreen extends Activity {
         return false;
       }
     });
-    player2Button.setText("Player 2");
+    player2Button.setText(R.string.player2);
     player2Button.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
     player2Button.setWidth((int) (player2Button.getTextSize() * 9));
     player2Button.setTypeface(null, Typeface.BOLD);
@@ -746,7 +746,7 @@ public class HomeScreen extends Activity {
         return false;
       }
     });
-    player1Button.setText("Player 1");
+    player1Button.setText(R.string.player1);
     player1Button.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
     player1Button.setWidth((int) (player1Button.getTextSize() * 9));
     player1Button.setTypeface(null, Typeface.BOLD);
@@ -882,11 +882,11 @@ public class HomeScreen extends Activity {
     /*
      * Set the dialog title.
      */
-    builder.setTitle("Input Not Found");
+    builder.setTitle(R.string.input_not_found);
     /*
      * Set the dialog message.
      */
-    builder.setMessage(numGamepads + " gamepads found, 1 or more needed.")
+    builder.setMessage(numGamepads + R.string.more_gamepads_needed)
     /*
      * Set the action buttons.
      */

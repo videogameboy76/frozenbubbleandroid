@@ -4,17 +4,41 @@
   <string name="exit">Exit</string>
   <string name="install_editor">Redirecting you to the Market to download the Frozen Bubble Level Editor…</string>
   <string name="market_missing">Cannot find Android Market! Please install Frozen Bubble Level Editor manually.</string>
+  
+  <string name="menu_player_information">Player information</string>
+  <string name="player_name">Player Name</string>
+  <string name="player_name_summary">Please enter your name</string> 
+  
   <string name="menu_bluetooth_device">Bluetooth Device</string>
   <string name="menu_new_game">Start New Game</string>
+  
+  <string name="colorblind_mode">Colorblind Mode</string>  
+  
   <string name="menu_colorblind_on">Colorblind Mode On</string>
   <string name="menu_colorblind_off">Colorblind Mode Off</string>
+  <string name="fullscreen_mode">Fullscreen Mode</string>
   <string name="menu_fullscreen_on">Fullscreen On</string>
   <string name="menu_fullscreen_off">Fullscreen Off</string>
+  <string name="hurry_mode">Hurry Mode</string>
   <string name="menu_sound_options">Sound Options</string>
   <string name="menu_about">About Frozen Bubble</string>
   <string name="menu_target_mode">Targeting Mode</string>
+  <string name="menu_target_mode_summary">Choose targeting mode</string>
+  <string name="bubble_sensitivity">Bubble Sensitivity</string>
+  <string name="bubble_sensitivity_summary">Select bubble sensitivity</string>
+  <string name="pixelsright"> pixels</string>
   <string name="menu_dont_rush_me">Don\'t Rush Me</string>
   <string name="menu_rush_me">Rush Me</string>
+
+  <string name="arcade_2_player_options">Arcade/2 Player Game Options</string>
+  <string name="difficulty_summary">Choose difficulty</string>
+  <string name="difficulty">Difficulty</string>
+  <string name="colorsright"> colors</string>
+  
+  <string name="2_player_options">2 Player Game Options</string>
+  
+  <string name="compressor_option">Compressor Option</string>
+  
   <string name="menu_editor">Level Editor</string>
   <string name="menu_settings">Settings</string>
   <string name="cancel">Cancel</string>
@@ -24,6 +48,22 @@
   <string name="save_and_exit">Save and Exit</string>
   <string name="title_activity_frozen_bubble">Frozen Bubble</string>
   <string name="title_activity_home_screen">Frozen Bubble</string>
+  
+  <string name="input_not_found">Input Not Found</string>
+  <string name="more_gamepads_needed"> gamepads found, 1 or more needed.</string>
+  <string name="options">Options</string>
+  <string name="twoplayer">2 Player</string>
+  <string name="puzzle">Puzzle</string>
+  <string name="arcade">Arcade</string>
+  <string name="wifi">WiFi</string>
+  <string name="bluetooth">Bluetooth</string>
+  <string name="local">Local</string>
+  <string name="player1">Player 1</string>
+  <string name="player2">Player 2</string>
+  <string name="saved_game">Saved Game</string>
+  <string name="player_vs_cpu">Player vs. CPU</string>
+  <string name="extras">Extras</string>
+  
   <string name="scrolling_credits">"Original Development\n"
     "------------------------\n"
     "\nGuillaume Cottenceau - Design and Programming\n"
