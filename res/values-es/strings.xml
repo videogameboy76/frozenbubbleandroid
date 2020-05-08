@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="app_name">Frozen Bubble</string>
-  <string name="exit">Exit</string>
+  <string name="exit">Salir</string>
   <string name="install_editor">Redireccionando a Google Play para descargar el editor de niveles...</string>
   <string name="market_missing">No se puede encontrar la aplicación de Google Play. Por favor, instala el editor de niveles manualmente.</string>
-  <string name="menu_bluetooth_device">Bluetooth Device</string>
+  <string name="menu_bluetooth_device">Dispositivo Bluetooth</string>
   <string name="menu_new_game">Nuevo juego</string>
   <string name="menu_colorblind_on">Activar modo daltónico</string>
   <string name="menu_colorblind_off">Desactivar modo daltónico</string>
   <string name="menu_fullscreen_on">Pantalla completa</string>
   <string name="menu_fullscreen_off">Quitar pantalla completa</string>
   <string name="menu_sound_options">Opciones de sonido</string>
-  <string name="menu_about">Sobre Frozen Bubble</string>
+  <string name="menu_about">Acerca de Frozen Bubble</string>
   <string name="menu_target_mode">Modo de orientación</string>
   <string name="menu_dont_rush_me">Sin prisas</string>
   <string name="menu_rush_me">Con prisas</string>
@@ -24,61 +24,61 @@
   <string name="save_and_exit">Guardar y Salir</string>
   <string name="title_activity_frozen_bubble">Frozen Bubble</string>
   <string name="title_activity_home_screen">Frozen Bubble</string>
-  <string name="scrolling_credits">"Original Development\n"
+  <string name="scrolling_credits">"Desarrollo original\n"
     "------------------------\n"
-    "\nGuillaume Cottenceau - Design and Programming\n"
-    "\nAlexis Younes - Graphics\n"
-    "\nAmaury Amblard-Ladurantie - Coding and Graphics Support\n"
-    "\nMatthias Le Bidan - Sounds\n"
+    "\nGuillaume Cottenceau - Diseño y programación\n"
+    "\nAlexis Younes - Gráficos\n"
+    "\nAmaury Amblard-Ladurantie - Codificación y soporte gráfico\n"
+    "\nMatthias Le Bidan - Sonido\n"
     "\nhttp://www.frozen-bubble.org/\n\n\n"
-    "\nJava Development\n"
+    "\nDesarrollo en Java\n"
     "------------------------\n"
     "\nGlenn Sanson\n\n\n"
-    "\nAndroid Port\n"
+    "\nAdaptación a Android\n"
     "------------------------\n"
-    "\nPawel Aleksander Fedorynski - Project Owner\n"
-    "\nEric Fortin - Committer\n"
+    "\nPawel Aleksander Fedorynski - Propietario del proyecto\n"
+    "\nEric Fortin - Desarrollador\n"
     "\nhttps://code.google.com/p/frozenbubbleandroid/\n\n\n"
-    "\nAdditional Code\n"
+    "\nCódigo adicional\n"
     "------------------------\n"
-    "\nAntoine Vianey - Accelerometer Manager\n"
+    "\nAntoine Vianey - Gestor del acelerómetro\n"
     "\nhttps://code.google.com/p/androgames-sample/\n\n"
-    "\nPatrick Casey - AndModPlug Library\n"
+    "\nPatrick Casey - Biblioteca AndModPlug\n"
     "\nhttp://www.peculiar-games.com/\n\n"
-    "\nMichel Racic - High Score Manager\n"
+    "\nMichel Racic - Gestor de las máximas puntuaciones\n"
     "\nhttp://www.2030.tk/\n\n\n"
-    "\nTranslations\n"
+    "\Traducciones\n"
     "------------------------\n"
-    "\nShanghai Ndoo Network Technology Ltd. - Chinese\n\n"
-    "\nCélim Hanifi - French\n\n"
-    "\nUwe Walschus - German\n\n"
-    "\nAndré Marcelo Alvarenga - Brazilian Portuguese\n\n"
-    "\nJuan Aguado - Spanish\n\n"
-    "\nPjetur G Hjaltason - Icelandic\n\n\n"
-    "\nMusic Credits\n"
+    "\nShanghai Ndoo Network Technology Ltd. - Chino\n\n"
+    "\nCélim Hanifi - Francés\n\n"
+    "\nUwe Walschus - Alemán\n\n"
+    "\nAndré Marcelo Alvarenga - Portugués brasileño\n\n"
+    "\nJuan Aguado - Español\n\n"
+    "\nPjetur G Hjaltason - Islandés\n\n\n"
+    "\nCréditos musicales\n"
     "------------------------\n"
-    "\nAfter the Rain\nby Unknown Artist\n\n"
-    "\nAmbient Light\nby Vogue of Triton\n\n"
-    "\nAmbient Power\nby Vogue of Triton\n\n"
-    "\nAndroid Rupture\nby Baroque of Freelance\n\n"
-    "\nArtificial\nby Moby\n\n"
-    "\nBlue Stars\nby Blackstar\\Timetraveller of Cryptoburners\n\n"
-    "\nChunga-babe!\nby Yannis Brown\n\n"
-    "\nCrystalhammer\nby Karsten Obarski\n\n"
-    "\nDreamscope I\nby Counterpoint of Westower\n\n"
-    "\nFreefall\nby Baroque of Freelance\n\n"
-    "\nGaea\'s Awakening\nby Dreamsection\n\n"
-    "\nHomesick\nby Electric Keet\n\n"
-    "\nIf Crystals…\nby Tran of Renaissance\n\n"
-    "\nFrozen Bubble Intro\nby Matthias Le Bidan\n\n"
-    "\nPopcorn\nby Unknown Artist\n\n"
-    "\nStardust Memories\nby Jester of Sanity\n\n"
-    "\nSunshine of the Morning Sun\nby Area51 (Dan Nyman)\n\n"
-    "\nTechnostyle III\nby Xenox of Triad\n\n"
-    "\nWorld of Peace\nby Zanoma (Marwan Green Critter)\n\n"
-    "\nAll songs downloaded from:\n"
+    "\nAfter the Rain\nde Artista desconocido\n\n"
+    "\nAmbient Light\nde Vogue of Triton\n\n"
+    "\nAmbient Power\nde Vogue of Triton\n\n"
+    "\nAndroid Rupture\nde Baroque of Freelance\n\n"
+    "\nArtificial\nde Moby\n\n"
+    "\nBlue Stars\nde Blackstar\\Timetraveller of Cryptoburners\n\n"
+    "\nChunga-babe!\nde Yannis Brown\n\n"
+    "\nCrystalhammer\nde Karsten Obarski\n\n"
+    "\nDreamscope I\nde Counterpoint of Westower\n\n"
+    "\nFreefall\nde Baroque of Freelance\n\n"
+    "\nGaea\'s Awakening\nde Dreamsection\n\n"
+    "\nHomesick\nde Electric Keet\n\n"
+    "\nIf Crystals…\nde Tran of Renaissance\n\n"
+    "\nFrozen Bubble Intro\nde Matthias Le Bidan\n\n"
+    "\nPopcorn\nde Artista desconocido\n\n"
+    "\nStardust Memories\nde Jester of Sanity\n\n"
+    "\nSunshine of the Morning Sun\nde Area51 (Dan Nyman)\n\n"
+    "\nTechnostyle III\nde Xenox of Triad\n\n"
+    "\nWorld of Peace\nde Zanoma (Marwan Green Critter)\n\n"
+    "\nTodos los temas descargados de:\n"
     "http://modarchive.org/\n\n\n"
-    "\n\n\nThank You For Playing!"</string>
+    "\n\n\n¡Gracias por jugar!"</string>
   <string-array name="shoot_mode_array">
     <item>Apunta y luego dispara</item>
     <item>Apunta y dispara</item>
