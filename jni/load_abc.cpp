@@ -1879,7 +1879,7 @@ static void	abc_set_parts(char **d, char *p)
 				n = abc_getnumber(p+i,&k);
 				i += n - 1;
 				while( k-- > 1 ) {
-					q[j] = q[j-1];
+					if (sizeof(q) < j) q[j] = q[j-1];
 					j++;
 				}
 				continue;
@@ -2287,7 +2287,7 @@ static char *abc_gets(ABCHANDLE *h, MMFILE *mmfile)
 				abc_fgetbytes(mmfile, &h->line[i], h->len);
 			h->len <<= 1;
 		}
-		h->line[i-1] = '\0'; // strip off newline
+		if (sizeof(h->line) > i-1) h->line[i-1] = '\0'; // strip off newline
 		for( mp=h->macro; mp; mp=mp->next )
 			abc_preprocess(h,mp);
 		return h->line;
@@ -2887,7 +2887,7 @@ static int ABC_Key(const char *p)
 		c[i] = *p;
 		i++;
 	}
-	c[i] = '\0';
+	if (sizeof(c) > i) c[i] = '\0';
 	if( !strcmp(c,"Hp") || !strcmp(c,"HP") ) // highland pipes
 		strcpy(c,"Bm");	// two sharps at c and f
 	if( !strcasecmp(c+1, "minor") ) i=2;
@@ -2900,7 +2900,7 @@ static int ABC_Key(const char *p)
 	if( !strcasecmp(c+2, "maj") ) i=2;
 	for( ; i<6; i++ )
 		c[i] = ' ';
-	c[i] = '\0';
+	if (sizeof(c) > i) c[i] = '\0';
 	for( i=0; keySigs[i]; i++ ) {
 		for( j=10; j<46; j+=6 )
 			if( !strncasecmp(keySigs[i]+j, c, 6) )
@@ -4295,7 +4295,7 @@ BOOL CSoundFile::ReadABC(const uint8_t *lpStream, DWORD dwMemLength)
 					if( h->tpr ) abc_add_drum_sync(h, h->tpr, h->tracktime); // don't start drumming from the beginning of time!
 				}
 				if( h->tpr && !h->drumon ) h->tpr = NULL;
-				if( *p && *p != '%' ) {	// skip uninteresting lines
+				if( *p && *p != '%' && sizeof(p) < sizeof(ch)) {	// skip uninteresting lines
 					// plough thru the songline gathering mos....
 					ch0 = ' ';
 					pp = 0;
