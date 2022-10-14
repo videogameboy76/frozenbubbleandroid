@@ -347,7 +347,6 @@ public class FrozenGame extends GameScreen {
       scrolling[column] = null;
     }
     for (int column = colIdx; column < LevelManager.NUM_COLS; column++) {
-      if (newRow[column] != -1) {
         int color = newRow[column];
         BubbleSprite tempBubble = new BubbleSprite(
           new Rect(columnX[colIdx], 44 - 28 + rowMove, 32, 32),
@@ -356,7 +355,6 @@ public class FrozenGame extends GameScreen {
         scrolling[column] = tempBubble;
         this.addSprite(tempBubble);
         this.spriteToBack(tempBubble);
-      }
       colIdx += 2;
     }
   }
