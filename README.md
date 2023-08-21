@@ -1,8 +1,8 @@
 The Android port of the Frozen Bubble game.  Originally developed with SDK
 v20.1.0, using API level 4 (version 1.6 Donut).  Currently developed with:
-<br>Android Studio 3.2.1
-<br>Android SDK API level 28 - Android version 9.0 Pie
-<br>Android NDK r18b
+<br>Android Studio Arctic Fox 2020.3.1 Patch 2
+<br>Android SDK API level 31 - Android version 12.0 (S)
+<br>Android NDK r23
 
 <a href="https://f-droid.org/repository/browse/?fdid=org.jfedor.frozenbubble" target="_blank">
 <img src="https://f-droid.org/badge/get-it-on.png" alt="Get it on F-Droid" height="80"/></a>
