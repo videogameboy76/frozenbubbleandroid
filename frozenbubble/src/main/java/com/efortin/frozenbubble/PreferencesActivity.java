@@ -77,7 +77,7 @@ public class PreferencesActivity extends PreferenceActivity{
     Preferences prefs = new Preferences();
     prefs.bluetooth  =  sp.getInt("bluetooth", 0);
     prefs.collision  =  sp.getInt("collision_option", BubbleSprite.MIN_PIX);
-    prefs.compressor =  sp.getBoolean("compressor_option", false);
+    prefs.compressor =  sp.getBoolean("compressor_option", true);
     prefs.difficulty =  sp.getInt("difficulty_option", LevelManager.NORMAL);
     prefs.dontRushMe = !sp.getBoolean("rush_me_option", true);
     prefs.fullscreen =  sp.getBoolean("fullscreen_option", true);

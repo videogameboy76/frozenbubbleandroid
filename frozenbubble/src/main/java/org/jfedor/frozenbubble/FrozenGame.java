@@ -591,7 +591,7 @@ public class FrozenGame extends GameScreen {
   public void lowerCompressor(boolean playSound) {
     fixedBubbles = 0;
 
-    if (isArcade) {
+    if (isArcade || !FrozenBubble.getCompressor()) {
       return;
     }
 

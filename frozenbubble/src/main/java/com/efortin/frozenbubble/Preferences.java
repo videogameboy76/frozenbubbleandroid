@@ -78,7 +78,7 @@ public class Preferences {
     bluetooth  = 0;
     collision  = BubbleSprite.MIN_PIX;
     colorMode  = FrozenBubble.GAME_COLORBLIND;
-    compressor = false;
+    compressor = true;
     difficulty = LevelManager.NORMAL;
     dontRushMe = false;
     fullscreen = true;
