@@ -17,6 +17,7 @@
   <string name="menu_rush_me">Ýta á eftir mér</string>
   <string name="menu_editor">Borð-ritill</string>
   <string name="menu_settings">Stillingar</string>
+  <string name="no_devices_found">Engin pöruð tæki fundust</string>
   <string name="cancel">Hætta við</string>
   <string name="ok">Í lagi</string>
   <string name="play_level_music">Spila tónlist borðs</string>

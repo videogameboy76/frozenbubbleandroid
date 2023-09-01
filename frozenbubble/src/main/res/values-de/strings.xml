@@ -17,6 +17,7 @@
   <string name="menu_rush_me">Zeitdruck</string>
   <string name="menu_editor">Level-Editor</string>
   <string name="menu_settings">Einstellungen</string>
+  <string name="no_devices_found">Keine gekoppelten Geräte gefunden</string>
   <string name="cancel">Abbrechen</string>
   <string name="ok">OK</string>
   <string name="play_level_music">Musik Abspielen</string>

@@ -17,6 +17,7 @@
   <string name="menu_rush_me">Me apresse</string>
   <string name="menu_editor">Editor de Níveis</string>
   <string name="menu_settings">Configurações</string>
+  <string name="no_devices_found">Nenhum dispositivo emparelhado encontrado</string>
   <string name="cancel">Cancelar</string>
   <string name="ok">OK</string>
   <string name="play_level_music">Reproduzir música do nível</string>

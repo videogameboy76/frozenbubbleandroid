@@ -58,6 +58,7 @@ import org.jfedor.frozenbubble.SoundManager;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -580,7 +581,12 @@ public class HomeScreen extends Activity {
       public void onClick(View v){
         buttonSelPage2 = BTN6_ID;
         mSoundManager.playSound("stick", R.raw.stick);
-        displayBluetoothDevicesList();
+        if (BluetoothManager.checkBluetoothOn()) {
+          displayBluetoothDevicesList();
+        }
+        else {
+          startActivity(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE));
+        }
       }
     });
     startBluetoothGameButton.setOnTouchListener(new Button.OnTouchListener(){
@@ -600,7 +606,8 @@ public class HomeScreen extends Activity {
     startBluetoothGameButton.setId(BTN6_ID);
     startBluetoothGameButton.setFocusable(true);
     startBluetoothGameButton.setFocusableInTouchMode(true);
-    if (BluetoothManager.getPairedDevices() == null) {
+    if (BluetoothAdapter.getDefaultAdapter() == null)
+    {
       startBluetoothGameButton.setEnabled(false);
     }
     myParams = new LayoutParams(LayoutParams.WRAP_CONTENT,
@@ -872,6 +879,9 @@ public class HomeScreen extends Activity {
       for (int index = 0; index < devices.length; index++) {
         arrayAdapter.add(devices[index].getName());
       }
+    }
+    else {
+      builderSingle.setMessage(R.string.no_devices_found);
     }
 
     builderSingle.setNegativeButton(R.string.cancel,

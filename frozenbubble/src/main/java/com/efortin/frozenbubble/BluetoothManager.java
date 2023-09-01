@@ -146,6 +146,14 @@ public class BluetoothManager {
     return new String(hexChars);
   }
 
+  public static boolean checkBluetoothOn() {
+    BluetoothAdapter localAdapter = BluetoothAdapter.getDefaultAdapter();
+    if (localAdapter != null) {
+      return (localAdapter.getState() == localAdapter.STATE_ON);
+    }
+    return (false);
+  }
+
   /**
    * Clean up the UDP socket by stopping the thread, closing the UDP
    * socket and freeing resources.
