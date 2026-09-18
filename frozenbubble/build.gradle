@@ -10,9 +10,9 @@ android {
 
     defaultConfig {
         applicationId "org.jfedor.frozenbubble"
-        compileSdk 35
+        compileSdk 36
         minSdkVersion 14
-        targetSdkVersion 35
+        targetSdkVersion 36
 
         ndk {
             moduleName "modplug-1.0"
